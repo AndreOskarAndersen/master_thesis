@@ -11,3 +11,6 @@ Den følgende fil indeholder ideer til mit master thesis, samt nogle eksempler/k
 
 -   Yolo-Lite: https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8621865
 -   Squeezenet: https://arxiv.org/pdf/1602.07360.pdf?source=post_page---------------------------
+
+## 3) SLAM using machine learning
+-   Mangler artikler
