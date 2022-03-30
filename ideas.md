@@ -14,3 +14,6 @@ Den følgende fil indeholder ideer til mit master thesis, samt nogle eksempler/k
 
 ## 3) SLAM using machine learning
 -   Mangler artikler
+
+## 4) Automatic speech recognition
+-   Mangler artikler
