@@ -17,3 +17,9 @@ Den følgende fil indeholder ideer til mit master thesis, samt nogle eksempler/k
 
 ## 4) Automatic speech recognition
 -   Mangler artikler
+
+## 5) Machine translation
+-   Mangler artikler
+
+## 6) Redesigning of major networks, such that they become smaller but do not lose accuracy
+-   Ligesom SqueezeNet, bare for et andet netværk end AlexNet
