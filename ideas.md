@@ -21,5 +21,6 @@ Den følgende fil indeholder ideer til mit master thesis, samt nogle eksempler/k
 ## 5) Machine translation
 -   Mangler artikler
 
-## 6) Redesigning of major networks, such that they become smaller but do not lose accuracy
+## 6) Model compression of big models
 -   Ligesom SqueezeNet, bare for et andet netværk end AlexNet
+-   Eks. singel-shot detection.
