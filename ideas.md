@@ -24,3 +24,5 @@ Den følgende fil indeholder ideer til mit master thesis, samt nogle eksempler/k
 ## 6) Model compression of big models
 -   Ligesom SqueezeNet, bare for et andet netværk end AlexNet
 -   Eks. singel-shot detection.
+
+## 7) Articulated tracking of humans in 2D
