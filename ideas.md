@@ -28,3 +28,4 @@ Den følgende fil indeholder ideer til mit master thesis, samt nogle eksempler/k
 ## 7) Articulated tracking of humans in 2D
 -   UniPose: https://openaccess.thecvf.com/content_CVPR_2020/papers/Artacho_UniPose_Unified_Human_Pose_Estimation_in_Single_Images_and_Videos_CVPR_2020_paper.pdf
     - GRU vs LSTM: https://datascience.stackexchange.com/questions/14581/when-to-use-gru-over-lstm
+    - GitHub: https://github.com/bmartacho/UniPose/blob/master/model/uniposeLSTM.py
