@@ -1,0 +1,14 @@
+* Træn classification CNN og interpret modellen
+* Måske (Fashion-)MNIST-data?
+* Visualizing and Understanding Convolutional Networks: https://arxiv.org/pdf/1311.2901.pdf
+* Occlusion-test: https://gsurma.medium.com/cnn-explainer-interpreting-convolutional-neural-networks-1-n-e81c62cbb660
+* "A lot of information is present at the input of the last layer. 
+It is providing insights into the network behavior. However, dimension is very high and cannot be represented easily.
+A set of general-purpose dimension reduction technics have been used to display these high dimension spaces as a 
+manifold in the 2D"
+* Visualize og brug clustering på input af sidste layer.
+* Visualizing feature maps: 
+	* https://medium.com/dataseries/visualizing-the-feature-maps-and-filters-by-convolutional-neural-networks-e1462340518e
+	* https://machinelearningmastery.com/how-to-visualize-filters-and-feature-maps-in-convolutional-neural-networks/
+* Goal: finde ud af hvad modellen har lært, samt hvorfor vi får den performance vi får (hvorfor tager den fejl på
+nogle samples - både i træning og i validation)

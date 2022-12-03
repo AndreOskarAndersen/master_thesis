@@ -1,0 +1,57 @@
+% This must be in the first 5 lines to tell arXiv to use pdfLaTeX, which is strongly recommended.
+\pdfoutput=1
+% In particular, the hyperref package requires pdfLaTeX in order to break URLs across lines.
+
+\documentclass[11pt]{article}
+
+% Remove the "review" option to generate the final version.
+%\usepackage[]{acl}
+
+% Standard package includes
+\usepackage{times}
+\usepackage{latexsym}
+
+% For proper rendering and hyphenation of words containing Latin characters (including in bib files)
+\usepackage[T1]{fontenc}
+% For Vietnamese characters
+% \usepackage[T5]{fontenc}
+% See https://www.latex-project.org/help/documentation/encguide.pdf for other character sets
+
+% This assumes your files are encoded as UTF8
+\usepackage[utf8]{inputenc}
+
+% This is not strictly necessary, and may be commented out,
+% but it will improve the layout of the manuscript,
+% and will typically save some space.
+\usepackage{microtype}
+
+\usepackage{amsmath}
+\usepackage{verbatim}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{url}
+
+
+\title{2D Tracking in Rock Climbing with Temporal Smoothing}
+
+\author{André Oskar Andersen \\
+  \texttt{wpr684@alumni.ku.dk} \\}
+
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section*{Problem Formulation}
+The aim of this thesis is to incorporate temporal smoothing into a model for 2 dimensional tracking of rock climbers and climbing holds/grips. This may either be done by extending the already 2 dimensional tracking algorithm provided by ClimbAlong or by implementing a whole new model from scratch. Our developed model will thus either be processing features of the input video or be processing the predictions of the ClimbAlong algorithm. We wish to develop such a model by experimenting with various setups and network architectures, such that we can optimize the results. The development of the various setups and network architectures will be based on state-of-the-art methods, either by letting us be inspired by or completely implement these methods.
+\\
+\\
+The development of the experiments will be done by making use of an annotated dataset of video recordings of rock climbers provided by ClimbAlong. This dataset may not be of sufficient size, so we may extend it by either making use of data augmentation or by finding a similar dataset which can be used in addition to the ClimbAlong dataset. A coorperation agreement with ClimbAlong is currently in development. 
+\\
+\\
+Once we have developed a sufficient model for 2 dimensional tracking, we will be discussing our approach and the performance of this model. This will include a discussion about what we could have done differently or better, as well as some suggestions for possible future work for our developed model. 
+
+%\bibliography{custom}
+
+\end{document}

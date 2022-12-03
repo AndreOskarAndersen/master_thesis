@@ -7,9 +7,8 @@ Skriv/vedlæg samarbejdekontrakt
 Skriv at jeg finder SOTA metoder som jeg lader mig inspirere af eller implementer, samt at vi allerede har en pose estimator.
 Context: Vi laver 1 af de to dele af hele problemet
 
-
 Dataset:
-ClimbAlong +  andet og data augmentation
+ClimbAlong + andet og data augmentation
 
 Motivation/data/problemstilling/Videnskabligvinkel/datalogisksammenhæng
 
