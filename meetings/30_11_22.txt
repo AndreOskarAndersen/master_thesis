@@ -1,0 +1,18 @@
+Speciale
+
+Opgavebeskrivelse:
+Experimenter med forskellige setups/arkitektur for 2D tracking med temporal smoothing i klatring.
+Kan enten process features eller skeleter.
+Skriv/vedlæg samarbejdekontrakt
+Skriv at jeg finder SOTA metoder som jeg lader mig inspirere af eller implementer, samt at vi allerede har en pose estimator.
+Context: Vi laver 1 af de to dele af hele problemet
+
+
+Dataset:
+ClimbAlong +  andet og data augmentation
+
+Motivation/data/problemstilling/Videnskabligvinkel/datalogisksammenhæng
+
+Realistisk datasæt
+
+Sports/video analyse - vi fokuserer bare på klatring. Ofte fokus på de mere populære sportsgrene.
