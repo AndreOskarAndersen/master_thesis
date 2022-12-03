@@ -59,11 +59,14 @@ However, these convolutional neural networks most oftenly process the frames of 
 \label{sec:collab}
 The thesis will be developed in collaboration with ClimbAlong. ClimbAlong will be providing an annotated dataset of video recordings of people climbing a bouldering wall. This dataset is not a synthetic dataset but instead a real dataset, making the developed results with this dataset yield realistic results. ClimbAlong has also a developed and trained convolutional neural network for tracking the humans and climbing holds/grips in 2 dimensions in a given video recording, which processes each frame independently of the other frames of the video recording which will be provided for the thesis. A coorperation agreement with ClimbAlong is currently in development.
 
-\section{Thesis Aim}
-The aim of this thesis is to incorporate temporal smoothing into a model for tracking rock climbers and climbing holds/grips in 2 dimensions. This may either be done by extending the already developed model by ClimbAlong or by implementing a whole new model from scratch. Our developed model will thus either be processing features of the input video or be processing the predictions of the ClimbAlong model. We wish to develop such a model by experimenting with various setups and network architectures, such that we can optimize the results. The development of the various setups and network architectures will be based on state-of-the-art methods, either by letting us be inspired by or completely implement these methods.
+\section{Problem Statement}
+The aim of this thesis is to incorporate temporal smoothing into a model for 2 dimensional tracking of rock climbers and climbing holds/grips. This may either be done by extending the already 2 dimensional tracking algorithm provided by ClimbAlong or by implementing a whole new model from scratch. Our developed model will thus either be processing features of the input video or be processing the predictions of the ClimbAlong algorithm. We wish to develop such a model by experimenting with various setups and network architectures, such that we can optimize the results. The development of the various setups and network architectures will be based on state-of-the-art methods, either by letting us be inspired by or completely implement these methods.
 \\
 \\
-The development of the experiments will be done by making use of the annotated dataset of video recordings of rock climbers provided by ClimbAlong. This dataset may not be of sufficient size, so we may extend it by either making use of data augmentation or by finding a similar dataset which can be used in addition to the ClimbAlong dataset.
+The development of the experiments will be done by making use of an annotated dataset of video recordings of rock climbers provided by ClimbAlong. This dataset may not be of sufficient size, so we may extend it by either making use of data augmentation or by finding a similar dataset which can be used in addition to the ClimbAlong dataset. A coorperation agreement with ClimbAlong is currently in development. 
+\\
+\\
+Once we have developed a sufficient model for 2 dimensional tracking, we will be discussing our approach and the performance of this model. This will include a discussion about what we could have done differently or better, as well as some suggestions for possible future work for our developed model. 
 
 
 \section{Learning Objectives}
