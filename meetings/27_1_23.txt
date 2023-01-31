@@ -1,0 +1,11 @@
+Augmenter med andre datasæt - se på Thorvalds Msc for relevante datasæt.
+Skal nok annotere noget mere data
+Base-model: Mask/keypoint R-CNN +ResNet50 + RPN
+Smid RNN ind enten efter ROI-opooling eller efter output-keypoints
+Kig på vision transformers
+Kig på OpenPose - loss constraint (så de forskelle kropsdele ikke er for langt væk fra hinanden) + temporal information
+Preprocessing: - RGB-mean (måske gøres det automatisk af R-CNN)
+30 fps - måske prøve færere.
+1920 x 1080 -> X x 800
+Nuværende augmentering: rotation, cut-out, coloring, grey-scale
+Måske freeze RPN (og ResNet50)
