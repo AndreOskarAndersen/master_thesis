@@ -13,7 +13,7 @@
   mathescape
 }
 
-\title{Models - Notes}
+\title{Models + datasets - Notes}
 \author{André Oskar Andersen}
 \date{}
 
@@ -162,7 +162,68 @@ Figure \ref{fig:LSTM_pose_machine} illustrates the structure for pose estimation
 \subsection*{4.1. Datasets}
 JHMDB is a video-based dataset for pose estimation.
 
+\chapter*{Detect-and-Track: Efficient Pose Estimation in Videos}
+\section*{3. Technical Approach}
+We propose a two-stage approach that efficiently and accurately tracks human instances and their poses across time. We build a 3D human pose predictor by extending Mask R-CNN with spatiotemporal operations by inflating the 2D convolutions into 3D. Our model takes as input short clips and predicts the poses of all people in the clips by integrating temporal information. We show that our 3D model outperforms its 2D frame-level baseline for the task of pose estimation.
 
+\subsection*{3.1 Two-Stage Approachy for Pose Tracking}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8 \textwidth]{./entities/Detect_and_track.PNG}
+    \caption{Network architecture for Detect and track}
+    \label{fig:Detect_and_track}
+\end{figure}
+\subsection*{3.1. Two-Stage Approach for Pose Tracking}
+\subsubsection*{Stage 1: Spatiotemporal pose estimation over clips.}
+The first stage in our two-stage approach for human keypoint tracking is pose estimation using a CNN-based model. For this work we use Mask R-CNN due to its simple formulation and robust performance. 
+\\
+\\
+Starting fro mthe vanilla Msk R-CNN model, we transform the 2D convolutions to 3D. Now, the input to our model is no longe a single frame, but a clip of length $T$ composed of adjacent frames sourced from a video. We extend the region proposal network (RPN), to predict object candidates which track each hypothesis across the frames of the input clip. The features are then fed into the 3D CNN head responsible for pose estimation. 
+\\
+\\
+\textbf{Base network:} We extend a standard ResNet architecture to a 3D ResNet architecture by replacing all 2D convolutions with 3D convolutions. We initialize the 3D ResNet using a pretrained 2D ResNet.
+\\
+\\
+\textbf{Tube proposal network}: We designa  tube proposal network inspired by the region propsal network (RPN) in Faster R-CNN. Given the featurem pa from the base network, we slide a small 3D-conv network connected to sibling fully connected layers.
+\\
+\\
+\textbf{3D Mask R-CNN heads}: Given the tube candidates produced by the tube proposal network, the next step classifies and regresses them into a tight tube around a person track. We compute the region features for this tube by designing a 3D region transform operator.
 
+\subsubsection*{Stage 2: Linking keypoint predictions into tracks}
+Given the keypoint predictions grouped in space by person identity, we need to link them in time to obtain keypoint tracks. Tracking can be seen as a data association problem over these detections. We represent these detections in a graph, where each detection bounding box in a frame becomes a nod. We define edges to connect each box in a frame to every box in the next frame.
+
+\subsubsection*{4.1. Dataset and Evaluation}
+PoseTrack is a recently released large-scale challenge dataset for human body keypoint estimation and tracking in diverse, in-the-wild videos.
+
+\chapter*{Flowing ConvNets}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8 \textwidth]{./entities/flowing_convnets.PNG}
+    \caption{Network architecture for Flowing ConvNets}
+    \label{fig:Flowing_ConvNets}
+\end{figure}
+
+\section*{4. Datasets}
+\textbf{BBC Pose dataset}. This dataset consists of 20 videos (each 0.5h - 1.5h in length) recorded fro mthe BBC with an overlaid sign language interpreter. Each frame ehas been assigned pose estimates using the semi-automatic but reliable pose estimator of Buehler et al. 1,000 frames in the dataset have been manually annotated with upper-body pose.
+\\
+\\
+\textbf{Extended BBC Pose dataset}. This dataset contains 72 additional training videos, which, combined with the original BBC TV dataset, yields in total 85 training videos. The frames of these new videos have been assigned poses using the automatic tracker of Charles et al. The output of this tracker is noisier than the semi-automatic tracker of Buehler et al., which results in partially noisy annotations.
+\\
+\\
+\textbf{ChaLearn dataset}. The ChaLearn 2013 Multi-modal gesture dataset contains 23 hours of Kinect data of 27 people. The data includes RGB, depth, foreground segmentations and full body skeletons. In this dataset, both the training and testing labels are noisy (from Kinect). The large variation in clothing across videos poses a challenging task for pose estimation methods.
+\\
+\\
+\textbf{Poses in the Wild and FLIC datasets}. The Poses in the Wild dataset contains 30 sequences (total 830 frames) extracted from Hollywood movies. The frames are annotated with upper-body poses. It contains realistic poses in indoor and outdoor scenes, with background clutter, severe camera motion and occlusions.
+
+\chapter*{Datsets}
+\section*{PoseTrack2017}
+\section*{PoseTrack2018}
+\section*{BBC Pose dataset}
+\section*{Extended BBC Pose dataset}
+\section*{ChaLearn dataset}
+\section*{Poses in the Wild}
+\section*{3D Poses in the Wild}
+\section*{Human3.6M Dataset}
+\section*{JHMDB}
 
 \end{document}
