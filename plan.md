@@ -17,6 +17,7 @@
 
 * Uge 09 (27/02 - 05/03):
     * Public dataset
+    * Annoter data
     * Skriv Dataset-afsnit
 
 * Uge 10 (06/03 - 12/03):

@@ -1,14 +1,17 @@
 * 2/2:
-    1. Torvalds datasæt er i 3D - kan jeg bare projektere det ned til 2D ved at fjerne en akse?
-    2. Har også fundet andre datasæt
-    3. Hvor mange tempoeral-arkitekturer skal jeg prøve?
-    4. Skal jeg også inkorporere noget tempoeral-information i tracking af grips eller skal vi bare fokusere på pose estimation?
-    5. Hvad synes han om UniPose?
-    6. Nogle modeller gør brug af en 3D convolution istedet for en rnn
-    7. Single- eller multi-person tracking? Tror kun UniPose er til single-person
-    8. Pre-træne på større dataset også fine-tune på ClimbAlong-data?
-    9. Foreslå fremgangsmåde:
-        1. Implementer LSTM fra UniPose
-        2. Træn LSTM på et public dataset - kun på skeleterne (+ noise?)
-        3. Finetune på ClimbAlong datasæt (+ noise?)
-        4. Finetune hele R-CNN + LSTM på ClimbAlong?
+    1. Data spørgsmål:
+        1. Har også fundet andre datasæt - hvad med pretæning på disse og så finetune på ClimbAlong data?
+        2. Måske kombinere flere datasæt?
+    2. Model spørgsmål:
+        1. Skal vi bare scratche den allerede implementerede Mask R-CNN eller skal vi udvide den?
+        2. Skal jeg også inkorporere noget temporal-information i tracking af grips eller skal vi bare fokusere på pose estimation?
+        3. Forskellige variationer af den samme model eller skal vi eksperimentere med forskellige modeller?
+        4. Single- eller multi-person tracking?
+        5. Nogle modeller gør brug af en 3D convolution istedet for en RNN - burde jeg også prøve dette eller skal vi bare holde os til RNN?
+    3. Generelle spørgsmål:
+        1. Hvor meget ML teori?
+        2. Foreslå fremgangsmåde:
+            1. Implementer temporal model
+            2. Træn temporal model på et public dataset - kun på skeleterne (+ noise?)
+            3. Finetune på ClimbAlong datasæt (+ noise?)
+            4. Finetune hele R-CNN + temporal model på ClimbAlong?
