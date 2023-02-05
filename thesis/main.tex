@@ -1,0 +1,128 @@
+\documentclass[11pt, a4paper]{article}
+\usepackage[a4paper, hmargin={1in, 1in}, vmargin={1in, 1in}]{geometry}
+\usepackage[english]{babel}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{wallpaper}
+\usepackage{palatino}
+\usepackage{hyperref}
+\usepackage[maxnames = 10]{biblatex}
+\usepackage{floatrow}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{bm}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{algorithmicx}
+\usepackage[ruled]{algorithm}
+\usepackage[noend]{algpseudocode}
+\usepackage{varwidth}
+\usepackage{subcaption}
+\usepackage{enumitem}
+\usepackage{verbatim}
+
+\usepackage{subfiles}
+
+\bibliography{./bibliography.bib}
+\addbibresource{./bibliography.bib}
+
+% Changes MA to Msc. in references, in case of masterthesis
+\DefineBibliographyStrings{english}{%
+  mathesis = {Msc. thesis},
+}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=blue,
+    citecolor=green
+}
+
+\begin{document}
+
+% ======================= FRONT PAGE =================================
+\thispagestyle{empty}
+\ULCornerWallPaper{1}{ku-coverpage/ku-farve.pdf}
+\ULCornerWallPaper{1}{ku-coverpage/nat-en.pdf}
+
+\vspace*{2 cm}
+\noindent \textbf{\huge Master Thesis} \\
+\vspace*{1 cm} \\
+
+\begin{center}
+    \noindent \textbf{\Huge 2D Tracking in Climbing} \\
+    \vspace*{0.5 cm}
+    \noindent {\LARGE Using Temporal Smoothing} \\
+\end{center}
+
+\vspace{0.5 cm}
+
+\begin{center}
+    \noindent {\Large André Oskar Andersen (\texttt{wpr684})} \\
+    \noindent \texttt{\large wpr684@alumni.ku.dk} \\
+    \vspace{0.5 cm}
+    \noindent 2023 \\
+    \vspace{2 cm}
+\end{center}
+
+\vspace{10 cm}
+\noindent \textbf{\large Supervisor} \\
+\noindent Kim Steenstrup Pedersen \texttt{kimstp@di.ku.dk}
+
+\clearpage
+\ClearWallPaper
+
+% ======================= Abstract =================================
+\subfile{abstract.tex}
+\clearpage
+
+% ======================= Preface =================================
+\subfile{preface.tex}
+\clearpage
+
+% ======================= Acknowledgement =================================
+\subfile{acknowledgement.tex}
+\clearpage
+
+% ======================= Table of content =================================
+\tableofcontents
+\clearpage
+
+% ========================== Notation =======================
+\subfile{notation.tex}
+\clearpage
+
+% ========================== Introduction ==========================
+\subfile{introduction.tex}
+\clearpage
+
+% ========================== Deep Learning Theory =======================
+\subfile{theory.tex}
+\clearpage
+
+% ========================== Models =======================
+\subfile{models.tex}
+\clearpage
+
+% ======================= The dataset ======================================
+\subfile{dataset.tex}
+\clearpage
+
+% ======================= Experiments ======================================
+\subfile{experiments.tex}
+\clearpage
+
+% ======================= Discussion ======================================
+\subfile{discussion.tex}
+\clearpage
+
+% ======================= Conlusion =======================
+\subfile{conclusion.tex}
+\clearpage
+
+% ======================= References =======================
+\section{References}
+\printbibliography[heading=none]
+
+\end{document}
