@@ -11,19 +11,19 @@
 
 -   Uge 07 (13/02 - 19/02):
 
-    -   Implementer modeler
-    -   Skriv background theory (+ Mask R-CNN-afsnit)
+    -   Prepare data
+    -   Annoter data
+    -   Skriv Dataset-afsnit
 
 -   Uge 08 (20/02 - 26/02):
 
-    -   Implementer modeler
+    -   Implementer modeller
     -   Skriv background theory (+ Mask R-CNN-afsnit)
 
 -   Uge 09 (27/02 - 05/03):
 
-    -   Public dataset
-    -   Annoter data
-    -   Skriv Dataset-afsnit
+    -   Implementer modeller
+    -   Skriv background theory (+ Mask R-CNN-afsnit)
 
 -   Uge 10 (06/03 - 12/03):
 

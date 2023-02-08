@@ -15,3 +15,15 @@
             2. Træn temporal model på et public dataset - kun på skeleterne (+ noise?)
             3. Finetune på ClimbAlong datasæt (+ noise?)
             4. Finetune hele R-CNN + temporal model på ClimbAlong?
+
+* 8/2:
+    1. Dataset:
+        1. BRACE ser god ud synes jeg - nogle frames er dog ikke helt korrekt annoteret.
+
+    2. Model:
+        1. Mange modeller bruger ikke ResNet som backbone, men istedet HRNet - skal jeg også prøve dette?
+        2. Unipose-LSTM ser stadig spændende ud
+        3. DeciWatch ser også spændende ud (især fordi den er efficient)
+
+    3. Andre spørgsmål:
+        1. Skal jeg køre med lavere precision (eks. 16-bit)?

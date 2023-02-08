@@ -64,7 +64,6 @@ Our framework can easily be extended to human pose estimation. We model a keypoi
 \\
 \textbf{Implementation Details}: We make minor modifications to the se gmentation system when adapting it for keypoints. For each of the $K$ keypoints of an instance, the training target is a one-hot $m \times m$ binary mask where only a single pixel is labeled as foreground. During training, for each visible ground-truth keypoint, we minimize the cross-entropy loss over an $m^2$-way softmax output. We note that as in instance segmentation, the $K$ keypoints are still ttreated independently.
 
-
 \chapter*{Understanding Mask R-CNN Basic Architecture}
 \begin{figure}[h]
     \centering
@@ -159,12 +158,17 @@ The BBC Pose dataset consists of 20 video from BBC. The BBC Pose dataset was uti
 \textbf{Details of the Model}.
 Figure \ref{fig:LSTM_pose_machine} illustrates the structure for pose estimation on video.
 
+\section*{3. Analysis and Our Approach}
+\subsection*{3.1. Pose Machines: From Image to Video}
+We add an extra slice containing a central gaussian peak during input concatenation for better performance.
+
 \subsection*{4.1. Datasets}
 JHMDB is a video-based dataset for pose estimation.
 
 \chapter*{Detect-and-Track: Efficient Pose Estimation in Videos}
+
 \section*{3. Technical Approach}
-We propose a two-stage approach that efficiently and accurately tracks human instances and their poses across time. We build a 3D human pose predictor by extending Mask R-CNN with spatiotemporal operations by inflating the 2D convolutions into 3D. Our model takes as input short clips and predicts the poses of all people in the clips by integrating temporal information. We show that our 3D model outperforms its 2D frame-level baseline for the task of pose estimation.
+We propose a two-stage approach that efficiently and accurately tracks human instances and their poses across time. We build a 3D human pose predictor by extending Mask R-CNN with spatiotemporal operations by inflating the 2D convolutions into 3D. Our model takes as input short clips and predicts the poses of all people in the clips by integrating temporal information. We show that our 3D model outperforms its 2D frame-level baseline for the task of pose estimation. To track the instances in time, we perform a lightweight optimization that links the prediction. 
 
 \subsection*{3.1 Two-Stage Approachy for Pose Tracking}
 \begin{figure}[h]
@@ -215,6 +219,85 @@ PoseTrack is a recently released large-scale challenge dataset for human body ke
 \\
 \textbf{Poses in the Wild and FLIC datasets}. The Poses in the Wild dataset contains 30 sequences (total 830 frames) extracted from Hollywood movies. The frames are annotated with upper-body poses. It contains realistic poses in indoor and outdoor scenes, with background clutter, severe camera motion and occlusions.
 
+\chapter*{3D Human Pose Estimation using Spatio-Temporal Networks with Explicit Occlusion Training}
+
+\section*{Abstract}
+During training, we explicitly mask out some keypoints to simulate various occlusion cases, from minor to severe occlusion, so that our network can learn better and becomes robust to various degrees of occlusion.
+
+\section*{Introduction}
+In order to deal with occlusion, during the training, we mask out some keypoints or frames by setting the corresponding heat maps to zero.
+
+\section*{Data Augmentation for Occlusions}
+To make our approach capable of dealing with different occlusion cases, we perform data augmentation during the training.
+\\
+We use random masking of keypoints to simulate the occluded condition. Three types of occluision are applied in the training process. The first type is the frame-wise occlusion. Given a sequence of heatmaps produced by the 2D keypoint estimator, we randomly mask several frames by setting their heatmaps to zero, indicating that the whole frame is occluded or has low confidence. Second, the point-wise occlusion is applied by randomly setting certain keypoints' heatmaps to zero. This simulates the scenario that certain keypoints are occluded. Third, we apply area occlusion by setting a virtual occluder area. The heatmaps of keypoints located within this area are set to zero.
+
+\chapter*{Combining detection and tracking for human pose estimation in videos}
+\section*{Introduction}
+We detect person bounding boxes on each frame and then propagate these to their neighbours. Our intuition is that if a person is present at a specific location in a frame, they should still be at approximately that location in the neighbouring frames, even when the detector fails to find them.
+\\
+In details, given a localized person bounding box, we crop a spatial-tempoeral tube from the video centered at that frame and location. Then, we feed this tube to anovel Clip Tracking Network that estimates the locations of all the body joints of that person in all the frames ofthe tube. To solve this task, our Clip Tacking Network performs body joint detection and tracking simultaneously. This has two benefits: (i) by solving these tasks jointly, our network can better deal with unique poses and occlusions, and (ii) it can compensate for missed detections by predicting joints in all frames of the spatial-tempoeral tube, even for frames where the person was not detected. To construct this Clip Tracking network ,we extend the state-of-the-art High-Resolution Network (HRNet) architecture to the task of tracking, using 3D convolutions that are carefuly designed to help learn the tempoeral correspondence between joints.
+\\
+The Clip Tracking Network operates on fixed length video clips.
+
+\subsection*{3.1 Clip Tracking Network}
+\textbf{HRNet for human pose estimation in images}. Given an image, this top-down approach runs a person detector on it, which outputs a list of axis-aligned bounding boxes, one for each localized person. Each of these boxes is independently cropped and fed into HRNet, which consists of four stages of four parallel subnetworks trained to localize all body joints of only the central person in the crop.
+\\
+The output of HRNet is a set of heatmaps, one for each body joint. 
+\\
+\textbf{3D HRNet for video pose estimation and tracking.} Our approach operates on short video clips. First, it runs a person detector on the center frame and obtains a list of person bounding boxes. Then, for each bounding box, it creates a tube by cropping the box region from all frames in the clip. Next, it feeds this tube to our video HRNet, which outputs a tracklet containing all the poses of person $p$ in all the frames of the thube.
+\\
+In order to help the network tackle this challenge, we do two things: (i) to account for fast moving people, we enlarge each bounding box by $25\%$ along both dimensions prior to creating a tube; and(ii) to allow the network to associate people between frames, we inflate the 2D convolutions in the first two stages of HRNet to 3D to help the network learn to track. 
+
+\chapter*{Temporal Feature Alignment and Mutual Information Maximization for Video-Based Human Pose Estimation}
+\section*{3. Our Approach}
+\textbf{Preliminaries} To detect human poses from video frames, we first extract the bounding box of each individual person. This bounding box is then enlarged by $25\%$ to crop the same individual on a predefined window of neighboring frames. 
+\\
+\textbf{Method Overview} FAMI-Pose consists of two main modules, a global transformation module and a local calibration module. We first perform feature extraction the each frame. These features are then fed into our global transformation module, which learns the parameters of an affine transformation to obtain a coarsely aligned supporting frame feature. The frame features are then handed to the local calibration module, which performs pixel-wise deformation to produce finely aligned features. Fiannly, we aggregate all aligned supporting frame features and the key frame feature to obtain our enhanced feature. This is then apssed to a detection head that outputs pose estimations.
+
+\subsection*{3.1 Feature Alignment}
+Feature alignment starts wtih feature extraction, which is done with the HRNet-W48 network (SOTA method for image-based human pose estimation) as the backbone. The extracted features are then passed through a global transformation module and a local calibration module, to progressively align the extracted features.
+\\
+\textbf{Global Transformation} We observe that most failure cases for pose estimation in videos occur due to rapid movements of persons or cameras, which inevitably lead to large spatial shifts or jitters between neighboring frames. In order to align a supporting frame to the key frame, we design a glboal transformation module (GTM). The GTM computes spatial rearrangement parameters of glibal affine transformation to obtain a coarse preliminary alignment of supporting frame feeature with the key frame feature.
+\\
+\textbf{Lobal Calibration} The global transformation module produces a coarse alignment. We then design our local clibration module (LCM) to perform meticulous fine-tuning at a pixel-level, yielding finely aligned features.
+\\
+\textbf{Heatmap Generation} Ultimately, we aggregate over all final aligned supporting frame features and the key frame feature via element-wise addition to obtain the enhanced feature. This is then fed to a detection head to produce pose heatmap esitmations. By effectively leveraging tempoeral information from supporting frames through our coarse-to-fine alignment modules, our FAMI-Pose is more adept at tackling visual degeneration issues and therefore gives more accurate pose heatmaps.
+
+\chapter*{Deep High-Resolution Representation Learning for Human Pose Estimation}
+\section*{Abstract}
+In this paper, we are interested in the human pose estimation problem with a focus onn learning reliable high-resolution representations.
+
+\chapter*{High-Resolution Network: A universal neural architecture for visual recognition}
+\section*{Application}
+The HRNet is a universal architecture vor visual recognition. The HRNet has become a standard for human pose estimation.
+
+\section*{Human Pose Estimation}
+The comparison with ResNet-based methods, we can see, that HRNet outperforms ResNet in terms of estimation performance, parameter complexity, and computation complexity.
+
+\chapter*{DeciWatch: A Simple Baseline for 10x Efficient 2D and 3D Pose Estimation}
+\section*{Abstract}
+DeciWatch uniformly samples less than 10\% video frames for detailed estimation, denoises the estiamted 2D/3D poses with an efficient Transformer architecture, and then accurately recovers the rest of the frames using another Transformer-based network.
+
+\section*{Introduction}
+To achieve highly efficient 2D pose estimation without the need of watching every frame in a video, we propose a novel framework based on the continuity of human motions, which conducts pose estimation only on sparsely sampled video frames. Poses of those sampled frames should be denoised before recovered, where we formulate the thre-step sample-denoise-recover framework.
+
+\section*{Method}
+\subsection*{Problem Definition and Overview}
+The main target of this work is to set a baseline for efficient video-based pose estimation without compromising accuracy. We devise a three-step sample-denoise-recover flow to process video-based pose estimation efficiently and effectively. As adjacent frames usually contain redundant information and human motion is continuous, DeciWatch first samples a small percentage of frame and applies existing pose estimators theoreon to obtain the corresponding poses. However, recovering the full pose sequence from sparsely observed poses is challenging, especially when the poses are estimated by networks and often contain noise. Relying on a few poses to recover the entire sequence, the quality of sampled poses is the key. To tackle the challenge, we introduce two subnets, DenoiseNet and RecoverNet. Specifically, DenoiseNet refines sparse poses from pose estimator. Then RecoverNet performs motion recovery based on the refined sparse poses to recover the whole pose sequence, with the inuition that humans can perceive complete motion information through a small number of keyframes.
+
+\subsection*{Getting Sampled Poses}
+We use a uniform sampling that watches one frame in every $N$frame to select sparse frames $I^\text{sampled}$ as a baseline strategy. Due to the redundancy in consecutive frames and continuity of human psoes, a uniform sampling strategy under a certain ratio is capable of keeping enough information for recovery. Then we can estimation $I^\text{sampled}$ by any existing pose estimators to get sparse poses.
+
+\subsection*{Denoising the Sampled Poses}
+In our scenario, the sampled poses are obtained by single-frame pose estimators, inevitably leading to noisy, sparse poses. Consequently, the quality of sparse poses is crucial for motion recovery. Before recovering the full motion, we develop a denoising network to refine the sampled poses to clean poses. Due to the tempoeral sparseness and noisy jutters, the key designs of Denoise Net lie in two aspects: (i) A dynamic model for handling diverse possible pose noises; (ii) Global tempoeral receptive field to capture useful Spatio-tempoeral information while suppressing distracting noises. Based on these two considerations, local operations, like convolutional or recurrent networks, are not well suited. Intuitively, Transformer-based models are capable of capturing the global correlations among discrete tokens, so we use Transformer-based encoder modules to relieve noises from the sparse poses.
+
+\subsection*{Recovering the Sampled Poses}
+After getting the sparse clean poses, we use another Spatio-tempoeral subet, RecoverNet, to recover the absent poses. In order to learn the consistent tempoeral correlations, a simple tempoeral upsampling is applied to perform preliminary sequence recovery. To make the recovery more realistic and accurate, we adopt another transformer-based network for detailed poses recovery. We bring tempoeral semantics into pose encoding to encode the neighboring $D$ frames' poses into pose tokens via a tmepoeral 1D convolutional layer. The main architecture of RecoverNet is also the same as Transformer, which employs $M$ multi-head self-attention blocks
+
+\chapter*{SportsCap: Monocular 3D Human Motion Capture and Fine-grained Understanding in Challenging Sports Videos}
+
+
 \chapter*{Datsets}
 \section*{PoseTrack2017/PoseTrack2018}
 \begin{itemize}
@@ -243,7 +326,6 @@ PoseTrack is a recently released large-scale challenge dataset for human body ke
     \item 51.000 frames
     \item Changing and cluttered backgrounds, as well as frequent occlusions.
     \item 18 keypoint locations
-    \item 
 \end{itemize}
 
 \section*{Human3.6M Dataset}
@@ -256,6 +338,20 @@ PoseTrack is a recently released large-scale challenge dataset for human body ke
 \begin{itemize}
     \item 2.326 video sequence.
     \item Single person
+    \item 13 Keypoints
+\end{itemize}
+
+\section*{BRACE}
+\begin{itemize}
+    \item 334,538 Frames - 26,676 manually annotated frames
+    \item 465 Video sequences
+    \item 17 keypoints
+\end{itemize}
+
+\section*{SMART}
+\begin{itemize}
+    \item 5,000 video sequnces
+    \item 2.1M frames
 \end{itemize}
 
 \end{document}
