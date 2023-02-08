@@ -24,6 +24,7 @@
         1. Mange modeller bruger ikke ResNet som backbone, men istedet HRNet - skal jeg også prøve dette?
         2. Unipose-LSTM ser stadig spændende ud
         3. DeciWatch ser også spændende ud (især fordi den er efficient)
+        4. Skal jeg prøve både at lave en/to LSTM-modeller (Unipose) og en Transformer-model (DeciWatch)?
 
     3. Andre spørgsmål:
         1. Skal jeg køre med lavere precision (eks. 16-bit)?
