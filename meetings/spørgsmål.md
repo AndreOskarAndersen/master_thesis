@@ -1,4 +1,5 @@
-* 2/2:
+-   2/2:
+
     1. Data spørgsmål:
         1. Har også fundet andre datasæt - hvad med pretæning på disse og så finetune på ClimbAlong data?
         2. Måske kombinere flere datasæt?
@@ -16,11 +17,20 @@
             3. Finetune på ClimbAlong datasæt (+ noise?)
             4. Finetune hele R-CNN + temporal model på ClimbAlong?
 
-* 8/2:
+-   8/2:
+
     1. Dataset:
-        1. BRACE ser god ud synes jeg - nogle frames er dog ikke helt korrekt annoteret.
+
+        1. BRACE ser god ud synes jeg - nogle frames er dog ikke helt korrekt annoteret. Videoerne har dog nogle udfordringer (wide panning, long zooming, aerial views, abrupt shot changes and lighting)
+        2. Data augmentation på BRACE?
+        3. Data preprocessing af BRACE?
+            1. Samme aspect ratio som ClimbAlong?
+            2. Trække mean CLimbAlong trænings RGB fra?
+        4. Brace har nogle keypoints som måske ikke så er nødvendige for os (øjne og øre) - skal vi bare fjerne disse?
+        5. Brace har nogle "rejected" frames - hvordan handler vi disse?
 
     2. Model:
+
         1. Mange modeller bruger ikke ResNet som backbone, men istedet HRNet - skal jeg også prøve dette?
         2. Unipose-LSTM ser stadig spændende ud
         3. DeciWatch ser også spændende ud (især fordi den er efficient)
@@ -28,3 +38,5 @@
 
     3. Andre spørgsmål:
         1. Skal jeg køre med lavere precision (eks. 16-bit)?
+        2. Ved model som kun processerer poses, skal vi så tilføje noget noise til input-pose, sådan så de kommer til at ligne outputet af R-CNN mere?
+        3. Bezier interpolation som baseline?
