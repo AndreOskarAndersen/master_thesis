@@ -7,7 +7,7 @@
 
     -   Læs om modeller og datasæt
     -   Læg en plan
-    -   Skriv background theory (+ Mask R-CNN-afsnit)
+    -   Skriv related work + background theory (+ Mask R-CNN-afsnit)
 
 -   Uge 07 (13/02 - 19/02):
 

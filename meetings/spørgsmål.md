@@ -17,7 +17,7 @@
             3. Finetune på ClimbAlong datasæt (+ noise?)
             4. Finetune hele R-CNN + temporal model på ClimbAlong?
 
--   8/2:
+-   9/2:
 
     1. Dataset:
 
@@ -40,3 +40,7 @@
         1. Skal jeg køre med lavere precision (eks. 16-bit)?
         2. Ved model som kun processerer poses, skal vi så tilføje noget noise til input-pose, sådan så de kommer til at ligne outputet af R-CNN mere?
         3. Bezier interpolation som baseline?
+
+*   Ubesvaret spørgsmål:
+    1. Skal jeg køre med lavere precision (eks. 16-bit)?
+    2. Ved "Related Work", skal jeg kun fokusere på pose estimation eller også andet object tracking?
