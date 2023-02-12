@@ -7,7 +7,7 @@
 
     -   Læs om modeller og datasæt
     -   Læg en plan
-    -   Skriv related work + background theory (+ Mask R-CNN-afsnit)
+    -   Skriv related work (+ models-afsnit)
 
 -   Uge 07 (13/02 - 19/02):
 
@@ -18,27 +18,27 @@
 -   Uge 08 (20/02 - 26/02):
 
     -   Implementer modeller
-    -   Skriv background theory (+ Mask R-CNN-afsnit)
+    -   Skriv background theory (+ modeller-afsnit)
 
 -   Uge 09 (27/02 - 05/03):
 
     -   Implementer modeller
-    -   Skriv background theory (+ Mask R-CNN-afsnit)
+    -   Skriv background theory (+ modeller-afsnit)
 
 -   Uge 10 (06/03 - 12/03):
 
     -   Træn model
-    -   Skriv experiments-afsnit + background theory + Mask R-CNN-afsnit
+    -   Skriv experiments-afsnit + background theory + modeller-afsnit
 
 -   Uge 11 (13/03 - 19/03):
 
     -   Træn model
-    -   Skriv experiments-afsnit + background theory + Mask R-CNN-afsnit
+    -   Skriv experiments-afsnit + background theory + modeller-afsnit
 
 -   Uge 12 (20/03 - 26/03):
 
     -   Træn model
-    -   Skriv experiments-afsnit + background theory + Mask R-CNN-afsnit
+    -   Skriv experiments-afsnit + background theory + modeller-afsnit
 
 -   Uge 13 (27/03 - 02/04):
 
