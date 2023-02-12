@@ -3,24 +3,14 @@
 \begin{document}
 \section{Introduction}
 
-\begin{itemize}
-    \item Imaged-based:
-    \begin{itemize}
-        \item Geometry between joints in the target image:
-        \begin{itemize}
-            \item Poselet conditioned pictorial structures
-            \item Exploring the spatial hierarchy of mixture models for human pose estimation
-            \item  Articulated human detection with flexible mixtures of parts
-        \end{itemize}
-        \item Convolutional Pose Machine
-        \item Stacked Hourglass
-        \item OpenPose
-        \item HRNet
-    \end{itemize}
-\end{itemize}
-
 \subsection{Related Work}
-2-dimensional pose estimation can be divided into either being image-based or video-based. Image-based methods [\textbf{MANGLER}]... . Video-based methods commonly use the correlating information among the frames of the video to perform the pose estimation. Early video-based methods used 3-dimensional convolutions to capture the correlating information between neighboring frames \cite{https://doi.org/10.48550/arxiv.1506.02897, https://doi.org/10.48550/arxiv.1712.09184}. Other methods use LSTM's \cite{HochSchm97} to capture the correlating information among the frames \cite{https://doi.org/10.48550/arxiv.1712.06316, https://doi.org/10.48550/arxiv.2001.08095}. Recently, transformers \cite{https://doi.org/10.48550/arxiv.1706.03762} have started to being used as a way of capturing the correlating information among the frames \cite{https://doi.org/10.48550/arxiv.2203.08713}.
+2-dimensional pose estimation can be divided into either being image-based or video-based, where the methods in the latter case use the tempoeral information of the video to perform the pose estimation. 
+\\
+\\
+Image-based methods were initially based on the geometry between the joints of the taget image \cite{6618926, 10.1007/978-3-642-33715-4_19, 6380498}. Following this, were the convolutional-based methods, that used convolutional neural networks \cite{lecun1995convolutional} to perform the pose estimation \cite{https://doi.org/10.48550/arxiv.1602.00134, https://doi.org/10.48550/arxiv.1603.06937, https://doi.org/10.48550/arxiv.1812.08008, https://doi.org/10.48550/arxiv.1703.06870}. More recent methods use transformers \cite{https://doi.org/10.48550/arxiv.1706.03762} to deliver state-of-the-art results \cite{https://doi.org/10.48550/arxiv.2204.12484, https://doi.org/10.48550/arxiv.2012.14214}.
+\\
+\\
+Early video-based methods used 3-dimensional convolutions to capture the temporal information between neighboring frames \cite{https://doi.org/10.48550/arxiv.1506.02897, https://doi.org/10.48550/arxiv.1712.09184}. Other methods use LSTM's \cite{HochSchm97} to capture this temporal information \cite{https://doi.org/10.48550/arxiv.1712.06316, https://doi.org/10.48550/arxiv.2001.08095}. Like in the case of image-based methods, transformers \cite{https://doi.org/10.48550/arxiv.1706.03762} have recently been introduced to the video-based methods to capture the temporal information and deliver state-of-the-art-results \cite{https://doi.org/10.48550/arxiv.2203.08713}.
 
 \subsection{Problem Definition}
 
