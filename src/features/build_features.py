@@ -7,25 +7,33 @@ from skimage.transform import rescale
 from global_variables import *
 from time import sleep
 
+def _make_dir(path):
+    """
+    Makes a directory if it does not already exist.
+    
+    Parameters
+    ----------
+    path : str
+        Path of the directory to create.
+    """
+    
+    try:
+        os.mkdir(path)
+    except:
+        print(f"Folder {path} already exists. Using existing folder.")
+
 def _make_corpus_folders():
     """
     Function for making various folders for storing the data
     """
     
-    # Making overall folder for the unprocessed-data, in case it does not already exist.
-    try:
-        os.mkdir(OVERALL_DATA_FOLDER)
-    except:
-        print(f"Folder {OVERALL_DATA_FOLDER} already exists. Using existing folder.")
+    # Making overall folder for the processed-data, in case it does not already exist.
+    _make_dir(OVERALL_DATA_FOLDER)
     
     # Making the folders for storing the unprocessed keypoints and videos folders
     # in case they do not already exist
     for sub_folder in SUB_DATA_FOLDERS:
-        try:
-            os.mkdir(OVERALL_DATA_FOLDER + sub_folder)
-        except:
-            print(f"Folder {OVERALL_DATA_FOLDER + sub_folder} already exists. Using existing folder.")   
-            
+        _make_dir(OVERALL_DATA_FOLDER + sub_folder) 
             
 def _load_video(video_path: str, number_of_frames: int):
     """

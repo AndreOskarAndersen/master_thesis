@@ -39,14 +39,17 @@ def download_keypoints():
     """
     
     # Downloading the zip-files containing the keypoints
+    print()
     print("Downloading keypoints...")
     _download_zipfiles()
     
     # Extracting the downloaded zip-files with the keypoints
+    print()
     print("Unzipping keypoints...")
     _unzip_keypoints()
     
     # Deleting the zip-files with the keypoints, since we do not need them anymore
     # as they have been extracted
+    print()
     print("Deleting keypoint zipfiles...")
     _delete_zipfiles()

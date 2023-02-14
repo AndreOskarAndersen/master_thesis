@@ -1,5 +1,8 @@
-# Path to overall folder for the unprocessed data
-RAW_DATA_FOLDER = "../../raw/"
+# Path to the overall data folder
+DATA_PATH = "../../data/"
+
+# Path to overall folder for unprocessed data
+RAW_DATA_FOLDER = DATA_PATH + "raw/" 
 
 # Mapping to names of folders for the unprocessed keypoints and videos
 RAW_CORPUS_FOLDERS = {"keypoints_folder": "keypoints/", "videos_folder": "videos/"}
