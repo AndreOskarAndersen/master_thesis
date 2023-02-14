@@ -10,5 +10,5 @@ METAINFO_NAME = "metainfo.csv"
 # Names of the datasets once downloaded
 DOWNLOAD_FOLDER_NAMES = ["dataset", "manual_keypoints"]
 
-# List of names to rename the datasets once they have been downloaded
+# List of names to rename the keypoints once they have been downloaded
 SAVE_FOLDER_NAMES = ["automatic_keypoints", "manual_keypoints"]
