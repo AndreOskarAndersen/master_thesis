@@ -278,3 +278,6 @@ TSWLatexianTemp*
 
 # Unprocessed data
 code/raw/
+
+# Venv
+venv
