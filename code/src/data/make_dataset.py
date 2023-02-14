@@ -17,9 +17,9 @@ def make_corpus_folders():
             print(f"Folder {OUTPUT_PATH + corpus_folder} already exists. Using existing folder.")
 
 def main():
-    #make_corpus_folders()
-    #download_keypoints()
-    #download_metainfo()
+    make_corpus_folders()
+    download_keypoints()
+    download_metainfo()
     download_videos()
 
 if __name__ == "__main__":
