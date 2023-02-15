@@ -2,6 +2,7 @@ import numpy as np
 import os
 import pandas as pd
 import cv2
+import torch
 from tqdm import tqdm
 from skimage.transform import rescale
 from global_variables import *
@@ -32,7 +33,7 @@ def _make_corpus_folders():
     
     # Making the folders for storing the unprocessed keypoints and videos folders
     # in case they do not already exist
-    for sub_folder in SUB_DATA_FOLDERS:
+    for sub_folder in SUB_DATA_FOLDERS.values():
         _make_dir(OVERALL_DATA_FOLDER + sub_folder) 
             
 def _load_video(video_path: str, number_of_frames: int):
@@ -70,7 +71,7 @@ def _load_video(video_path: str, number_of_frames: int):
     dim = (width, height)
     
     # List for storing video.
-    frames = np.zeros((number_of_frames, height, width, 3), dtype=np.uint8)
+    frames = torch.zeros((number_of_frames, height, width, 3), dtype=torch.uint8)
     
     # Index for keeping track of placement of frame
     idx = 0
@@ -93,10 +94,15 @@ def _load_video(video_path: str, number_of_frames: int):
                 
                 # Rescaling the frame to (H, W) = (450, 800)
                 frame = cv2.resize(frame, dim, interpolation = cv2.INTER_AREA)
+                
+                # Casting to pytorch tensor
+                frame = torch.from_numpy(frame)
             
                 # Storing the rescaled frame
                 #frames.append(frame)
                 frames[idx] = frame
+            else:
+                print(idx)
                 
             # Updating TQDM-bar
             pbar.update(1)
@@ -117,11 +123,11 @@ def _preprocess_video(video_id: str, duration: float, fps: float):
         
     """
     
+    # Loading the video
     video_folder = RAW_DATA_FOLDER + RAW_CORPUS_FOLDERS["videos_folder"] + video_id + "/"
     video_name = list(filter(lambda x: x != ".DS_Store", os.listdir(video_folder)))[0]
     video_path = video_folder + video_name
     video = _load_video(video_path, np.ceil(duration * fps).astype(int))
-    print(video.shape)
     
     return video
             
@@ -135,9 +141,36 @@ def _preprocess_videos():
     
     # Iterating through each video and prepare it
     for _, row in tqdm(meta_info.iterrows(), desc="Preparing videos", leave=True, total=len(meta_info)):
-        _preprocess_video(row["video_id"], row["duration"], row["fps"])
+        
+        # Preprocessing video
+        processed_video = _preprocess_video(row["video_id"], row["duration"], row["fps"])
+        
+        # Storing video
+        storing_path = OVERALL_DATA_FOLDER + SUB_DATA_FOLDERS["videos"] + row["video_id"] + ".pt"
+        #torch.save(processed_video, storing_path)
+        
+        # Freeing video om memory
+        del processed_video
         break
+            
+def _store_video(video: torch.Tensor, path: torch.Tensor):
+    """
+    Function for storing a video as a pytorch tensor.
+    
+    Parameters
+    ----------
+    video : torch.Tensor
+        Tensor containing the frames of the video to store
+        
+    path : string
+        Path of where to store the video
+    """
+    
+    
+    pass
             
 if __name__ == "__main__":
     _make_corpus_folders()
+    
+    # Preprocessing video
     _preprocess_videos()

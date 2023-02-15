@@ -14,7 +14,7 @@ METAINFO_NAME = "metainfo.csv"
 RAW_KEYPOINT_FOLDERS = ["automatic_keypoints/", "manual_keypoints/"]
 
 # Path to overall folder for the processed data
-OVERALL_DATA_FOLDER = "../../processed/"
+OVERALL_DATA_FOLDER = "../../data/processed/"
 
 # Name of folders with data
-SUB_DATA_FOLDERS = ["keypoints/", "videos/"] 
+SUB_DATA_FOLDERS = {"keypoints": "keypoints/", "videos": "videos/"} 
