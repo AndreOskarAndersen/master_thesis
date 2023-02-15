@@ -70,8 +70,7 @@ def _load_video(video_path: str, number_of_frames: int):
     dim = (width, height)
     
     # List for storing video.
-    # Preallocating memory to speed up the loading of the video.
-    frames = np.zeros((number_of_frames, height, width, 3))
+    frames = np.zeros((number_of_frames, height, width, 3), dtype=np.uint8)
     
     # Index for keeping track of placement of frame
     idx = 0
@@ -104,9 +103,6 @@ def _load_video(video_path: str, number_of_frames: int):
             
             # Updating index
             idx += 1
-            
-    # Casting to numpy array
-    #video = np.stack(frames, axis=0)
     
     return frames
             
