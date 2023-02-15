@@ -122,7 +122,7 @@ def _preprocess_video(video_id: str, duration: float, fps: float):
     """
     
     video_folder = RAW_DATA_FOLDER + RAW_CORPUS_FOLDERS["videos_folder"] + video_id + "/"
-    video_name = os.listdir(video_folder)[1]
+    video_name = list(filter(lambda x: x != ".DS_Store", os.listdir(video_folder)))[0]
     video_path = video_folder + video_name
     video = _load_video(video_path, np.ceil(duration * fps).astype(int))
     print(video.shape)
@@ -143,5 +143,5 @@ def _preprocess_videos():
         break
             
 if __name__ == "__main__":
-    #_make_corpus_folders()
+    _make_corpus_folders()
     _preprocess_videos()
