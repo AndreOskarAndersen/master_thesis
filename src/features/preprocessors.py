@@ -136,5 +136,3 @@ def preprocess_videos():
             
             # Saving JSON
             json.dump(preprocessed_keypoints, open(keypoints_storing_path, "w"))
-            
-        break
