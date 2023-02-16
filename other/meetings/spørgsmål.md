@@ -41,6 +41,12 @@
         2. Ved model som kun processerer poses, skal vi så tilføje noget noise til input-pose, sådan så de kommer til at ligne outputet af R-CNN mere?
         3. Bezier interpolation som baseline?
 
+- 17/2:
+    1. Dataset:
+        1. Hvilken preprocessing?
+        2. BRACE er landscape - skal jeg prøve at lave det om til portrait mode?
+        3. Skal BRACE-videoerne gemmes som tensor eller mp4?
+
 *   Ubesvaret spørgsmål:
     1. Skal jeg køre med lavere precision (eks. 16-bit)?
     2. Ved "Related Work", skal jeg kun fokusere på pose estimation eller også andet object tracking?
