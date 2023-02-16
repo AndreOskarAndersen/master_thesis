@@ -4,6 +4,7 @@ import pims
 import torch
 import cv2
 import json
+import torchvision
 from tqdm import tqdm
 from global_variables import *
 from loading import *
@@ -100,6 +101,7 @@ def preprocess_videos():
         # Extracting meta info about video
         video_id = row["video_id"]
         year = str(row["year"])
+        fps = row["fps"]
         
         # Loading keypoints of video
         all_keypoints = load_keypoints(year, video_id)
@@ -115,7 +117,7 @@ def preprocess_videos():
             end = str(max(keypoint_dict.keys()))
             
             # Path for storing stuff
-            clip_storing_path = OVERALL_DATA_FOLDER + SUB_DATA_FOLDERS["videos"] + video_id + "_" + start + "-" + end + ".pt"
+            clip_storing_path = OVERALL_DATA_FOLDER + SUB_DATA_FOLDERS["videos"] + video_id + "_" + start + "-" + end + ".mp4"
             keypoints_storing_path = OVERALL_DATA_FOLDER + SUB_DATA_FOLDERS["keypoints"] + video_id + "_" + start + "-" + end + ".json"
             
             # Loading clip
@@ -125,7 +127,7 @@ def preprocess_videos():
             processed_clip = _preprocess_clip(clip, keypoint_dict)
             
             # Storing clip
-            torch.save(processed_clip, clip_storing_path)
+            torchvision.io.write_video(clip_storing_path, processed_clip, fps, "libx264")
             
             # Freeing clip om memory
             del processed_clip
