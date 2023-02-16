@@ -11,7 +11,10 @@ RAW_CORPUS_FOLDERS = {"keypoints_folder": "keypoints/", "videos_folder": "videos
 METAINFO_NAME = "metainfo.csv"
 
 # List of names to rename the datasets once they have been downloaded
-RAW_KEYPOINT_FOLDERS = ["automatic_keypoints/", "manual_keypoints/"]
+RAW_KEYPOINT_FOLDERS = {"automatic": "automatic_keypoints/", "manual": "manual_keypoints/"}
+
+# List of names of subfolders of keypoints
+RAW_KEYPOINTS_SUBFOLDERS = {"automatic": "dataset/", "manual": "manual_keypoints/"}
 
 # Path to overall folder for the processed data
 OVERALL_DATA_FOLDER = "../../data/processed/"

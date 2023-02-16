@@ -130,6 +130,80 @@ def _preprocess_video(video_id: str, duration: float, fps: float):
     video = _load_video(video_path, np.ceil(duration * fps).astype(int))
     
     return video
+
+def _load_keypoints(year: str, video_id: str):
+    """
+    Loads the automatically and manually annotated BRACE keypoints.
+    
+    Parameters
+    ----------
+    year : str
+        The year of the recording of the video.
+        
+    video_id : str
+        The ID of the video.
+        
+    Returns
+    -------
+    all_keypoints : list[dict]
+        List with length of the amount of clips of the video,
+        where each entrance is a dict
+        where the key is a frame-name and the value is the
+        keypoints of that frame
+    """
+    
+    all_keypoints = []
+    
+    # loading automatic directories
+    path = RAW_DATA_FOLDER + RAW_CORPUS_FOLDERS["keypoints_folder"] + "/" + RAW_KEYPOINT_FOLDERS["automatic"] + RAW_KEYPOINTS_SUBFOLDERS["automatic"] + year + "/" + video_id + "/"
+    keypoints_listdir = os.listdir(path)
+    
+    # Looping through all of the automatic annotations
+    for keypoint_file in keypoints_listdir:
+        keypoint_path = path + keypoint_file
+        
+        # Reading annotations
+        keypoints = pd.read_json(keypoint_path)
+        
+        # Deleting bbox-annotation
+        keypoints = keypoints.drop(index=("box"))
+        
+        # Renaming columns
+        columns = list(keypoints.columns)
+        columns = list(map(lambda x: int(x[-10:-4].lstrip("0")), columns))
+        keypoints.columns = columns
+        
+        # Removing "score"-attribute
+        keypoints = keypoints.loc["keypoints"]
+        keypoints = keypoints.apply(lambda x: list(map(lambda y: [y[0], y[1]], x)))
+        
+        # Casting to dict
+        keypoints = keypoints.to_dict()
+        
+        # Appending the keypoints of this clip
+        # to the list
+        all_keypoints.append(keypoints)
+            
+    # Loading manual annotations
+    path = RAW_DATA_FOLDER + RAW_CORPUS_FOLDERS["keypoints_folder"] + "/" + RAW_KEYPOINT_FOLDERS["manual"] + RAW_KEYPOINTS_SUBFOLDERS["manual"] + year + "/" + video_id + "/"
+    keypoints_listdir = os.listdir(path)
+    
+    # Looping through all of the manual annotations
+    for keypoint_file in keypoints_listdir:
+        keypoint_path = path + keypoint_file
+        
+        # Reading annotations
+        keypoints = np.load(keypoint_path)['coco_joints2d'][:, :2]
+        
+        # Getting key-name
+        key_name = int(keypoint_file[-10:-4].lstrip("0"))
+        
+        # Inserting manual annotation to the list
+        for clip_dict in all_keypoints:
+            if min(clip_dict.keys()) <= key_name <= max(clip_dict.keys()):
+                clip_dict[key_name] = keypoints
+    
+    return all_keypoints
             
 def _preprocess_videos():
     """
@@ -142,32 +216,19 @@ def _preprocess_videos():
     # Iterating through each video and prepare it
     for _, row in tqdm(meta_info.iterrows(), desc="Preparing videos", leave=True, total=len(meta_info)):
         
+        # Loading keypoints of video
+        keypoints = _load_keypoints(str(row["year"]), row["video_id"])
+        
         # Preprocessing video
         processed_video = _preprocess_video(row["video_id"], row["duration"], row["fps"])
         
         # Storing video
         storing_path = OVERALL_DATA_FOLDER + SUB_DATA_FOLDERS["videos"] + row["video_id"] + ".pt"
-        #torch.save(processed_video, storing_path)
+        torch.save(processed_video, storing_path)
         
         # Freeing video om memory
         del processed_video
         break
-            
-def _store_video(video: torch.Tensor, path: torch.Tensor):
-    """
-    Function for storing a video as a pytorch tensor.
-    
-    Parameters
-    ----------
-    video : torch.Tensor
-        Tensor containing the frames of the video to store
-        
-    path : string
-        Path of where to store the video
-    """
-    
-    
-    pass
             
 if __name__ == "__main__":
     _make_corpus_folders()
