@@ -3,9 +3,19 @@ import pandas as pd
 import pims
 import torch
 import cv2
+import json
 from tqdm import tqdm
 from global_variables import *
 from loading import *
+
+# Rescaling factors
+original_height = 1080
+original_width = 1920
+target_width = 800
+rescale_factor = target_width/original_width
+
+new_width = int(original_width * rescale_factor)
+new_height = int(original_height * rescale_factor)
 
 def _preprocess_clip(clip: pims.Video, keypoints_dict: dict):
     """
@@ -28,15 +38,6 @@ def _preprocess_clip(clip: pims.Video, keypoints_dict: dict):
         
     """
     
-    # Rescaling factors
-    original_height = 1080
-    original_width = 1920
-    target_width = 800
-    rescale_factor = target_width/original_width
-    
-    new_width = int(original_width * rescale_factor)
-    new_height = int(original_height * rescale_factor)
-    
     # Casting to numpy
     clip = np.array(clip)
     
@@ -53,8 +54,38 @@ def _preprocess_clip(clip: pims.Video, keypoints_dict: dict):
     
     return clip
 
-def preprocess_keypoints():
-    pass
+def preprocess_keypoints(keypoints_dict: dict):
+    """
+    Preprocesses keypoints.
+    
+    Parameters
+    ----------
+    keypoints_dict : dict
+        Dict containing the keypoint annotations of the clip.
+        Each key is a frame-number and the corresponding value
+        is the keypoint annotations of that frame.
+    
+    Returns
+    -------
+    preprocessed_keypoints_dict : dict
+        Preprocessed version of keypoints_dict
+    
+    """
+    
+    preprocessed_keypoints_dict = {}
+    
+    for k, v in keypoints_dict.items():
+        
+        # Resizing keypoints
+        v = list(map(lambda x: list(map(lambda y: round(y * rescale_factor), x)), v))
+        
+        # Removing unnecessary keypoints
+        v = v[:-4]
+        
+        # Storing in new dictionary of keypoints
+        preprocessed_keypoints_dict[int(k)] = v        
+
+    return preprocessed_keypoints_dict
             
 def preprocess_videos():
     """
@@ -83,21 +114,27 @@ def preprocess_videos():
             start = str(min(keypoint_dict.keys()))
             end = str(max(keypoint_dict.keys()))
             
+            # Path for storing stuff
+            clip_storing_path = OVERALL_DATA_FOLDER + SUB_DATA_FOLDERS["videos"] + video_id + "_" + start + "-" + end + ".pt"
+            keypoints_storing_path = OVERALL_DATA_FOLDER + SUB_DATA_FOLDERS["keypoints"] + video_id + "_" + start + "-" + end + ".json"
+            
             # Loading clip
             clip = load_clip(video, keypoint_dict)
             
             # Preprocessing the loaded clip
             processed_clip = _preprocess_clip(clip, keypoint_dict)
             
-            # Storing video
-            storing_path = OVERALL_DATA_FOLDER + SUB_DATA_FOLDERS["videos"] + video_id + "_" + start + "-" + end
-            torch.save(processed_clip, storing_path + ".pt")
+            # Storing clip
+            torch.save(processed_clip, clip_storing_path)
             
-            # Freeing video om memory
+            # Freeing clip om memory
             del processed_clip
             del clip
             
             # Processing keypoints of the loaded clip
+            preprocessed_keypoints = preprocess_keypoints(keypoint_dict)
             
-            break
+            # Saving JSON
+            json.dump(preprocessed_keypoints, open(keypoints_storing_path, "w"))
+            
         break
