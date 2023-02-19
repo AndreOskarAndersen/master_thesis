@@ -1,6 +1,7 @@
 import os
+import preprocess_BRACE
+import preprocess_penn_action
 from global_variables import *
-from preprocessors import *
 
 def _make_dir(path):
     """
@@ -33,5 +34,8 @@ def _make_corpus_folders():
 if __name__ == "__main__":
     _make_corpus_folders()
     
-    # Preprocessing video
-    preprocess_videos()
+    # Preprocessing BRACE
+    preprocess_BRACE.preprocess()
+    
+    # Preprocessing Penn Action
+    preprocess_penn_action.preprocess()
