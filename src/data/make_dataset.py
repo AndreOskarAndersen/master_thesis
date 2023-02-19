@@ -1,7 +1,6 @@
 import os
-from download_keypoints import download_keypoints
-from download_metainfo import download_metainfo
-from download_videos import download_videos
+import download_BRACE
+import download_penn_action
 from global_variables import *
 
 def _make_dir(path):
@@ -43,10 +42,11 @@ def main():
     # Making various folders for storing the data
     _make_corpus_folders()
     
-    # Dowloading the data
-    download_keypoints()
-    download_metainfo()
-    download_videos()
+    # Dowloading the BRACE data
+    download_BRACE.main()
+    
+    # Downloading the Penn Action data
+    download_penn_action.main()
 
 if __name__ == "__main__":
     main()
