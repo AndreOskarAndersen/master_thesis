@@ -204,10 +204,10 @@ def preprocess_keypoints(keypoints_dict: dict):
         v = list(map(lambda x: list(map(lambda y: round(y * rescale_factor), x)), v))
         
         # Removing unnecessary keypoints
-        v = v[:-4] # NOTE: THESE ARE NOT CORRECT.
+        v = np.concatenate(([v[0]], v[5:]))
         
         # Storing in new dictionary of keypoints
-        preprocessed_keypoints_dict[int(k)] = v        
+        preprocessed_keypoints_dict[int(k)] = v.tolist()
 
     return preprocessed_keypoints_dict
             
