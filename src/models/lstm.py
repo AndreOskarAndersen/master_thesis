@@ -80,7 +80,7 @@ class LSTM(nn.Module):
         o = self.sigmoid(self.conv_xo(x) + self.conv_ho(h_prev) + self.conv_co * c + self.bias_o)
         h = o * self.tanh(c)
         
-        return o, h, c
+        return h, c
     
 class LSTM_Conv(nn.Module):
     def __init__(self, num_channels: int, frame_shape: Tuple[int, int, int], stride: int = 1, padding: Union[int, str] = "same"):
