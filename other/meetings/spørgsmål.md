@@ -48,5 +48,7 @@
         3. Skal BRACE-videoerne gemmes som tensor eller mp4?
 
 *   Ubesvaret spørgsmål:
-    1. Skal jeg køre med lavere precision (eks. 16-bit)?
-    2. Ved "Related Work", skal jeg kun fokusere på pose estimation eller også andet object tracking?
+    1. Ved "Related Work", skal jeg kun fokusere på pose estimation eller også andet object tracking?
+    2. Nogle BRACE-videos indeholder flere personer, så det kan måske være svært for modellen at vide hvem den skal predicte på.
+    Burde jeg bruge bbox til at centrere videoen omkring personen som skal predictes på?
+    3. Hvad med teacher forcing?
