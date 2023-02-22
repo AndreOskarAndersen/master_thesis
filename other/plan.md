@@ -12,13 +12,11 @@
 -   Uge 07 (13/02 - 19/02):
 
     -   Prepare data
-    -   Annoter data
-    -   Skriv Dataset-afsnit
 
 -   Uge 08 (20/02 - 26/02):
 
-    -   Implementer modeller
-    -   Skriv background theory (+ modeller-afsnit)
+    -   Annoter data
+    -   Skriv Dataset-afsnit
 
 -   Uge 09 (27/02 - 05/03):
 
@@ -27,8 +25,8 @@
 
 -   Uge 10 (06/03 - 12/03):
 
-    -   Træn model
-    -   Skriv experiments-afsnit + background theory + modeller-afsnit
+    -   Implementer modeller
+    -   Skriv background theory (+ modeller-afsnit)
 
 -   Uge 11 (13/03 - 19/03):
 
@@ -42,8 +40,8 @@
 
 -   Uge 13 (27/03 - 02/04):
 
-    -   Evaluer trænede modeller
-    -   Skriv experiments-afsnit + modeller-afsnit
+    -   Træn model
+    -   Skriv experiments-afsnit + background theory + modeller-afsnit
 
 -   Uge 14 (03/04 - 09/04):
 
@@ -52,7 +50,8 @@
 
 -   Uge 15 (10/04 - 16/04):
 
-    -   Skriv discussion-afsnit + conclusion-afsnit + introduction-afsnit
+    -   Evaluer trænede modeller
+    -   Skriv experiments-afsnit + modeller-afsnit
 
 -   Uge 16 (17/04 - 23/04):
 

@@ -46,6 +46,9 @@
         1. Hvilken preprocessing?
         2. BRACE er landscape - skal jeg prøve at lave det om til portrait mode?
         3. Skal BRACE-videoerne gemmes som tensor eller mp4?
+- 23/2:
+    1. Burde jeg gøre brug af en GRU istedet for en LSTM?
+    2. Many-to-many eller many-to-one RNN?
 
 *   Ubesvaret spørgsmål:
     1. Ved "Related Work", skal jeg kun fokusere på pose estimation eller også andet object tracking?
