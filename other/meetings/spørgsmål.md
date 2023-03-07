@@ -46,12 +46,28 @@
         1. Hvilken preprocessing?
         2. BRACE er landscape - skal jeg prøve at lave det om til portrait mode?
         3. Skal BRACE-videoerne gemmes som tensor eller mp4?
+
 - 23/2:
-    1. Burde jeg gøre brug af en GRU istedet for en LSTM?
-    2. Many-to-many eller many-to-one RNN?
+    1. Dataset:
+        1. COCO eller 25 keypoints?
+        2. Nogle BRACE-videos indeholder flere personer. Burde jeg bruge bbox til at centrere videoen omkring personen som skal predictes på?
+
+    2. Model:
+        1. Burde jeg gøre brug af en GRU istedet for en LSTM?
+        2. Many-to-many eller many-to-one RNN?
+        3. Hvad gør man med batches når samples har forskellig størrelse?
+        4. Skal jeg selv implementere Mask R-CNN eller bruge den fa ClimbAlong?
+- 8/3:
+    1. Dataset: 
+        1. Nogle frames har jeg altså bare gættet på placeringen af keypoints (især for fingrene)
+        2. For de allerede pre-annoterede billeder, er højre og venstre hånd nogle gang byttet om.
+    
+    2. Model:
+        1. Lav en liste over de modeller som skal implementeres.
+        2. Kombination af info fra begge directions i bidirectional rnn?
+
+    2. Kommende uge:
+        1. Forbered alt pre-training, sådan så den kan pre-trænes til næste meeting
 
 *   Ubesvaret spørgsmål:
     1. Ved "Related Work", skal jeg kun fokusere på pose estimation eller også andet object tracking?
-    2. Nogle BRACE-videos indeholder flere personer, så det kan måske være svært for modellen at vide hvem den skal predicte på.
-    Burde jeg bruge bbox til at centrere videoen omkring personen som skal predictes på?
-    3. Hvad med teacher forcing?
