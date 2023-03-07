@@ -3,4 +3,38 @@
 \begin{document}
 \section{Dataset}
 
+\textbf{LAV EN LISTE OF HVILKE JOINTS ER ANNOTERET I DE FORSKELLIGE DATASÆT}
+
+\subsection{The BRACE Dataset}
+The second dataset we will be using is the \textit{BRACE} dataset \cite{BRACE}. We chose to use this dataset, as breakdancers tend be in acrobatic poses, similar to the ones that climbers tend to be in, making the poses relevant for our experiments in Section \ref{sec:experiments}.
+\\
+\\
+This dataset consists of $1,352$ video sequences and a total of $334,538$ frames with keypoints annotations of breakdancers. The frames of the video sequences are in RGB and have a resolution of $1920 \times 1080$ \cite{BRACE}.
+\\
+\\
+The frames of the video sequences have been annotated by initially using state-of-the-art human pose estimators to extract automatic poses. This was then followed by manually annotating bad keypoints, corresponding to difficult poses, as well as pose outliers. Finally, the automatic and manual annotations were merged, interpolating the keypoint seequence with Bézier curves. The keypoints is a list of 17-elements, following the COCO-format \cite{BRACE}.
+
+\subsection{The Penn Action Dataset}
+\begin{table}
+    \begin{tabular}[htbp]{lllllllllllllll}
+        \texttt{baseball\_pitch} & \texttt{baseball\_swing} & \texttt{bench\_press} \\
+        \texttt{bowling} & \texttt{clean\_and\_jerk} & \texttt{golf\_swing} \\
+        \texttt{jumping\_jacks} & \texttt{jump\_rope} & \texttt{pull\_ups} \\
+        \texttt{push\_ups} & \texttt{sit\_ups} & \texttt{squats} \\
+        \texttt{strumming\_guitar} & \texttt{tennis\_forehand} & \texttt{tennis\_serve}
+    \end{tabular}
+    \caption{The original $15$ action-types in the Penn Action dataset.}
+    \label{tab:PA_actions}
+\end{table}
+One of the dataset we will be using is the \textit{Penn Action} dataset \cite{penn_action}. This dataset consists of $2326$ video sequences of $15$ different action-types. Table \ref{tab:PA_actions} lists these $15$ action-types \cite{penn_action}.
+\\
+\\
+Each sequence has been manually annotated with human joint annotation, consisting of $13$ joints as well as a corresponding binary visibility-flag for each joint. The frames of each sequence are in RGB and has a resolution within the size of $640 \times 480$ \cite{penn_action}.
+\\
+\\
+Unlike the BRACE dataset, most of the poses in the Penn Action dataset are not very acrobatic and thus are not very relevant for the poses of climbers. For that reason, we have decided to focus on the action-types that may contain more acrobatic poses. Thus, we only keep the sequences that have \texttt{baseball\_pitch}, \texttt{bench\_press} or \texttt{sit\_ups} as their corresponding action-type \cite{penn_action}.
+
+\subsection{The ClimbAlong Dataset}
+
+
 \end{document}

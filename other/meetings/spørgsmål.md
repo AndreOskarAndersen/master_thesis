@@ -64,10 +64,23 @@
     
     2. Model:
         1. Lav en liste over de modeller som skal implementeres.
+            * Baseline:
+                * Window-size
+
+            * Transformer-based:
+                * Antal transformer blocvks
+                * Embedding dimension
+                * Frame sample-rate
+
+            * RNN-based:
+                * RNN-type
+                * Placering
+                * Bidirectional?
+                
         2. Kombination af info fra begge directions i bidirectional rnn?
 
     2. Kommende uge:
         1. Forbered alt pre-training, sådan så den kan pre-trænes til næste meeting
 
-*   Ubesvaret spørgsmål:
-    1. Ved "Related Work", skal jeg kun fokusere på pose estimation eller også andet object tracking?
+    3. Report:
+        1. Ved "Related Work", skal jeg kun fokusere på pose estimation eller også andet object tracking?
