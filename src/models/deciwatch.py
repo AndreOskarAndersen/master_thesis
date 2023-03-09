@@ -21,7 +21,7 @@ def _get_linear(dims: Tuple[int, int]):
     
     return nn.Parameter(torch.normal(mean=0, std=1, size=(input_dim, output_dim), requires_grad=True))
 
-def _get_lookahead_masks(num_samples: int, video_length: int, device: torch.device, sample_rate:int = 10):
+def _get_masks(num_samples: int, video_length: int, device: torch.device, sample_rate:int = 10):
     """
     Function for generating masks for encoder and decoder.
     
@@ -350,7 +350,12 @@ class DeciWatch(nn.Module):
         
         p_sampled = p_noisy[::self.sample_rate]
         
-        mask, src_key_padding_mask, tgt_key_padding_mask = _get_lookahead_masks(self.num_samples, self.video_length, self.device, self.sample_rate)
+        # NOTE: ER IKKE HELT SIKKER PÅ DENNE IMPLEMENTATION, 
+        # DA DEN MANGLER NOGLE DELE SAMMENLIGNET MED DEN OFFICIELE
+        # IMPLEMENTATION. SE EKSEMPELVIS
+        # https://github.com/cure-lab/DeciWatch/blob/main/lib/models/deciwatch.py#L148
+        
+        mask, src_key_padding_mask, tgt_key_padding_mask = _get_masks(self.num_samples, self.video_length, self.device, self.sample_rate)
 
         p_clean, f_clean = self.denoise_net(p_sampled, mask, src_key_padding_mask)
         p_estimated = self.recover_net(p_clean, f_clean, tgt_key_padding_mask, src_key_padding_mask)
