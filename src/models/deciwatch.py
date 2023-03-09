@@ -3,7 +3,7 @@ NOTE/TODO:
 MANGLER AT KIGGE PÅ Dropout og Layer Normalization i DenoiseNet
 SAMT POSE EMBEDDING
 ER OGSÅ I TVIVL OM CROSS ATTENTION
-SAMT OM DET LÆGGES EN NOGET TIL EFTER DEN SIDSTE LINEAR_LAYER
+SAMT OM DET LÆGGES EN NOGET TIL EFTER DET SIDSTE LINEAR_LAYER
 """
 
 import torch
@@ -12,13 +12,47 @@ import torch.nn as nn
 def _get_linear(input_dim: int, output_dim: int):
     return nn.Parameter(torch.rand(input_dim, output_dim, requires_grad=True))
 
+def _get_position_embedding(num_samples: int, embedding_dim: int):
+    """
+    Function for getting positional embedding.
+    
+    Inspired by the implementation of "getPositionEncoding" by
+    https://machinelearningmastery.com/a-gentle-introduction-to-positional-encoding-in-transformer-models-part-1/
+    
+    Parameters
+    ----------
+    num_samples : int 
+        Number of sampled frames.
+        Noted as 'T/N' in the paper
+    
+    embedding_dim : int
+        Embedding dimension.
+        Noted as 'C' in the paper.
+        
+    Returns
+    -------
+    Positional embedding.
+    """
+    
+    n = 10000
+    P = torch.zeros((num_samples, embedding_dim))
+    
+    for k in range(num_samples):
+        for i in torch.arange(int(embedding_dim/2)):
+            denum = torch.pow(n, 2*i/embedding_dim)
+            P[k, 2*i] = torch.sin(k/denum)
+            P[k, 2*i+1] = torch.cos(k/denum)
+            
+    return P
+
 class _DenoiseNet(nn.Module):
     def __init__(self, 
                  frame_numel: int, 
                  embedding_dim: int,
                  nhead: int,
                  dim_feedforward: int,
-                 num_layers: int
+                 num_layers: int,
+                 num_samples: int
                  ):
         
         """
@@ -49,7 +83,7 @@ class _DenoiseNet(nn.Module):
         super(_DenoiseNet, self).__init__()
         self.linear_de = _get_linear(frame_numel, embedding_dim)
         self.linear_dd = _get_linear(embedding_dim, frame_numel)
-        self.pe = None # TODO: Mangler at blive implementeret
+        self.e_pos = _get_position_embedding(num_samples, embedding_dim)
         self.transformer_encoder = nn.TransformerEncoder(
             nn.TransformerEncoderLayer(
                 d_model=embedding_dim, 
@@ -77,15 +111,15 @@ class _DenoiseNet(nn.Module):
             Denoised features.
         """
         
-        f_clean = self.transformer_encoder(p_noisy @ self.linear_de)
+        f_clean = self.transformer_encoder(p_noisy @ self.linear_de + self.e_pos)
         p_clean = f_clean @ self.linear_dd
         
         return p_clean, f_clean
     
 class _RecoverNet(nn.Module):
     def __init__(self, 
-                 video_length: int, 
-                 sample_rate: int,
+                 video_length: int,
+                 num_samples: int,
                  frame_numel: int, 
                  embedding_dim: int,
                  nhead: int,
@@ -101,9 +135,9 @@ class _RecoverNet(nn.Module):
             Number of frames in the video.
             Noted as 'T' in the paper.
             
-        sample_rate : int
-            Ratio of samples to use for inference.
-            Noted as 'N' in the paper.
+        num_samples : int 
+            Number of sampled frames.
+            Noted as 'T/N' in the paper
             
         frame_numel : int
             Number of keypoints * dimensions of keypoints.
@@ -122,9 +156,9 @@ class _RecoverNet(nn.Module):
         """
         
         super(_RecoverNet, self).__init__()
-        self.linear_pr = _get_linear(video_length, int(video_length/sample_rate))
+        self.linear_pr = _get_linear(video_length, num_samples)
         self.conv = nn.Conv1d(frame_numel, embedding_dim, kernel_size=5, stride=1, padding=2)
-        self.pe = None # TODO: Mangler at blive implementeret
+        self.e_pos = _get_position_embedding(video_length, embedding_dim)
         self.transformer_decoder = nn.TransformerDecoder(
             nn.TransformerDecoderLayer(d_model=embedding_dim, nhead=nhead),
             num_layers=num_layers
@@ -149,8 +183,9 @@ class _RecoverNet(nn.Module):
         p_estimated : torch.Tensor
             Estimated poses
         """
+        
         p_preliminary = (self.linear_pr @ p_clean).T
-        p_estimated = self.transformer_decoder(self.conv(p_preliminary).T, f_clean) @ self.linear_rd
+        p_estimated = self.transformer_decoder(self.conv(p_preliminary).T + self.e_pos, f_clean) @ self.linear_rd
         p_estimated += p_preliminary.T # NOTE: ikke sikker på om denne operation skal være her.
         
         return p_estimated
@@ -202,17 +237,19 @@ class DeciWatch(nn.Module):
         assert video_length % sample_rate == 0, "video_length has to be divisible by sample_rate."
         
         self.sample_rate = sample_rate
+        self.num_samples = int(video_length/sample_rate)
         
         self.denoise_net = _DenoiseNet(frame_numel, 
                                        embedding_dim,
                                        nhead,
                                        dim_feedforward,
-                                       num_layers
+                                       num_layers,
+                                       self.num_samples
                                        )
         
         self.recover_net = _RecoverNet(
             video_length, 
-            sample_rate,
+            self.num_samples,
             frame_numel, 
             embedding_dim,
             nhead,
@@ -275,3 +312,4 @@ if __name__ == "__main__":
 
     # Predicting
     output = deci_watch(noisy_poses)
+    print(output.shape)
