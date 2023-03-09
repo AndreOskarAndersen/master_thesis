@@ -2,11 +2,18 @@ import torch
 import torch.nn as nn
 
 class Baseline(nn.Module):
-    def __init__(self):
+    def __init__(self, num_keypoints: int, kernel_size: int, stride: int):
         super(Baseline, self).__init__()
+        self.conv = nn.Conv3d(
+            in_channels=num_keypoints,
+            out_channels=num_keypoints,
+            kernel_size=kernel_size,
+            stride=stride,
+            padding="same"
+        )
         
     def forward(self, x):
-        x
+        return self.conv(x)
 
 if __name__ == "__main__":
     """
@@ -15,13 +22,14 @@ if __name__ == "__main__":
     
     num_frames = 100
     num_keypoints = 16
-    num_keypoints_dim = 2
-    height = 8
-    width = 8
-    noisy_poses = torch.rand(num_frames, num_keypoints*num_keypoints_dim)
+    frame_height = 8
+    frame_width = 8
+    noisy_poses = torch.rand(num_keypoints, num_frames, frame_height, frame_width)
     
     # Making model
-    baseline = Baseline()
+    kernel_size = 5
+    stride = 1
+    baseline = Baseline(num_keypoints, kernel_size, stride)
     
     # Predicting
     output = baseline(noisy_poses)
