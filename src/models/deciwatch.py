@@ -162,6 +162,12 @@ class _DenoiseNet(nn.Module):
             Denoised features.
         """
         
+        # NOTE: mask IS NOT CORRECT, AS THIS CAUSES ALL VALUES TO BE NAN. 
+        # CURRENTLY UNCOMMENTED TO NOT CAUSE CRASH.
+        #f_clean = self.transformer_encoder(p_noisy @ self.linear_de + self.e_pos, mask=mask, src_key_padding_mask=src_key_padding_mask)
+        # TODO: FIX
+        f_clean = self.transformer_encoder(p_noisy @ self.linear_de + self.e_pos, src_key_padding_mask=src_key_padding_mask)
+        p_clean = f_clean @ self.linear_dd
         f_clean = self.transformer_encoder(p_noisy @ self.linear_de + self.e_pos, mask=mask, src_key_padding_mask=src_key_padding_mask)
         p_clean = f_clean @ self.linear_dd
         
