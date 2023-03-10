@@ -332,13 +332,13 @@ class DeciWatch(nn.Module):
             device
         )
         
-    def forward(self, p_noisy: torch.Tensor):
+    def forward(self, video_sequence: torch.Tensor):
         """
-        Runs the DenoiseNet on p_noisy.
+        Runs the DenoiseNet on video_sequence.
         
         Parameters
         ----------
-        p_noisy : torch.Tensor
+        video_sequence : torch.Tensor
             Sequence of frames to apply DeciWatch on.
             Has to have shape (num_frames, C_in, H_in, W_in).
             
@@ -348,7 +348,7 @@ class DeciWatch(nn.Module):
             Estimated poses
         """
         
-        p_sampled = p_noisy[::self.sample_rate]
+        p_sampled = video_sequence[::self.sample_rate]
         
         # NOTE: ER IKKE HELT SIKKER PÅ DENNE IMPLEMENTATION, 
         # DA DEN MANGLER NOGLE DELE SAMMENLIGNET MED DEN OFFICIELE
