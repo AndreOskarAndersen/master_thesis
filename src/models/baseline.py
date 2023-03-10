@@ -43,6 +43,7 @@ class Baseline(nn.Module):
         """
         
         pred = self.conv(p_noisy)
+        pred = torch.permute(pred, (1, 0, 2, 3))
         
         return pred
 
