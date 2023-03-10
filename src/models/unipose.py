@@ -264,7 +264,6 @@ class Unipose(nn.Module):
         
         assert len(p_noisy.shape) == 4, f"p_noisy should have 4 dimensions, yours have {len(p_noisy.shape)}."
         assert p_noisy.shape[0] == 1, f"You should only pass a single pose. You have passed {p_noisy.shape[0]}."
-        #assert all(len(prev_s.shape) == 4 for prev_s in prev_state), f"All states in prev_state should be of 4 dimensions."
         
         if self.bidirectional:
             
