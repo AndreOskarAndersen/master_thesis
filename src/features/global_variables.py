@@ -41,8 +41,11 @@ BRACE_KEYPOINTS = {0: "nose", 1: "left_eye", 2: "right_eye", 3: "left_ear", 4: "
 # Path for Penn Action Raw data
 PENN_ACTION_RAW_PATH = RAW_DATA_FOLDER + "penn_action/Penn_Action/"
 
-# Penn action sub data folders
-SUB_PENN_ACTION_FOLDERS = {"keypoints": "labels/", "frames": "frames/"}
+# Penn action raw keypoints path 
+PENN_ACTION_RAW_KEYPOINTS_PATH = PENN_ACTION_RAW_PATH + "labels/"
 
 # Set of actions from the Penn Action dataset that are relevant.
 RELEVANT_ACTIONS = {"baseball_pitch", "bench_press", "sit_ups"}
+
+# Description of keypoint.indices
+PENN_ACTION_KEYPOINTS = {0: "nose", 1: "left_shoulder", 2: "right_shoulder", 3: "left_elbow", 4: "right_elbow", 5: "left_wrist", 6: "right_wrist", 7: "left_hip", 8: "right_hip", 9: "left_knee", 10: "right_knee", 11: "left_ankle", 12: "right_ankle"}

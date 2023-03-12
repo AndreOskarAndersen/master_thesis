@@ -7,7 +7,7 @@ from typing import Tuple, Dict, List
 from utils import make_dir, turn_keypoint_to_featuremap
 from global_variables import *
 
-def load_keypoints(year: str, video_id: str):
+def _load_keypoints(year: str, video_id: str):
     """
     Loads the automatically and manually annotated BRACE keypoints.
     
@@ -87,7 +87,7 @@ def load_keypoints(year: str, video_id: str):
 
     return video_annotations
 
-def preprocess_keypoints(video_annotations : Dict[str, Tuple[List[float]]]):
+def _preprocess_keypoints(video_annotations : Dict[str, Tuple[List[float]]]):
     """
     Preprocesses keypoints.
     
@@ -145,12 +145,9 @@ def preprocess_keypoints(video_annotations : Dict[str, Tuple[List[float]]]):
     keypoints[:, 0] -= x_min
     keypoints[:, 1] -= y_min
     
-    x_min = 0
-    y_min = 0
-    
     # Rescaling keypoints to the correct range
-    rescale_width = TARGET_WIDTH / round(x_max - x_min)
-    rescale_height = TARGET_HEIGHT / round(y_max - y_min)
+    rescale_width = TARGET_WIDTH / round(x_max)
+    rescale_height = TARGET_HEIGHT / round(y_max)
 
     keypoints[:, 0] *= rescale_width
     keypoints[:, 1] *= rescale_height
@@ -203,11 +200,11 @@ def preprocess():
         video_id = row["video_id"]
         year = str(row["year"])
         
-        # Path for the keypoints of this video
+        # Path for storing the keypoints of this video
         keypoints_path = OVERALL_DATA_FOLDER + video_id + "/"
         
         # Loading keypoints of video
-        video_annotations = load_keypoints(year, video_id)
+        video_annotations = _load_keypoints(year, video_id)
         
         # Making folder for storing keypoints of current video
         make_dir(keypoints_path)
@@ -220,7 +217,7 @@ def preprocess():
             
             # Processing keypoints of the loaded clip
             try:
-                preprocessed_keypoints = preprocess_keypoints(frame_annotation)
+                preprocessed_keypoints = _preprocess_keypoints(frame_annotation)
             except Exception:
                 import traceback
                 print()
