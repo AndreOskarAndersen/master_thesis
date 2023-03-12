@@ -52,6 +52,7 @@ class _KeypointsDataset(Dataset):
         
         json_file = json.load(open(self.dir_path + self.dir[i]))
         tensor = torch.tensor(list(json_file.values()))
+        # NOTE/TODO: HAVE TO APPLY GAUSSIAN-FILTER FOR UNIPOSE AND BASELINE
         
         return tensor
     
