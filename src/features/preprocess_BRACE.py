@@ -1,71 +1,11 @@
 import os
 import numpy as np
 import pandas as pd
-import pims
 import torch
-import cv2
-import json
-import torchvision
-from global_variables import *
 from tqdm import tqdm
-
-# Rescaling factors
-original_height = 1080
-original_width = 1920
-target_width = 800
-rescale_factor = target_width/original_width
-
-new_width = int(original_width * rescale_factor)
-new_height = int(original_height * rescale_factor)
-
-def load_clip(video: pims.Video, keypoints_dict: dict):
-    """
-    Function for loading a clip as a numpy-array.
-    
-    Parameters
-    ----------
-    video_path : str
-        Path of the video containing the frames of the clip (and some other frames)
-        
-    keypoints_dict : dict
-        Dict containing the keypoint annotations of the clip.
-        Each key is a frame-number and the corresponding value
-        is the keypoint annotations of that frame.
-        
-    Return
-    ------
-    clip : np.array
-        Numpy-representation of the clip to return
-    """   
-    
-    # Extracting frames of clip
-    start_frame = min(keypoints_dict.keys()) - 1 # NOTE: NOT SURE IF ANNOTATED FRAMES ARE 0 INDEXED
-    end_frame = max(keypoints_dict.keys()) # NOTE: NOT SURE IF ANNOTATED FRAMES ARE 0 INDEXED
-    clip = video[start_frame:end_frame]
-    
-    return clip
-
-def load_video(video_id: str):
-    """
-    loads a video.
-    
-    Parameters
-    ----------
-    video_id : str
-        ID of the video to load
-        
-    Returns
-    -------
-    video : pims.Video
-        The loaded video
-    """
-    
-    video_folder = RAW_DATA_FOLDER + RAW_CORPUS_FOLDERS["videos_folder"] + video_id + "/"
-    video_name = list(filter(lambda x: x != ".DS_Store", os.listdir(video_folder)))[0]
-    video_path = video_folder + video_name
-    video = pims.Video(video_path)
-    
-    return video
+from typing import Tuple, Dict, List
+from utils import make_dir, turn_keypoint_to_featuremap
+from global_variables import *
 
 def load_keypoints(year: str, video_id: str):
     """
@@ -81,17 +21,17 @@ def load_keypoints(year: str, video_id: str):
         
     Returns
     -------
-    all_keypoints : list[dict]
-        List with length of the amount of clips of the video,
-        where each entrance is a dict
-        where the key is a frame-name and the value is the
-        keypoints of that frame
+    video_annotations : Dict[str, Tuple[List[float]]]
+        dict with length of the amount of annotated frames of the video,
+        where each key is the frame-number and the corresponding value
+        is a tuple, where the first element is the bbox of the frame
+        and the second element is the keypoints of the frame.
     """
     
-    all_keypoints = []
+    video_annotations = {}
     
     # loading automatic directories
-    path = RAW_DATA_FOLDER + RAW_CORPUS_FOLDERS["keypoints_folder"] + "/" + RAW_KEYPOINT_FOLDERS["automatic"] + RAW_KEYPOINTS_SUBFOLDERS["automatic"] + year + "/" + video_id + "/"
+    path = RAW_BRACE_PATH + RAW_KEYPOINT_FOLDERS["automatic"] + RAW_KEYPOINTS_SUBFOLDERS["automatic"] + year + "/" + video_id + "/"
     keypoints_listdir = os.listdir(path)
     
     # Looping through all of the automatic annotations
@@ -99,29 +39,33 @@ def load_keypoints(year: str, video_id: str):
         keypoint_path = path + keypoint_file
         
         # Reading annotations
-        keypoints = pd.read_json(keypoint_path)
+        annotations = pd.read_json(keypoint_path)
         
-        # Deleting bbox-annotation
-        keypoints = keypoints.drop(index=("box"))
-        
-        # Renaming columns
-        columns = list(keypoints.columns)
-        columns = list(map(lambda x: int(x[-10:-4].lstrip("0")), columns))
-        keypoints.columns = columns
+        # Columns used for naming frames.
+        keys = list(annotations.columns)
+        keys = list(map(lambda x: x[-10:-4].lstrip("0"), keys))
         
         # Removing "score"-attribute
-        keypoints = keypoints.loc["keypoints"]
-        keypoints = keypoints.apply(lambda x: list(map(lambda y: [y[0], y[1]], x)))
+        clip_keypoints = annotations.loc["keypoints"]
+        clip_keypoints = clip_keypoints.apply(lambda x: list(map(lambda y: [y[0], y[1]], x)))
         
-        # Casting to dict
-        keypoints = keypoints.to_dict()
+        # Casting each row to torch.Tensor
+        clip_keypoints = list(clip_keypoints.to_numpy())
+        clip_keypoints = list(map(lambda x: torch.tensor(x), clip_keypoints))
         
-        # Appending the keypoints of this clip
-        # to the list
-        all_keypoints.append(keypoints)
+        # Making bboxes
+        clip_bboxes = [[clip_keypoint[:, 0].min().item(), 
+                        clip_keypoint[:, 1].min().item(), 
+                        clip_keypoint[:, 0].max().item(), 
+                        clip_keypoint[:, 1].max().item()] 
+                       for clip_keypoint in clip_keypoints]
+        
+        # Storing keypoints, bboxes and their corresponding frame-number
+        clip_annotations = dict(zip(keys, zip(clip_bboxes, clip_keypoints)))
+        video_annotations.update(clip_annotations)
             
     # Loading manual annotations
-    path = RAW_DATA_FOLDER + RAW_CORPUS_FOLDERS["keypoints_folder"] + "/" + RAW_KEYPOINT_FOLDERS["manual"] + RAW_KEYPOINTS_SUBFOLDERS["manual"] + year + "/" + video_id + "/"
+    path = RAW_BRACE_PATH + RAW_KEYPOINT_FOLDERS["manual"] + RAW_KEYPOINTS_SUBFOLDERS["manual"] + year + "/" + video_id + "/"
     keypoints_listdir = os.listdir(path)
     
     # Looping through all of the manual annotations
@@ -129,87 +73,120 @@ def load_keypoints(year: str, video_id: str):
         keypoint_path = path + keypoint_file
         
         # Reading annotations
-        keypoints = np.load(keypoint_path)['coco_joints2d'][:, :2]
+        keypoints = torch.from_numpy(np.load(keypoint_path)['coco_joints2d'][:, :2])
+        
+        # Making bbox that fits inside the frame.
+        fitted_keypoints = keypoints[(0 <= keypoints[:, 0]) & (keypoints[:, 0] < BRACE_WIDTH) & (0 <= keypoints[:, 1]) & (keypoints[:, 1] < BRACE_HEIGHT)]
+        clip_bboxes = [fitted_keypoints[:, 0].min().item(), fitted_keypoints[:, 1].min().item(), fitted_keypoints[:, 0].max().item(), fitted_keypoints[:, 1].max().item()]
         
         # Getting key-name
-        key_name = int(keypoint_file[-10:-4].lstrip("0"))
+        key_name = keypoint_file[-10:-4].lstrip("0")
         
         # Inserting manual annotation in the correct dict of the list
-        for clip_dict in all_keypoints:
-            if min(clip_dict.keys()) <= key_name <= max(clip_dict.keys()):
-                clip_dict[key_name] = keypoints
-    
-    return all_keypoints
+        video_annotations[key_name] = (clip_bboxes, keypoints)
 
-def _preprocess_clip(clip: pims.Video, keypoints_dict: dict):
-    """
-    Function for preprocessing a single video-clip from the BRACE-dataset.
-    
-    Parameters
-    ----------
-    clip : pims.Video
-        Clip to preprocess
-        
-    keypoints_dict : dict
-        Dict containing the keypoint annotations of the clip.
-        Each key is a frame-number and the corresponding value
-        is the keypoint annotations of that frame.
-        
-    Returns
-    -------
-    clip : torch.Tensor
-        tensor of the processed video
-        
-    """
-    
-    # Casting to numpy
-    clip = np.array(clip)
-    
-    # Resizing
-    resized_clip = np.zeros((len(keypoints_dict.keys()), new_height, new_width, 3), dtype=np.uint8)
-    for i in range(len(keypoints_dict.keys())):
-        frame = clip[i]
-        resized_frame = cv2.resize(frame, (new_width, new_height))
-        resized_clip[i] = resized_frame
-    clip = resized_clip
-    
-    # Casting to torch tensor
-    clip = torch.from_numpy(clip)
-    
-    return clip
+    return video_annotations
 
-def preprocess_keypoints(keypoints_dict: dict):
+def preprocess_keypoints(video_annotations : Dict[str, Tuple[List[float]]]):
     """
     Preprocesses keypoints.
     
     Parameters
     ----------
-    keypoints_dict : dict
-        Dict containing the keypoint annotations of the clip.
-        Each key is a frame-number and the corresponding value
-        is the keypoint annotations of that frame.
+    video_annotations : Dict[str, Tuple[List[float]]]
+        dict with length of the amount of annotated frames of the video,
+        where each key is the frame-number and the corresponding value
+        is a tuple, where the first element is the bbox of the frame
+        and the second element is the keypoints of the frame.
     
     Returns
     -------
-    preprocessed_keypoints_dict : dict
-        Preprocessed version of keypoints_dict
+    preprocessed_keypoints_dict : torch.Tensor
+        Preprocessed keypoints.
     
     """
     
-    preprocessed_keypoints_dict = {}
+    # Reading annotations
+    bbox, keypoints = video_annotations
     
-    for k, v in keypoints_dict.items():
+    if keypoints.sum().item() == 0:
+        # If the frame does not contain any keypoints
+        return torch.zeros(NUM_KEYPOINTS, TARGET_HEIGHT, TARGET_WIDTH).bool()
+    
+    # Making bbox a square, by expanding the shortest side
+    x_min, y_min, x_max, y_max = bbox
+    width = x_max - x_min
+    height = y_max - y_min
+    diff = np.abs(height - width)
+    expand_factor = diff/2
+    
+    if width < height:
+        x_min -= expand_factor
+        x_max += expand_factor
+    else:
+        y_min -= expand_factor
+        y_max += expand_factor
+    
+    width = x_max - x_min
+    height = y_max - y_min
         
-        # Resizing keypoints
-        v = list(map(lambda x: list(map(lambda y: round(y * rescale_factor), x)), v))
-        
-        # Removing unnecessary keypoints
-        v = np.concatenate(([v[0]], v[5:]))
-        
-        # Storing in new dictionary of keypoints
-        preprocessed_keypoints_dict[int(k)] = v.tolist()
+    # Expanding sides by 10%
+    expand_factor = 0.1 * width * 0.5
+    x_min -= expand_factor 
+    x_max += expand_factor 
+    y_min -= expand_factor 
+    y_max += expand_factor 
 
-    return preprocessed_keypoints_dict
+    # Shifts keypoints, corresponding to such that the upper left koordinate
+    # of the bbox has coordinates (0, 0)
+    x_max -= x_min
+    y_max -= y_min
+        
+    keypoints[:, 0] -= x_min
+    keypoints[:, 1] -= y_min
+    
+    x_min = 0
+    y_min = 0
+    
+    # Rescaling keypoints to the correct range
+    rescale_width = TARGET_WIDTH / round(x_max - x_min)
+    rescale_height = TARGET_HEIGHT / round(y_max - y_min)
+
+    keypoints[:, 0] *= rescale_width
+    keypoints[:, 1] *= rescale_height
+    
+    # Rounding to nearest integer
+    keypoints = torch.round(keypoints).int()
+    
+    # Flipping the keypoints horizontally
+    keypoints[:, 1] = TARGET_HEIGHT - 1 - keypoints[:, 1]
+    
+    # Tensor for storing heatmaps
+    processed_heatmaps = torch.zeros(NUM_KEYPOINTS, TARGET_HEIGHT, TARGET_WIDTH).bool()
+    
+    # Function for translating keypoints for translating
+    # BRACE keypoint-index to ClimbAlong keypoint-index
+    translate = lambda i: CLIMBALONG_KEYPOINTS[BRACE_KEYPOINTS[i]]
+    
+    # Looping through each keypoint
+    for i, keypoint in enumerate(keypoints):        
+        if BRACE_KEYPOINTS[i] not in CLIMBALONG_KEYPOINTS:
+            # Some keypoints from BRACE are not used in ClimbAlong-data
+            continue
+        
+        if not (0 <= keypoint[0] < TARGET_WIDTH and 0 <= keypoint[1] < TARGET_HEIGHT):
+            continue
+            
+        # Translating keypoint-index to correct index
+        i = translate(i)
+        
+        # Making heatmap from keypoint
+        heatmap = turn_keypoint_to_featuremap(keypoint, (TARGET_HEIGHT, TARGET_WIDTH))
+        
+        # Inserting data
+        processed_heatmaps[i] = heatmap
+            
+    return processed_heatmaps
             
 def preprocess():
     """
@@ -217,47 +194,45 @@ def preprocess():
     """
     
     # Loading csv containing meta-information of videos
-    meta_info = pd.read_csv(RAW_DATA_FOLDER + METAINFO_NAME)
+    meta_info = pd.read_csv(RAW_BRACE_PATH + METAINFO_NAME)
     
     # Iterating through each video and prepare it
-    for _, row in tqdm(meta_info.iterrows(), desc="Preparing videos", leave=True, total=len(meta_info)):
+    for _, row in tqdm(meta_info.iterrows(), desc="Preparing videos", leave=True, total=len(meta_info), disable=False):
+        
         # Extracting meta info about video
         video_id = row["video_id"]
         year = str(row["year"])
-        fps = row["fps"]
+        
+        # Path for the keypoints of this video
+        keypoints_path = OVERALL_DATA_FOLDER + video_id + "/"
         
         # Loading keypoints of video
-        all_keypoints = load_keypoints(year, video_id)
+        video_annotations = load_keypoints(year, video_id)
         
-        # Loading video 
-        video = load_video(video_id)
+        # Making folder for storing keypoints of current video
+        make_dir(keypoints_path)
         
         # Iterating through the keypoint-annotations of each clip of the current video
-        for keypoint_dict in tqdm(all_keypoints, desc="Processing clip", leave=False):
-            
-            # Extracting the number of the start/end-frames
-            start = str(min(keypoint_dict.keys()))
-            end = str(max(keypoint_dict.keys()))
+        for frame_number, frame_annotation in tqdm(video_annotations.items(), desc="Storing clip-keypoints", leave=False, disable=False):
             
             # Path for storing stuff
-            clip_storing_path = OVERALL_DATA_FOLDER + SUB_DATA_FOLDERS["videos"] + video_id + "_" + start + "-" + end + ".mp4"
-            keypoints_storing_path = OVERALL_DATA_FOLDER + SUB_DATA_FOLDERS["keypoints"] + video_id + "_" + start + "-" + end + ".json"
-            
-            # Loading clip
-            clip = load_clip(video, keypoint_dict)
-            
-            # Preprocessing the loaded clip
-            processed_clip = _preprocess_clip(clip, keypoint_dict)
-            
-            # Storing clip
-            torchvision.io.write_video(clip_storing_path, processed_clip, fps, "libx264")
-            
-            # Freeing clip om memory
-            del processed_clip
-            del clip
+            keypoints_storing_path = keypoints_path + frame_number + ".pt"
             
             # Processing keypoints of the loaded clip
-            preprocessed_keypoints = preprocess_keypoints(keypoint_dict)
+            try:
+                preprocessed_keypoints = preprocess_keypoints(frame_annotation)
+            except Exception:
+                import traceback
+                print()
+                print()
+                print("video_id", video_id)
+                print("year", year)
+                print(frame_number)
+                print(traceback.format_exc())
+                exit(1)
+                
+            # Saving keypoints of frame as tensor
+            torch.save(preprocessed_keypoints, keypoints_storing_path)
             
-            # Saving JSON
-            json.dump(preprocessed_keypoints, open(keypoints_storing_path, "w"))
+if __name__ == "__main__":
+    preprocess()

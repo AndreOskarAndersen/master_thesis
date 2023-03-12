@@ -23,16 +23,20 @@ def _make_corpus_folders():
     Function for making various folders for storing the data
     """
     
-    # Making the overall folder for the data, in case it does not extist
+    # Making the overall folder for the data, in case it does not exist
     _make_dir(DATA_PATH)
     
     # Making overall folder for the unprocessed-data, in case it does not already exist.
     _make_dir(OUTPUT_PATH)
     
-    # Making the folders for storing the unprocessed keypoints and videos folders
-    # in case they do not already exist
-    for corpus_folder in CORPUS_FOLDERS.values():
-        _make_dir(OUTPUT_PATH + corpus_folder)
+    # Making the BRACE-download folder
+    _make_dir(OUTPUT_PATH + BRACE_DOWNLOAD)
+    
+    # Making the Penn_Action-download folder
+    _make_dir(OUTPUT_PATH + PENN_ACTION_EXTRACTED)
+    
+    # Making BRACE subfolders
+    _make_dir(OUTPUT_PATH + BRACE_DOWNLOAD + KEYPOINTS_FOLDER)
 
 def main():
     """

@@ -18,7 +18,7 @@ def _download_zipfiles():
     ]
 
     for keypoint_url in keypoint_urls:
-        wget.download(keypoint_url, out=OUTPUT_PATH + CORPUS_FOLDERS["keypoints_folder"])
+        wget.download(keypoint_url, out=OUTPUT_PATH + BRACE_DOWNLOAD + KEYPOINTS_FOLDER)
 
 def _unzip_keypoints():
     """
@@ -26,8 +26,8 @@ def _unzip_keypoints():
     """
     
     for i in range(len(DOWNLOAD_FOLDER_NAMES)):
-        with zipfile.ZipFile(OUTPUT_PATH + CORPUS_FOLDERS["keypoints_folder"] + DOWNLOAD_FOLDER_NAMES[i] + ".zip", 'r') as zip_ref:
-            zip_ref.extractall(OUTPUT_PATH + CORPUS_FOLDERS["keypoints_folder"] + SAVE_FOLDER_NAMES[i] + "/")
+        with zipfile.ZipFile(OUTPUT_PATH + BRACE_DOWNLOAD + KEYPOINTS_FOLDER + DOWNLOAD_FOLDER_NAMES[i] + ".zip", 'r') as zip_ref:
+            zip_ref.extractall(OUTPUT_PATH + BRACE_DOWNLOAD + KEYPOINTS_FOLDER + SAVE_FOLDER_NAMES[i] + "/")
 
 def _delete_zipfiles():
     """
@@ -35,7 +35,7 @@ def _delete_zipfiles():
     """
     
     for folder_name in DOWNLOAD_FOLDER_NAMES:
-        os.remove(OUTPUT_PATH + CORPUS_FOLDERS["keypoints_folder"] + folder_name + ".zip")
+        os.remove(OUTPUT_PATH + BRACE_DOWNLOAD + KEYPOINTS_FOLDER + folder_name + ".zip")
 
 def _download_keypoints():    
     """
@@ -64,41 +64,7 @@ def _download_metainfo():
     """
     
     metainfo_url = "https://raw.githubusercontent.com/dmoltisanti/brace/main/videos_info.csv"
-    wget.download(metainfo_url, out=OUTPUT_PATH + METAINFO_NAME)
-
-def _download_video(video_id: str):
-    """
-    Function for downloading a youtube-video, given its video-ID.
-    
-    Parameters
-    ----------
-    video_id : str
-        The ID of the video to download
-    """
-    
-    # Url of the video to download
-    url = "https://www.youtube.com/watch?v=" + video_id
-    
-    # Path of where to save the downloaded video
-    save_path = OUTPUT_PATH + CORPUS_FOLDERS["videos_folder"] + video_id
-    
-    # Downloading the video using the .mp4-format in the 1920x1080-resolution.
-    YouTube(url).streams.filter(file_extension="mp4", res="1080p").first().download(save_path)
-
-def _download_videos():
-    """
-    Main entrypoint for downloading the videos of the BRACE-dataset.
-    """
-    
-    print("Downloading videos...")
-    
-    # Reading csv that contains the names of the videos to download.
-    csv = pd.read_csv(OUTPUT_PATH + METAINFO_NAME)
-    video_ids = csv["video_id"].to_list()
-    
-    # Download each video in the loaded csv-file.
-    for video_id in tqdm(video_ids, desc="Downloading videos", leave=False):
-        _download_video(video_id)
+    wget.download(metainfo_url, out=OUTPUT_PATH + BRACE_DOWNLOAD + METAINFO_NAME)
         
 def main():
     """
@@ -107,4 +73,6 @@ def main():
     
     _download_keypoints()
     _download_metainfo()
-    _download_videos()
+    
+if __name__ == "__main__":
+    main()

@@ -8,8 +8,10 @@ OUTPUT_PATH = DATA_PATH + "raw/"
 
 # =============== BRACE VARIABLES ===============
 
+BRACE_DOWNLOAD = "BRACE/"
+
 # Mapping to names of folders for the unprocessed keypoints and videos
-CORPUS_FOLDERS = {"keypoints_folder": "keypoints/", "videos_folder": "videos/"}
+KEYPOINTS_FOLDER = "keypoints/"
 
 # Name of the csv containing the metainformation of the videos
 METAINFO_NAME = "metainfo.csv"
@@ -27,3 +29,9 @@ PENN_ACTION_DOWNLOAD = "penn_action.tar.gz"
 
 # Name of the extracted dataset
 PENN_ACTION_EXTRACTED = "penn_action/"
+
+PENN_ACTION_SUB_FOLDER = "Penn_Action/"
+
+PENN_ACTION_DIRS_TO_DELETE = [f"{PENN_ACTION_SUB_FOLDER}frames/", f"{PENN_ACTION_SUB_FOLDER}tools/"]
+
+PENN_ACTION_FILES_TO_DELTE = [f"{PENN_ACTION_EXTRACTED}{PENN_ACTION_SUB_FOLDER}README", PENN_ACTION_DOWNLOAD]
