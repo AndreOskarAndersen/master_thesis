@@ -9,7 +9,8 @@ from global_variables import *
 
 def _load_keypoints(year: str, video_id: str):
     """
-    Loads the automatically and manually annotated BRACE keypoints.
+    Loads the automatically and manually annotated BRACE keypoints,
+    as well as creates the bboxes.
     
     Parameters
     ----------
@@ -93,10 +94,8 @@ def _preprocess_keypoints(video_annotations : Dict[str, Tuple[List[float]]]):
     
     Parameters
     ----------
-    video_annotations : Dict[str, Tuple[List[float]]]
-        dict with length of the amount of annotated frames of the video,
-        where each key is the frame-number and the corresponding value
-        is a tuple, where the first element is the bbox of the frame
+    video_annotations : Tuple[List[float]]
+        The first element is the bbox of the frame
         and the second element is the keypoints of the frame.
     
     Returns
@@ -146,8 +145,8 @@ def _preprocess_keypoints(video_annotations : Dict[str, Tuple[List[float]]]):
     keypoints[:, 1] -= y_min
     
     # Rescaling keypoints to the correct range
-    rescale_width = TARGET_WIDTH / round(x_max)
-    rescale_height = TARGET_HEIGHT / round(y_max)
+    rescale_width = (TARGET_WIDTH - 1) / round(x_max)
+    rescale_height = (TARGET_HEIGHT - 1) / round(y_max)
 
     keypoints[:, 0] *= rescale_width
     keypoints[:, 1] *= rescale_height
