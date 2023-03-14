@@ -18,7 +18,7 @@ def _load_bboxes(keypoints: np.array):
     
 def _preprocess_keypoints(label: Dict):
     """
-    Preprocesses keypoints.
+    Preprocesses keypoints of a single video.
     
     Parameters
     ----------
@@ -51,6 +51,13 @@ def _preprocess_keypoints(label: Dict):
     
     widths = x_maxs - x_mins
     heights = y_maxs - y_mins
+    
+    # Expanding sides by 10%
+    expand_factors = 0.1 * widths * 0.5
+    x_mins -= expand_factors 
+    x_maxs += expand_factors 
+    y_mins -= expand_factors 
+    y_maxs += expand_factors 
     
     # Shifts keypoints, corresponding to such that the upper left koordinate
     # of the bbox has coordinates (0, 0)

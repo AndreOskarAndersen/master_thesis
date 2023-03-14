@@ -90,7 +90,7 @@ def _load_keypoints(year: str, video_id: str):
 
 def _preprocess_keypoints(video_annotations : Dict[str, Tuple[List[float]]]):
     """
-    Preprocesses keypoints.
+    Preprocesses keypoints of a single frame.
     
     Parameters
     ----------
