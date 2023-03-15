@@ -1,352 +1,335 @@
+import numpy as np
 import torch
-import torch.nn as nn
-from typing import Tuple
+from torch import nn
 
-def _get_linear(dims: Tuple[int, int]):
+def _get_masks(num_frames, sample_rate, batch_size):
     """
-    Function for getting the matrix for linear projection.
-    Initialized by a standard normal distribution.
+    Function for getting encoding and decoder masks.
     
-    Parameters
-    ----------
-    input_dim : Tuple[int, int]
-        Dimensions of output matrix
-        
-    Returns
-    -------
-    Matrix for linear projection.
-    """
-    
-    input_dim, output_dim = dims
-    
-    return nn.Parameter(torch.normal(mean=0, std=1, size=(input_dim, output_dim), requires_grad=True))
-
-def _get_masks(num_samples: int, video_length: int, device: torch.device, sample_rate:int = 10):
-    """
-    Function for generating masks for encoder and decoder.
-    
-    Inspired by the following implementation
+    Inspired by the "generate_uniform_mask"-method
+    from the official DeciWatch implementation
     https://github.com/cure-lab/DeciWatch/blob/main/lib/models/deciwatch.py#L105
     
     Parameters
     ----------
-    num_samples : int 
-        Number of sampled frames.
-        Noted as 'T/N' in the paper
+    num_frames : int
+        Number of frames per video sequence
         
-    video_length : int
-        Number of frames in the video.
-        Noted as 'T' in the paper.
-        
-    sample_rate: int
+    sample_rate : int
         Ratio of samples to use for inference.
         Noted as 'N' in the paper.
         
-    device : torch.device
-        What device to use
-    """
-    
-    sample_mask = torch.ones(num_samples, dtype=torch.int32)
-    sample_mask[::sample_rate] = 0
-
-    encoder_mask = sample_mask
-    decoder_mask = torch.zeros(video_length, dtype=torch.int32)
-
-    return torch.eye(num_samples).bool().to(device), encoder_mask.bool().to(device), decoder_mask.bool().to(device)
-
-def _get_position_embedding(num_samples: int, embedding_dim: int, device: torch.device):
-    """
-    Function for getting positional embedding.
-    
-    Inspired by the implementation of "getPositionEncoding" by
-    https://machinelearningmastery.com/a-gentle-introduction-to-positional-encoding-in-transformer-models-part-1/
-    
-    Parameters
-    ----------
-    num_samples : int 
-        Number of sampled frames.
-        Noted as 'T/N' in the paper
-    
-    embedding_dim : int
-        Embedding dimension.
-        Noted as 'C' in the paper.
+    batch_size : int
+        Number of video sequences per batch.
         
     Returns
     -------
-    Positional embedding.
+    encoder_mask : int
+        Mask for the encoder
+        
+    decoder_mask : int
+        Mask for the decoder
     """
-    
-    n = 10000
-    P = torch.zeros((num_samples, embedding_dim)).to(device)
-    
-    for k in range(num_samples):
-        for i in torch.arange(int(embedding_dim/2)):
-            denum = torch.pow(n, 2*i/embedding_dim)
-            P[k, 2*i] = torch.sin(k/denum)
-            P[k, 2*i+1] = torch.cos(k/denum)
-            
-    return P
+          
+    encoder_mask = torch.zeros(num_frames, dtype=bool)
+    encoder_mask[::sample_rate] = 1
+    encoder_mask = encoder_mask.unsqueeze(0).repeat(batch_size, 1)
 
+    decoder_mask = torch.zeros(num_frames, dtype=bool)
+    decoder_mask = decoder_mask.unsqueeze(0).repeat(batch_size, 1)
+
+    return encoder_mask, decoder_mask
+
+class PositionEmbeddingSine_1D(nn.Module):
+    def __init__(self, d_model: int):
+        """
+        Positional embedding, generalized to work on images.
+        
+        Inspired by the official DeciWatch implementation
+        https://github.com/cure-lab/DeciWatch/blob/main/lib/models/deciwatch.py#L13
+        
+        Parameters
+        ----------
+        d_model : int
+            input/output dimensionality.
+        """
+        
+        super(PositionEmbeddingSine_1D, self).__init__()
+        
+        self.d_model = d_model
+        self.denum = 10000**(2 * np.arange(0, self.d_model)/self.d_model)
+
+    def forward(self, batch_size: int, num_frames: int):
+        """
+        Gets a positional embedding.
+        
+        Parameters
+        ----------
+        batch_size : int
+            Number of video sequences per batch.
+            
+        num_frames : int
+            Numnber of frames per video sequence.
+            
+        Returns
+        -------
+        e_pos : torch.Tensor
+            Positional embedding.
+        """
+        
+        pos = torch.arange(num_frames).unsqueeze(0).repeat(batch_size, 1)
+        pos = pos / (pos[:, -1:] + 1e-6) * 2 * np.pi
+
+        e_pos = torch.zeros(batch_size, num_frames, self.d_model * 2)
+        e_pos[:, :, 0::2] = torch.sin(pos[:, :, None] / self.denum)
+        e_pos[:, :, 1::2] = torch.cos(pos[:, :, None] / self.denum)
+        e_pos = e_pos.permute(1, 0, 2)
+
+        return e_pos
+    
 class _DenoiseNet(nn.Module):
     def __init__(self, 
-                 frame_numel: int, 
-                 embedding_dim: int,
-                 nhead: int,
-                 dim_feedforward: int,
-                 num_layers: int,
-                 num_samples: int,
-                 dropout: float,
-                 device: torch.device
+                 hidden_dims: int, 
+                 dim_feedforward: int, 
+                 num_layers: int, 
+                 keypoints_numel: int, 
+                 nheads: int, 
+                 dropout: float
                  ):
-        
         """
         Implementation of the DenoiseNet-part of DeciWatch, as described by
         https://arxiv.org/pdf/2203.08713.pdf
         
         Parameters
         ----------
-        frame_numel : int
-            Amount of keypoints multiplied by the amount of dimensions of the keypoints.
-            Equals to 'K * D' from the paper.
-            
-        embedding_dim : int
-            Embedding dimension.
-            Noted as 'C' in the paper.
-            
-        n_head : int
-            The number of heads in the multiheadattention models.
-            Noted as 'M' in the paper.
+        hidden_dims : int
+            Number of embedding dimensions.
+            Noted as 'C' in the paper
             
         dim_feedforward : int
-            The dimension of the feedforward network model.
+            Amount of dimensions of the feedforward network models
             
         num_layers : int
-            The number of sub-encoder-layers in the encoder.
+            Number of sub-encoder-layers
+            
+        keypoints_numel : int
+            Amount of keypoints mulitplied by the amount of dimensions of the keypoints.
+            Equals to 'K * D' from the paper.
+            
+        nheads : int
+            The number of heads in the multiheadattention models
             
         dropout : float
             The amount of dropout to apply
-            
-        device : torch.device
-            What device to use
         """
         
         super(_DenoiseNet, self).__init__()
-        self.linear_de = _get_linear((frame_numel, embedding_dim))
-        self.linear_dd = _get_linear((embedding_dim, frame_numel))
-        self.e_pos = _get_position_embedding(num_samples, embedding_dim, device)
-        self.transformer_encoder = nn.TransformerEncoder(
+        
+        self.linear_de = nn.Linear(keypoints_numel, hidden_dims)
+        self.linear_dd = nn.Linear(hidden_dims, keypoints_numel)
+        
+        self.encoder = nn.TransformerEncoder(
             nn.TransformerEncoderLayer(
-                d_model=embedding_dim, 
-                nhead=nhead, 
+                d_model=hidden_dims, 
+                nhead=nheads, 
                 dim_feedforward=dim_feedforward,
                 dropout=dropout
             ), 
             num_layers=num_layers
         )
         
-    def forward(self, p_noisy: torch.Tensor, mask, src_key_padding_mask):
+    def forward(self, video_sequence: torch.Tensor, e_pos: torch.Tensor, encoder_mask: torch.Tensor):
         """
-        Runs the DenoiseNet on the p_noisy.
+        Rusn the DenoiseNet on video_sequence 
         
         Parameters
         ----------
-        p_noisy : torch.Tensor
-            Sequence of noisy poses to apply the DenoiseNet on.
+        video_sequence : torch.Tensor
+            Sequence of frames to apåply DeciWatch on.
+            Has to have shape (batch_size, num_frames, keypoints_numel)
+
+        e_pos : torch.Tensor
+            Positional embedding.
+
+        encoder_mask : torch.Tensor
+            The mask for the memory keys per batch
             
         Returns
         -------
         p_clean : torch.Tensor
-            Cleaned poses.
+            Denoised poses.
             
         f_clean : torch.Tensor
             Denoised features.
         """
         
-        # NOTE: mask IS NOT CORRECT, AS THIS CAUSES ALL VALUES TO BE NAN. 
-        # CURRENTLY UNCOMMENTED TO NOT CAUSE CRASH.
-        #f_clean = self.transformer_encoder(p_noisy @ self.linear_de + self.e_pos, mask=mask, src_key_padding_mask=src_key_padding_mask)
-        # TODO: FIX
-        f_clean = self.transformer_encoder(p_noisy @ self.linear_de + self.e_pos, src_key_padding_mask=src_key_padding_mask)
-        p_clean = f_clean @ self.linear_dd
-        f_clean = self.transformer_encoder(p_noisy @ self.linear_de + self.e_pos, mask=mask, src_key_padding_mask=src_key_padding_mask)
-        p_clean = f_clean @ self.linear_dd
+        f_clean = self.encoder(self.linear_de(video_sequence) + e_pos, mask=torch.eye(video_sequence.shape[0], dtype=bool), src_key_padding_mask=encoder_mask)
+        p_clean = self.linear_dd(f_clean) + video_sequence
         
         return p_clean, f_clean
     
 class _RecoverNet(nn.Module):
     def __init__(self, 
-                 video_length: int,
-                 num_samples: int,
-                 frame_numel: int, 
-                 embedding_dim: int,
-                 nhead: int,
-                 num_layers: int,
-                 dropout: float,
-                 device: torch.device
+                 hidden_dims: int, 
+                 dim_feedforward: int, 
+                 num_layers: int, 
+                 keypoints_numel: int, 
+                 nheads: int, 
+                 dropout: float, 
+                 sample_rate: int
                  ):
+        
         """
         Implementation of the RecoverNet-part of DeciWatch, as described by
         https://arxiv.org/pdf/2203.08713.pdf
         
         Parameters
         ----------
-        video_length : int
-            Number of frames in the video.
-            Noted as 'T' in the paper.
+        hidden_dims : int
+            Number of embedding dimensions.
+            Noted as 'C' in the paper
             
-        num_samples : int 
-            Number of sampled frames.
-            Noted as 'T/N' in the paper
-            
-        frame_numel : int
-            Amount of keypoints multiplied by the amount of dimensions of the keypoints.
-            Equals to 'K * D' from the paper.
-            
-        embedding_dim : int
-            Embedding dimension.
-            Noted as 'C' in the paper.
-            
-        nhead : int
-            The number of heads in the multiheadattention models.
-            Noted as 'M' in the paper.
+        dim_feedforward : int
+            Amount of dimensions of the feedforward network models
             
         num_layers : int
-            The number of sub-encoder-layers in the encoder.
+            Number of sub-encoder-layers
+            
+        keypoints_numel : int
+            Amount of keypoints mulitplied by the amount of dimensions of the keypoints.
+            Equals to 'K * D' from the paper.
+            
+        nheads : int
+            The number of heads in the multiheadattention models
             
         dropout : float
             The amount of dropout to apply
             
-        device : torch.device
-            What device to use
+        sample_rate : int
+            Ratio of samples to use for inference.
+            Noted as 'N' in the paper.
         """
         
         super(_RecoverNet, self).__init__()
-        self.linear_pr = _get_linear((video_length, num_samples))
-        self.conv = nn.Conv1d(frame_numel, embedding_dim, kernel_size=5, stride=1, padding=2)
-        self.e_pos = _get_position_embedding(video_length, embedding_dim, device)
-        self.transformer_decoder = nn.TransformerDecoder(
-            nn.TransformerDecoderLayer(d_model=embedding_dim, nhead=nhead, dropout=dropout),
-            num_layers=num_layers
+        
+        self.linear_rd = nn.Linear(hidden_dims, keypoints_numel)
+        self.linear_pr = lambda x: torch.nn.functional.interpolate(input=x[::sample_rate, : , :].permute(1,2,0), size=x.shape[0], mode="linear", align_corners=True).permute(2, 0, 1)
+        self.conv = nn.Conv1d(keypoints_numel, hidden_dims, kernel_size=5, stride=1, padding=2)
+        
+        self.decoder = nn.TransformerDecoder(
+            nn.TransformerDecoderLayer(
+                d_model=hidden_dims, 
+                nhead=nheads, 
+                dim_feedforward=dim_feedforward, 
+                dropout=dropout
+            ),
+            num_layers=num_layers,
+            norm=nn.LayerNorm(hidden_dims)
         )
         
-        self.linear_rd = _get_linear((embedding_dim, frame_numel))
-        
-    def forward(self, p_clean: torch.Tensor, f_clean: torch.Tensor, tgt_key_padding_mask, memory_key_padding_mask):
+    def forward(self, p_clean, f_clean, encoder_mask, decoder_mask, e_pos):
         """
-        Runs the RecoverNEt on p_clean
+        Rusn the RecoverNet on p_clean 
         
         Parameters
         ----------
         p_clean : torch.Tensor
-            Cleaned poses.
+            Denoised poses.
             
         f_clean : torch.Tensor
             Denoised features.
             
+        encoder_mask : torch.Tensor
+            The mask for the memory keys per batch
+            
+        decoder_mask : torch.Tensor
+            The mask for the tgt keys per batch
+            
+        e_pos : torch.Tensor
+            Positional embedding.
+            
         Returns
         -------
         p_estimated : torch.Tensor
-            Estimated poses
+            Estimated poses.
         """
         
-        p_preliminary = (self.linear_pr @ p_clean).T
-        p_estimated = self.transformer_decoder(self.conv(p_preliminary).T + self.e_pos, f_clean, tgt_key_padding_mask=tgt_key_padding_mask, memory_key_padding_mask=memory_key_padding_mask) @ self.linear_rd
-        p_estimated += p_preliminary.T # NOTE: ikke sikker på om denne operation skal være her.
+        p_preliminary = self.linear_pr(p_clean)
+        p_estimated = self.linear_rd(self.decoder(self.conv(p_preliminary.permute(1, 2, 0)).permute(2, 0, 1) + e_pos, 
+                                                  f_clean, 
+                                                  tgt_key_padding_mask=decoder_mask, 
+                                                  memory_key_padding_mask=encoder_mask
+                                                  )) + p_preliminary
         
         return p_estimated
-        
+
 class DeciWatch(nn.Module):
     def __init__(self, 
-                 frame_numel: int, 
+                 keypoints_numel: int, 
                  sample_rate: int, 
-                 embedding_dim: int,
-                 nhead: int,
-                 dim_feedforward: int,
-                 num_layers: int,
-                 video_length: int,
-                 dropout: float,
-                 device: torch.device
+                 hidden_dims: int, 
+                 dropout: float, 
+                 nheads: int, 
+                 dim_feedforward: int, 
+                 num_encoder_layers: int, 
+                 num_decoder_layers: int
                  ):
         
         """
         Implementation of DeciWatch, as described by
         https://arxiv.org/pdf/2203.08713.pdf
         
+        The implementation is inspired by the official implementation of DeciWatch,
+        found at https://github.com/cure-lab/DeciWatch/blob/main/lib/models/deciwatch.py
+        
         Parameters
         ----------
-        frame_numel : int
-            Amount of keypoints multiplied by the amount of dimensions of the keypoints.
+        keypoints_numel : int
+            Amount of keypoints mulitplied by the amount of dimensions of the keypoints.
             Equals to 'K * D' from the paper.
-        
-        sample_rate: int
+            
+        sample_rate : int
             Ratio of samples to use for inference.
             Noted as 'N' in the paper.
             
-        embedding_dim : int
-            Embedding dimension.
+        hidden_dims : int
+            Number of embedding dimensions.
             Noted as 'C' in the paper.
             
-        n_head : int
+        dropout : float
+            The amount of dropout to paply
+            
+        nheads : int
             The number of heads in the multiheadattention models
             
         dim_feedforward : int
-            The dimension of the feedforward network model
+            Amount of dimensions of the feedforawrd network models
             
-        num_layers : int
-            The number of sub-encoder-layers in the encoder
+        num_encoder_layers : int
+            Number of sub-encoder-layers in the encoder
             
-        video_length : int
-            Number of frames in the video.
-            Noted as 'T' in the paper.
-            
-        dropout : float
-            The amount of dropout to apply
-            
-        device : torch.device
-            What device to use
+        num_decoder_layers : int
+            Number of sub-decoder-layers in the decoder
         """
         
         super(DeciWatch, self).__init__()
         
-        assert video_length % sample_rate == 0, "video_length has to be divisible by sample_rate."
-        
-        self.frame_numel = frame_numel
+        self.pos_embed_dim = hidden_dims
         self.sample_rate = sample_rate
-        self.sample_rate = sample_rate
-        self.video_length = video_length
-        self.num_samples = int(video_length/self.sample_rate)
-        self.device = device
-        
-        self.denoise_net = _DenoiseNet(self.frame_numel, 
-                                       embedding_dim,
-                                       nhead,
-                                       dim_feedforward,
-                                       num_layers,
-                                       self.num_samples,
-                                       dropout,
-                                       device
-                                       )
-        
-        self.recover_net = _RecoverNet(
-            video_length, 
-            self.num_samples,
-            frame_numel, 
-            embedding_dim,
-            nhead,
-            num_layers,
-            dropout,
-            device
-        )
-        
+
+        self.e_pos = PositionEmbeddingSine_1D(self.pos_embed_dim // 2)
+        self.denoise_net = _DenoiseNet(hidden_dims, dim_feedforward, num_encoder_layers, keypoints_numel, nheads, dropout)
+        self.recover_net = _RecoverNet(hidden_dims, dim_feedforward, num_decoder_layers, keypoints_numel, nheads, dropout, sample_rate)
+
     def forward(self, video_sequence: torch.Tensor):
         """
-        Runs the DenoiseNet on video_sequence.
+        Runs the DeciWatch on video_sequence
         
         Parameters
         ----------
         video_sequence : torch.Tensor
-            Sequence of frames to apply DeciWatch on.
-            Has to have shape (num_frames, C_in, H_in, W_in).
+            Sequence of frames to apåply DeciWatch on.
+            Has to have shape (batch_size, num_frames, keypoints_numel)
             
         Returns
         -------
@@ -354,18 +337,20 @@ class DeciWatch(nn.Module):
             Estimated poses
         """
         
-        p_sampled = video_sequence[::self.sample_rate]
+        # Extracts batch_size, num_frames and keypoints_numel from the video sequence
+        batch_size, num_frames, keypoints_numel = video_sequence.shape
         
-        # NOTE: ER IKKE HELT SIKKER PÅ DENNE IMPLEMENTATION, 
-        # DA DEN MANGLER NOGLE DELE SAMMENLIGNET MED DEN OFFICIELE
-        # IMPLEMENTATION. SE EKSEMPELVIS
-        # https://github.com/cure-lab/DeciWatch/blob/main/lib/models/deciwatch.py#L148
+        # Gets masks and positional embedding
+        encoder_mask, decoder_mask = _get_masks(num_frames, sample_rate=self.sample_rate, batch_size=batch_size)
+        e_pos = self.e_pos(batch_size, num_frames)
         
-        mask, src_key_padding_mask, tgt_key_padding_mask = _get_masks(self.num_samples, self.video_length, self.device, self.sample_rate)
+        # Masks the frames of the video sequence, such that only every sample_rate'th frame is unmasked.
+        video_sequence = (video_sequence.permute(0, 2, 1) * encoder_mask.int()[0]).permute(2, 0, 1)
+        
+        # Runs the DenoiseNet and RecoverNet
+        p_clean, f_clean = self.denoise_net(video_sequence, e_pos, encoder_mask)
+        p_estimated = self.recover_net(p_clean, f_clean, encoder_mask, decoder_mask, e_pos).permute(1, 0, 2).reshape(batch_size, num_frames, keypoints_numel)
 
-        p_clean, f_clean = self.denoise_net(p_sampled, mask, src_key_padding_mask)
-        p_estimated = self.recover_net(p_clean, f_clean, tgt_key_padding_mask, src_key_padding_mask)
-        
         return p_estimated
 
 if __name__ == "__main__":
@@ -373,36 +358,32 @@ if __name__ == "__main__":
     Example on using the DeciWatch Implementation
     """
     
-    # Making data
-    num_frames = 100
-    num_keypoints = 16
-    num_keypoints_dim = 2
-    height = 8
-    width = 8
-    noisy_poses = torch.rand(num_frames, num_keypoints*num_keypoints_dim)
-
     # Making model
-    frame_numel = noisy_poses[0].numel()
+    num_keypoints = 16
+    keypoints_dim = 2
     sample_rate = 10
-    embedding_dim = 64
-    nhead = 4
-    dim_feedforward = 256
-    num_layers = 3
+    embedding_dim = 128
+    num_layers = 5
     dropout = 0.1
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-    deci_watch = DeciWatch(
-        frame_numel,
+    nheads = 4
+    
+    model = DeciWatch(
+        num_keypoints * keypoints_dim,
         sample_rate,
         embedding_dim,
-        nhead,
-        dim_feedforward,
-        num_layers,
-        num_frames,
-        dropout,
-        device
+        dropout=dropout,
+        nheads=nheads,
+        dim_feedforward=256,
+        num_encoder_layers=num_layers,
+        num_decoder_layers=num_layers
     )
-
+    
+    # Making data
+    batch_size = 2
+    num_frames = 100
+    sequence = torch.ones(batch_size, num_frames, num_keypoints * keypoints_dim)
+    
     # Predicting
-    output = deci_watch(noisy_poses)
-    print(output.shape)
+    recover_output = model(sequence)
+    print(recover_output)
+    print(recover_output.shape)
