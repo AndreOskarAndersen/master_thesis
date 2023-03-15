@@ -1,18 +1,39 @@
 import numpy as np
 import os
 import scipy.io
-import json
 import torch
+from typing import Dict
 from tqdm.auto import tqdm
 from utils import make_dir, turn_keypoint_to_featuremap
 from global_variables import *
-from typing import Dict
 
 def _load_bboxes(keypoints: np.array):
-    x_mins = np.min(keypoints[:, :, 0], axis=1)
-    y_mins = np.min(keypoints[:, :, 1], axis=1)
-    x_maxs = np.max(keypoints[:, :, 0], axis=1)
-    y_maxs = np.max(keypoints[:, :, 1], axis=1)
+    """
+    Extracts the tightest possible bounding-box from a set of keypoints.
+    
+    Parameters
+    ----------
+    keypoints : np.array
+        3D array of the frames and keypoints.
+        
+    Returns
+        x_mins : np.array
+            Minimum x-coordinates of the keypoints of each frame
+            
+        y_mins : np.array
+            Minimum y-coordinates of the keypoints of each frame
+            
+        x_maxs : np.array
+            Maximum x-coordinates of the keypoints of each frame
+            
+        y_maxs : np.array
+            Maximum y-coordinates of the keypoints of each frame
+    """
+    
+    x_mins = np.min(keypoints[:, :, 0], axis=1).astype(float)
+    y_mins = np.min(keypoints[:, :, 1], axis=1).astype(float)
+    x_maxs = np.max(keypoints[:, :, 0], axis=1).astype(float)
+    y_maxs = np.max(keypoints[:, :, 1], axis=1).astype(float)
     
     return x_mins, y_mins, x_maxs, y_maxs
     
@@ -32,7 +53,7 @@ def _preprocess_keypoints(label: Dict):
         i'th frame. 
     """
     
-    keypoints = np.dstack((label["x"], label["y"])) # (num_frames, num_keypoints, 2)
+    keypoints = np.dstack((label["x"], label["y"])).astype(float)
     
     # Extracting cornors of bboxes
     x_mins, y_mins, x_maxs, y_maxs = _load_bboxes(keypoints)
@@ -67,7 +88,7 @@ def _preprocess_keypoints(label: Dict):
     keypoints[:, :, 0] -= x_mins.reshape((-1, 1))
     keypoints[:, :, 1] -= y_mins.reshape((-1, 1))
     
-    # Rescaling keypoints to the correct range
+    # Rescaling keypoints to the correct range    
     rescale_width = (TARGET_WIDTH - 1) / np.round(x_maxs)
     rescale_height = (TARGET_HEIGHT - 1) / np.round(y_maxs)
 
@@ -91,7 +112,7 @@ def _preprocess_keypoints(label: Dict):
     for i, frame_keypoints in enumerate(keypoints):
         
         # Looping through each keypoint of the frame
-        for j, keypoint in enumerate(frame_keypoints):
+        for j, keypoint in enumerate(frame_keypoints):            
             if not (0 <= keypoint[0] < TARGET_WIDTH and 0 <= keypoint[1] < TARGET_HEIGHT):
                 continue
             
@@ -115,16 +136,13 @@ def preprocess():
     samples = os.listdir(PENN_ACTION_RAW_KEYPOINTS_PATH)
     
     # Looping through each video
-    for video_id in tqdm(samples, desc="Processing videos", disable=True):
+    for video_id in tqdm(samples, desc="Processing videos", disable=False):
         
         # Removing file type
         video_id = video_id[:-4]
         
         # Path for storing the keypoints of this video
         keypoints_path = OVERALL_DATA_FOLDER + video_id + "/"
-        
-        # Making folder for storing keypoints of current video
-        make_dir(keypoints_path)
         
         # Path for storing meta-info of this sample
         label_path = PENN_ACTION_RAW_KEYPOINTS_PATH + video_id + ".mat"
@@ -133,9 +151,11 @@ def preprocess():
         label = scipy.io.loadmat(label_path)
         action = label["action"][0]
         
-        # If the action is not relevant, skip to the next sample
         if action not in RELEVANT_ACTIONS:
             continue
+        
+        # Making folder for storing keypoints of current video
+        make_dir(keypoints_path)
         
         # Process the keypoints
         preprocessed_keypoints = _preprocess_keypoints(label)
