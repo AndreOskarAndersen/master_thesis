@@ -39,7 +39,7 @@ def _load_keypoints(year: str, video_id: str):
     # Looping through all of the automatic annotations
     for keypoint_file in keypoints_listdir:
         # Start and stop frames
-        frame_interval = keypoint_file.split("_")[1] + "/"
+        frame_interval = keypoint_file.split("_")[-2] + "/"
         
         # Path to keypoints
         keypoint_path = path + keypoint_file
@@ -207,22 +207,20 @@ def preprocess():
         year = str(row["year"])
         
         # Path for storing the keypoints of this video
-        keypoints_path = OVERALL_DATA_FOLDER + video_id + "/"
+        keypoints_path = OVERALL_DATA_FOLDER + video_id
         
         # Loading keypoints of video
         video_annotations = _load_keypoints(year, video_id)
         
-        # Making folder for storing keypoints of current video
-        make_dir(keypoints_path)
-        
         # Iterating through the keypoint-annotations of each clip of the current video
         for clip_interval, clip_annotations in tqdm(video_annotations.items(), desc="Storing clip-keypoints", leave=False, disable=False):
-            make_dir(keypoints_path + clip_interval)
+            clip_storing_path = keypoints_path + "_" + clip_interval
+            make_dir(clip_storing_path)
             
             for frame_number, frame_annotation in tqdm(clip_annotations.items(), desc="Storing frame-keypoints", leave=False, disable=False):
                 
                 # Path for storing stuff
-                keypoints_storing_path = keypoints_path + clip_interval + frame_number + ".pt"
+                frame_storing_path = clip_storing_path + frame_number + ".pt"
                 
                 # Processing keypoints of the loaded clip
                 try:
@@ -238,7 +236,7 @@ def preprocess():
                     exit(1)
                     
                 # Saving keypoints of frame as tensor
-                torch.save(preprocessed_keypoints, keypoints_storing_path)
+                torch.save(preprocessed_keypoints, frame_storing_path)
             
 if __name__ == "__main__":
     preprocess()
