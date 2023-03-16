@@ -249,7 +249,7 @@ class Unipose(nn.Module):
         hidden = [hiddens[self.rnn_type.lower()]] if not self.bidirectional else [hiddens[self.rnn_type.lower()], hiddens[self.rnn_type.lower()]]
         return hidden
         
-    def _process_pose(self, p_noisy: torch.Tensor, prev_state: Union[list[torch.Tensor], list[list[torch.Tensor]]], direction):
+    def _process_pose(self, p_noisy: torch.Tensor, prev_state: Union[list[torch.Tensor], list[list[torch.Tensor]]], direction: str):
         """
         Runs the model on a single pose.
         
@@ -264,6 +264,9 @@ class Unipose(nn.Module):
             Either a 1D list of tensors if bidirectional==False
             else a 2D list of tensors if bidirectional==True.
             Each tensor should be of shape (1, C_in, H_in, W_in).
+            
+        direction : str
+            Direction of the pass. Either forward or backward.
             
         Returns
         -------
@@ -300,7 +303,29 @@ class Unipose(nn.Module):
             
         return pred, state
         
-    def _pass(self, video_sequence: torch.Tensor, prev_state: list[torch.Tensor], direction: str):
+    def _pass(self, video_sequence: torch.Tensor, init_state: Union[list[torch.Tensor], list[list[torch.Tensor]]], direction: str):
+        """
+        Passes a video through the network in either direction.
+        
+        Parameters
+        ----------
+        video_sequence : torch.Tensor
+            Video to pass through the network
+            
+        init_state : Union[list[torch.Tensor], list[list[torch.Tensor]]]
+            Initial hidden states.
+            Either a 1D list of tensors if bidirectional==False
+            else a 2D list of tensors if bidirectional==True.
+            
+        direction : str
+            Direction of the video. Either forward or backward.
+            
+        Returns
+        -------
+        res : torch.Tensor
+            The passed video.
+        """
+        
         assert direction in ["forward", "backward"], f"direction should be either 'forward' or 'backward'. You have given {direction}"
         
         # Placeholder for storing predictions
@@ -316,7 +341,7 @@ class Unipose(nn.Module):
             frame = video_sequence[:, i]
             
             # Processing the pose
-            pred, prev_state = self._process_pose(frame, prev_state, direction)
+            pred, init_state = self._process_pose(frame, init_state, direction)
             
             # Storing prediction 
             res[:, i] = pred
@@ -324,6 +349,23 @@ class Unipose(nn.Module):
         return res
     
     def _combiner(self, forward_pass: torch.Tensor, backward_pass: torch.Tensor):
+        """
+        Combines the forward and backward pass
+        
+        Parameters
+        ----------
+        forward_pass : torch.Tensor
+            Results of forward_pass
+            
+        backward_pass : torch.Tensor
+            Results of backward_pass
+            
+        Returns
+        -------
+        res : torch.Tensor
+            Combination of forward and backward pass   
+        """
+        
         stack = torch.dstack((forward_pass, backward_pass))
         res = torch.zeros(video_sequence.shape)
         
@@ -350,16 +392,16 @@ class Unipose(nn.Module):
         
         # Initializing previous state
         frame_shape  = video_sequence[:, 0].shape
-        prev_state = self._init_hidden(frame_shape, self.device)
+        init_state = self._init_hidden(frame_shape, self.device)
         
         # Looping through the poses of each frame
         if self.bidirectional:
-            forward_pass = self._pass(video_sequence, prev_state[0], "forward")
-            backward_pass = self._pass(video_sequence, prev_state[1], "backward")
+            forward_pass = self._pass(video_sequence, init_state[0], "forward")
+            backward_pass = self._pass(video_sequence, init_state[1], "backward")
             res = self._combiner(forward_pass, backward_pass)
             
         else:
-            res = self._pass(video_sequence, prev_state[0], "forward")
+            res = self._pass(video_sequence, init_state[0], "forward")
             
         return res
 
