@@ -75,6 +75,7 @@ class _KeypointsDataset(Dataset):
         
         item = torch.from_numpy(gaussian(item, channel_axis=0))
         # TODO: MANGLER AT FORSKYDE SAMPLES MED NOGET TILFÆLDIGT
+        assert False, "TODO: MANGLER AT FORSKYDE SAMPLES MED NOGET TILFÆLDIGT"
         
         return item
     
