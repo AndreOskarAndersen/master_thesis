@@ -153,7 +153,8 @@ class Unipose(nn.Module):
                  rnn_type: str, 
                  bidirectional: bool,
                  num_keypoints: int, 
-                 frame_shape: Tuple[int, int, int, int]=None, 
+                 device: torch.device,
+                 frame_shape: Tuple[int, int, int]=None, 
                  stride: int = 1, 
                  padding: Union[int, str] = "same"
                  ):
@@ -174,6 +175,9 @@ class Unipose(nn.Module):
         num_keypoints : int
             Number of keypoints
             
+        device : torch.device
+            What device to use
+            
         frame_shape : Tuple[int, int, int]
             Shape of a single frame.
             Only used when rnn_type == "lstm"
@@ -190,6 +194,7 @@ class Unipose(nn.Module):
         
         self.rnn_type = rnn_type
         self.bidirectional = bidirectional
+        self.device = device
         
         # Asserting rnn-type
         self.valid_rnn_type = {"lstm": _LSTM_conv, "gru": _GRU_conv}
@@ -198,25 +203,30 @@ class Unipose(nn.Module):
         
         # Loading parameters
         rnn_params = [num_keypoints, frame_shape] if rnn_type.lower() == "lstm" else [num_keypoints]
+
+        self.rnn_forward = self.valid_rnn_type[rnn_type.lower()](*rnn_params)
+        self.conv_forward_1 = nn.Conv2d(num_keypoints, num_keypoints, kernel_size=3, stride=stride, padding=padding)
+            
+        self.conv_forward_2 = nn.Conv2d(num_keypoints, num_keypoints, kernel_size=3, stride=stride, padding=padding)
+        self.conv_forward_3 = nn.Conv2d(num_keypoints, num_keypoints, kernel_size=3, stride=stride, padding=padding)
+        
+        self.conv_forward_4 = nn.Conv2d(num_keypoints, num_keypoints, kernel_size=1, stride=stride, padding=padding)
+        self.conv_forward_5 = nn.Conv2d(num_keypoints, num_keypoints, kernel_size=1, stride=stride, padding=padding)
         
         if bidirectional:
-            self.rnn = self.valid_rnn_type[rnn_type.lower()](*rnn_params)
-            self.rnn_reverse = self.valid_rnn_type[rnn_type.lower()](*rnn_params)
-            self.conv_1 = nn.Conv2d(2*num_keypoints, num_keypoints, kernel_size=3, stride=stride, padding=padding)
+            self.rnn_backward = self.valid_rnn_type[rnn_type.lower()](*rnn_params)
+            self.conv_backward_1 = nn.Conv2d(num_keypoints, num_keypoints, kernel_size=3, stride=stride, padding=padding)
             
-        else:
-            self.rnn = self.valid_rnn_type[rnn_type.lower()](*rnn_params)
-            self.conv_1 = nn.Conv2d(num_keypoints, num_keypoints, kernel_size=3, stride=stride, padding=padding)
+            self.conv_backward_2 = nn.Conv2d(num_keypoints, num_keypoints, kernel_size=3, stride=stride, padding=padding)
+            self.conv_backward_3 = nn.Conv2d(num_keypoints, num_keypoints, kernel_size=3, stride=stride, padding=padding)
             
-        self.conv_2 = nn.Conv2d(num_keypoints, num_keypoints, kernel_size=3, stride=stride, padding=padding)
-        self.conv_3 = nn.Conv2d(num_keypoints, num_keypoints, kernel_size=3, stride=stride, padding=padding)
-        
-        self.conv_4 = nn.Conv2d(num_keypoints, num_keypoints, kernel_size=1, stride=stride, padding=padding)
-        self.conv_5 = nn.Conv2d(num_keypoints, num_keypoints, kernel_size=1, stride=stride, padding=padding)
+            self.conv_backward_4 = nn.Conv2d(num_keypoints, num_keypoints, kernel_size=1, stride=stride, padding=padding)
+            self.conv_backward_5 = nn.Conv2d(num_keypoints, num_keypoints, kernel_size=1, stride=stride, padding=padding)
+            self.conv_combiner = nn.Conv2d(2 * num_keypoints, num_keypoints, kernel_size=1, stride=stride, padding=padding)
         
         self.relu = nn.ReLU()
         
-    def _init_hidden(self, shape: torch.Size):
+    def _init_hidden(self, shape: torch.Size, device: torch.device):
         """
         Function for initializing hidden state(s)
         
@@ -226,19 +236,20 @@ class Unipose(nn.Module):
             Shape of initial hidden state(s).
             Should be of 3 dimensions.
             
+        device : torch.device
+            What device to use
+            
         Returns
         -------
         hidden : list[torch.Tensor]
             List of hidden state(s)
         """
         
-        shape = [1] + list(shape)
-        
-        hiddens = {"lstm": [torch.zeros(shape), torch.zeros(shape)], "gru": [torch.zeros(shape)]}
-        hidden = hiddens[self.rnn_type.lower()] if not self.bidirectional else [hiddens[self.rnn_type.lower()], hiddens[self.rnn_type.lower()]]
+        hiddens = {"lstm": [torch.zeros(*shape).to(device), torch.zeros(*shape).to(device)], "gru": [torch.zeros(*shape).to(device)]}
+        hidden = [hiddens[self.rnn_type.lower()]] if not self.bidirectional else [hiddens[self.rnn_type.lower()], hiddens[self.rnn_type.lower()]]
         return hidden
         
-    def _process_pose(self, p_noisy: torch.Tensor, prev_state: Union[list[torch.Tensor], list[list[torch.Tensor]]]):
+    def _process_pose(self, p_noisy: torch.Tensor, prev_state: Union[list[torch.Tensor], list[list[torch.Tensor]]], direction):
         """
         Runs the model on a single pose.
         
@@ -264,63 +275,92 @@ class Unipose(nn.Module):
         
         assert len(p_noisy.shape) == 4, f"p_noisy should have 4 dimensions, yours have {len(p_noisy.shape)}."
         assert p_noisy.shape[0] == 1, f"You should only pass a single pose. You have passed {p_noisy.shape[0]}."
+        assert direction in ["forward", "backward"], f"direction should be either 'forward' or 'backward'. You have given {direction}"
         
-        if self.bidirectional:
+        if direction=="forward":
+            # Forward pass
+            state = self.rnn_forward(p_noisy, prev_state)
             
-            # State of previous forward pass
-            state_forward = prev_state[0]
-            
-            # State of previous reverse pass
-            state_reverse = prev_state[1]
-            
-            # Prediction of current forward pass
-            state_forward = self.rnn(p_noisy, state_forward)
-            
-            # Prediction of current reverse pass
-            state_reverse = self.rnn_reverse(p_noisy, state_reverse)
-            
-            # Concatenating predictions of each direction along keypoints-axis
-            pred = torch.hstack([state_forward[0], state_reverse[0]])
-            
-            # Further processing
-            pred = self.relu(self.conv_1(pred))
-            pred = self.relu(self.conv_2(pred))
-            pred = self.relu(self.conv_3(pred))
-            pred = self.relu(self.conv_4(pred))
-            pred = self.relu(self.conv_5(pred))
-            
-            state = [state_forward, state_reverse]
-            
-            return pred, state
-            
-        else:
-            # Predicting of current forward pass
-            state = self.rnn(p_noisy, prev_state)
-            
-            # Further processing
             pred = state[0]
-            pred = self.relu(self.conv_1(pred))
-            pred = self.relu(self.conv_2(pred))
-            pred = self.relu(self.conv_3(pred))
-            pred = self.relu(self.conv_4(pred))
-            pred = self.relu(self.conv_5(pred))
+            pred = self.relu(self.conv_forward_1(pred))
+            pred = self.relu(self.conv_forward_2(pred))
+            pred = self.relu(self.conv_forward_3(pred))
+            pred = self.relu(self.conv_forward_4(pred))
+            pred = self.relu(self.conv_forward_5(pred))
+        else:
+            # Backward pass
+            state = self.rnn_backward(p_noisy, prev_state)
+            
+            pred = state[0]
+            pred = self.relu(self.conv_backward_1(pred))
+            pred = self.relu(self.conv_backward_2(pred))
+            pred = self.relu(self.conv_backward_3(pred))
+            pred = self.relu(self.conv_backward_4(pred))
+            pred = self.relu(self.conv_backward_5(pred))
+            
+        return pred, state
         
-            return pred, state
-    
-    def forward(self, video_sequence: torch.Tensor):
-        # Initializing previous state
-        prev_state = self._init_hidden(video_sequence[0].shape)
+    def _pass(self, video_sequence: torch.Tensor, prev_state: list[torch.Tensor], direction: str):
+        assert direction in ["forward", "backward"], f"direction should be either 'forward' or 'backward'. You have given {direction}"
         
         # Placeholder for storing predictions
+        res = torch.zeros(video_sequence.shape).to(self.device)
+        
+        # The range for loading data
+        frame_range = range(video_sequence.shape[1]) if direction=="forward" else reversed(range(video_sequence.shape[1]))
+        
+        # Looping through the frames (in either direction)
+        for i in frame_range:
+            
+            # Extracting the frame
+            frame = video_sequence[:, i]
+            
+            # Processing the pose
+            pred, prev_state = self._process_pose(frame, prev_state, direction)
+            
+            # Storing prediction 
+            res[:, i] = pred
+                
+        return res
+    
+    def _combiner(self, forward_pass: torch.Tensor, backward_pass: torch.Tensor):
+        stack = torch.dstack((forward_pass, backward_pass))
         res = torch.zeros(video_sequence.shape)
         
-        # Looping through the poses of each frame
-        for i, frame in enumerate(video_sequence):
-            frame = frame.unsqueeze(0)
-            pred, prev_state = self._process_pose(frame, prev_state)
+        for i in range(res.shape[1]):
+            res[:, i] = self.conv_combiner(stack[:, i])
             
-            res[i] = pred
+        return res
+    
+    def forward(self, video_sequence: torch.Tensor):
+        """
+        Runs unipose on the given video sequence.
         
+        Parameters
+        ----------
+        video_sequence : torch.Tensor
+            Video sequence to use unipose on.
+            Should be (batch_size, num_frames, num_keypoints, frame_height, frame_width)
+            
+        Returns
+        -------
+        res : torch.Tensor
+            Predicted poses.
+        """
+        
+        # Initializing previous state
+        frame_shape  = video_sequence[:, 0].shape
+        prev_state = self._init_hidden(frame_shape, self.device)
+        
+        # Looping through the poses of each frame
+        if self.bidirectional:
+            forward_pass = self._pass(video_sequence, prev_state[0], "forward")
+            backward_pass = self._pass(video_sequence, prev_state[1], "backward")
+            res = self._combiner(forward_pass, backward_pass)
+            
+        else:
+            res = self._pass(video_sequence, prev_state[0], "forward")
+            
         return res
 
 if __name__ == "__main__":
@@ -329,15 +369,23 @@ if __name__ == "__main__":
     """
     
     # Making data
+    batch_size = 1
     num_frames = 100
     num_keypoints = 16
     frame_height = 8
     frame_width = 8
-    video_sequence = torch.rand(num_frames, num_keypoints, frame_height, frame_width)
+    video_sequence = torch.rand(batch_size, num_frames, num_keypoints, frame_height, frame_width)
     
     # Making models
+    rnn_type = "lstm"
     bidirectional = True
-    lstm = Unipose("lstm", bidirectional, num_keypoints, video_sequence[0].shape)
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    lstm = Unipose(rnn_type=rnn_type, 
+                 bidirectional=bidirectional,
+                 num_keypoints=num_keypoints, 
+                 device=device,
+                 frame_shape=video_sequence[:, 0].shape)
     
     # Predicting
     output = lstm(video_sequence)
