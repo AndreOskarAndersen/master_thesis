@@ -222,7 +222,7 @@ class Unipose(nn.Module):
             
             self.conv_backward_4 = nn.Conv2d(num_keypoints, num_keypoints, kernel_size=1, stride=stride, padding=padding)
             self.conv_backward_5 = nn.Conv2d(num_keypoints, num_keypoints, kernel_size=1, stride=stride, padding=padding)
-            self.conv_combiner = nn.Conv2d(2, 1, kernel_size=1, stride=stride, padding=padding)
+            self.combiner = lambda x: torch.mean(x, dim=1)
         
         self.relu = nn.ReLU()
         
@@ -365,13 +365,12 @@ class Unipose(nn.Module):
             Combination of forward and backward pass   
         """
         
-        #stack = torch.dstack((forward_pass, backward_pass))
         res = torch.zeros(forward_pass.shape)
         
         for i in range(res.shape[1]):
             for j in range(res.shape[2]): 
                 stack = torch.cat((forward_pass[:, i, j].unsqueeze(1), backward_pass[:, i, j].unsqueeze(1)), 1)
-                res[:, i, j] = self.conv_combiner(stack).squeeze(1)
+                res[:, i, j] = self.combiner(stack).squeeze(1)
             
         return res
     
