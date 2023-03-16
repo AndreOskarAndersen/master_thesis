@@ -222,7 +222,7 @@ class Unipose(nn.Module):
             
             self.conv_backward_4 = nn.Conv2d(num_keypoints, num_keypoints, kernel_size=1, stride=stride, padding=padding)
             self.conv_backward_5 = nn.Conv2d(num_keypoints, num_keypoints, kernel_size=1, stride=stride, padding=padding)
-            self.conv_combiner = nn.Conv2d(2 * num_keypoints, num_keypoints, kernel_size=1, stride=stride, padding=padding)
+            self.conv_combiner = nn.Conv2d(2, 1, kernel_size=1, stride=stride, padding=padding)
         
         self.relu = nn.ReLU()
         
@@ -277,7 +277,6 @@ class Unipose(nn.Module):
         """
         
         assert len(p_noisy.shape) == 4, f"p_noisy should have 4 dimensions, yours have {len(p_noisy.shape)}."
-        assert p_noisy.shape[0] == 1, f"You should only pass a single pose. You have passed {p_noisy.shape[0]}."
         assert direction in ["forward", "backward"], f"direction should be either 'forward' or 'backward'. You have given {direction}"
         
         if direction=="forward":
@@ -366,11 +365,13 @@ class Unipose(nn.Module):
             Combination of forward and backward pass   
         """
         
-        stack = torch.dstack((forward_pass, backward_pass))
-        res = torch.zeros(video_sequence.shape)
+        #stack = torch.dstack((forward_pass, backward_pass))
+        res = torch.zeros(forward_pass.shape)
         
         for i in range(res.shape[1]):
-            res[:, i] = self.conv_combiner(stack[:, i])
+            for j in range(res.shape[2]): 
+                stack = torch.cat((forward_pass[:, i, j].unsqueeze(1), backward_pass[:, i, j].unsqueeze(1)), 1)
+                res[:, i, j] = self.conv_combiner(stack).squeeze(1)
             
         return res
     
@@ -411,7 +412,7 @@ if __name__ == "__main__":
     """
     
     # Making data
-    batch_size = 1
+    batch_size = 2
     num_frames = 100
     num_keypoints = 16
     frame_height = 8
