@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
-from typing import Union, Tuple
+from time import time
+from typing import Union, Tuple, List
 
 class _LSTM_conv(nn.Module):
     def __init__(self, num_keypoints: int, input_shape: Tuple[int, int, int], kernel_size:int = 3, stride: int = 1, padding: Union[int, str] = "same"):
@@ -50,7 +51,7 @@ class _LSTM_conv(nn.Module):
         self.sigmoid = nn.Sigmoid()
         self.tanh = nn.Tanh()
         
-    def forward(self, x: torch.Tensor, prev_state: list[torch.Tensor]):
+    def forward(self, x: torch.Tensor, prev_state: List[torch.Tensor]):
         """
         Runs the Convolutional LSTM
         
@@ -59,7 +60,7 @@ class _LSTM_conv(nn.Module):
         x : torch.Tensor
             Input to use the Convolutional LSTM on
             
-        prev_state : list[torch.Tensor]
+        prev_state : List[torch.Tensor]
             List of the two previous states from the previous iteration
             [hidden state, cell output]
             
@@ -120,7 +121,7 @@ class _GRU_conv(nn.Module):
         self.sigmoid = nn.Sigmoid()
         self.tanh = nn.Tanh()
         
-    def forward(self, x: torch.Tensor, h_prev: list[torch.Tensor]):
+    def forward(self, x: torch.Tensor, h_prev: List[torch.Tensor]):
         """
         Runs the Convolutional GRU
         
@@ -129,7 +130,7 @@ class _GRU_conv(nn.Module):
         x : torch.Tensor
             Input to use the Convolutional GRU on
             
-        h_prev : list[torch.Tensor]
+        h_prev : List[torch.Tensor]
             Hidden state from the previous iteration
             
         Returns
@@ -247,9 +248,10 @@ class Unipose(nn.Module):
         
         hiddens = {"lstm": [torch.zeros(*shape).to(device), torch.zeros(*shape).to(device)], "gru": [torch.zeros(*shape).to(device)]}
         hidden = [hiddens[self.rnn_type.lower()]] if not self.bidirectional else [hiddens[self.rnn_type.lower()], hiddens[self.rnn_type.lower()]]
+        
         return hidden
         
-    def _process_pose(self, p_noisy: torch.Tensor, prev_state: Union[list[torch.Tensor], list[list[torch.Tensor]]], direction: str):
+    def _process_pose(self, p_noisy: torch.Tensor, prev_state: Union[List[torch.Tensor], List[List[torch.Tensor]]], direction: str):
         """
         Runs the model on a single pose.
         
@@ -259,7 +261,7 @@ class Unipose(nn.Module):
             Input-pose to use the Convolutional rnn on.
             Should be of shape (1, C_in, H_in, W_in).
             
-        prev_state : Union[list[torch.Tensor], list[list[torch.Tensor]]]
+        prev_state : Union[List[torch.Tensor], List[List[torch.Tensor]]]
             The state(s) of the previous iteration.
             Either a 1D list of tensors if bidirectional==False
             else a 2D list of tensors if bidirectional==True.
@@ -302,7 +304,7 @@ class Unipose(nn.Module):
             
         return pred, state
         
-    def _pass(self, video_sequence: torch.Tensor, init_state: Union[list[torch.Tensor], list[list[torch.Tensor]]], direction: str):
+    def _pass(self, video_sequence: torch.Tensor, init_state: Union[List[torch.Tensor], List[List[torch.Tensor]]], direction: str):
         """
         Passes a video through the network in either direction.
         
@@ -311,7 +313,7 @@ class Unipose(nn.Module):
         video_sequence : torch.Tensor
             Video to pass through the network
             
-        init_state : Union[list[torch.Tensor], list[list[torch.Tensor]]]
+        init_state : Union[List[torch.Tensor], List[List[torch.Tensor]]]
             Initial hidden states.
             Either a 1D list of tensors if bidirectional==False
             else a 2D list of tensors if bidirectional==True.
@@ -365,13 +367,8 @@ class Unipose(nn.Module):
             Combination of forward and backward pass   
         """
         
-        res = torch.zeros(forward_pass.shape)
+        res = forward_pass + backward_pass
         
-        for i in range(res.shape[1]):
-            for j in range(res.shape[2]): 
-                stack = torch.cat((forward_pass[:, i, j].unsqueeze(1), backward_pass[:, i, j].unsqueeze(1)), 1)
-                res[:, i, j] = self.combiner(stack).squeeze(1)
-            
         return res
     
     def forward(self, video_sequence: torch.Tensor):
@@ -430,5 +427,7 @@ if __name__ == "__main__":
                  frame_shape=video_sequence[:, 0].shape)
     
     # Predicting
+    start_time = time()
     output = lstm(video_sequence)
+    print("Runtime", time() - start_time)
     print(output.shape)
