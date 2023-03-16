@@ -1,6 +1,5 @@
 import os
 import torch
-import matplotlib.pyplot as plt
 from tqdm.auto import tqdm
 from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader, Dataset
@@ -73,7 +72,9 @@ class _KeypointsDataset(Dataset):
             Preprocessed image.
         """
         
+        # Applying gaussian blur to image
         item = torch.from_numpy(gaussian(item, channel_axis=0))
+        
         # TODO: MANGLER AT FORSKYDE SAMPLES MED NOGET TILFÆLDIGT
         assert False, "TODO: MANGLER AT FORSKYDE SAMPLES MED NOGET TILFÆLDIGT"
         
@@ -119,7 +120,7 @@ class _KeypointsDataset(Dataset):
                 sample_names = clip_list_dir[i - prev_length:i - prev_length + self.window_size]
                 items = torch.stack([self._preprocess_items(torch.load(clip_dir + "/" + sample_name)) for sample_name in sample_names])
                 
-                return items
+                return items # TODO: MANGLER AT SPLITTE DET OP, SÅ X OG Y RETURNERES.
                 
             else:
                 # If we have not found the correct clip
