@@ -22,9 +22,10 @@ def _load_keypoints(year: str, video_id: str):
         
     Returns
     -------
-    video_annotations : Dict[str, Tuple[List[float]]]
-        dict with length of the amount of annotated frames of the video,
-        where each key is the frame-number and the corresponding value
+    video_annotations : Dict[str, Dict[str, Tuple[List[float]]]]
+        Dict with length of the amount of clips in the video. The key 
+        is the interval of frames of the clip, the corresponding value
+        is another dict, where the key is the frame-number and the value
         is a tuple, where the first element is the bbox of the frame
         and the second element is the keypoints of the frame.
     """
@@ -37,6 +38,10 @@ def _load_keypoints(year: str, video_id: str):
     
     # Looping through all of the automatic annotations
     for keypoint_file in keypoints_listdir:
+        # Start and stop frames
+        frame_interval = keypoint_file.split("_")[1] + "/"
+        
+        # Path to keypoints
         keypoint_path = path + keypoint_file
         
         # Reading annotations
@@ -63,7 +68,7 @@ def _load_keypoints(year: str, video_id: str):
         
         # Storing keypoints, bboxes and their corresponding frame-number
         clip_annotations = dict(zip(keys, zip(clip_bboxes, clip_keypoints)))
-        video_annotations.update(clip_annotations)
+        video_annotations[frame_interval] = clip_annotations
             
     # Loading manual annotations
     path = RAW_BRACE_PATH + RAW_KEYPOINT_FOLDERS["manual"] + RAW_KEYPOINTS_SUBFOLDERS["manual"] + year + "/" + video_id + "/"
@@ -84,7 +89,9 @@ def _load_keypoints(year: str, video_id: str):
         key_name = keypoint_file[-10:-4].lstrip("0")
         
         # Inserting manual annotation in the correct dict of the list
-        video_annotations[key_name] = (clip_bboxes, keypoints)
+        for v in video_annotations.values():
+            if key_name in v:
+                v[key_name] = (clip_bboxes, keypoints)
 
     return video_annotations
 
@@ -209,26 +216,29 @@ def preprocess():
         make_dir(keypoints_path)
         
         # Iterating through the keypoint-annotations of each clip of the current video
-        for frame_number, frame_annotation in tqdm(video_annotations.items(), desc="Storing clip-keypoints", leave=False, disable=False):
+        for clip_interval, clip_annotations in tqdm(video_annotations.items(), desc="Storing clip-keypoints", leave=False, disable=False):
+            make_dir(keypoints_path + clip_interval)
             
-            # Path for storing stuff
-            keypoints_storing_path = keypoints_path + frame_number + ".pt"
-            
-            # Processing keypoints of the loaded clip
-            try:
-                preprocessed_keypoints = _preprocess_keypoints(frame_annotation)
-            except Exception:
-                import traceback
-                print()
-                print()
-                print("video_id", video_id)
-                print("year", year)
-                print(frame_number)
-                print(traceback.format_exc())
-                exit(1)
+            for frame_number, frame_annotation in tqdm(clip_annotations.items(), desc="Storing frame-keypoints", leave=False, disable=False):
                 
-            # Saving keypoints of frame as tensor
-            torch.save(preprocessed_keypoints, keypoints_storing_path)
+                # Path for storing stuff
+                keypoints_storing_path = keypoints_path + clip_interval + frame_number + ".pt"
+                
+                # Processing keypoints of the loaded clip
+                try:
+                    preprocessed_keypoints = _preprocess_keypoints(frame_annotation)
+                except Exception:
+                    import traceback
+                    print()
+                    print()
+                    print("video_id", video_id)
+                    print("year", year)
+                    print(frame_number)
+                    print(traceback.format_exc())
+                    exit(1)
+                    
+                # Saving keypoints of frame as tensor
+                torch.save(preprocessed_keypoints, keypoints_storing_path)
             
 if __name__ == "__main__":
     preprocess()
