@@ -27,6 +27,8 @@ class Baseline(nn.Module):
             padding="same"
         )
         
+        assert False, "SKAL VÆRE SIKKER PÅ, AT DEN FUNGERER PÅ (num_batches, num_frames, num_heatmaps, height, width)"
+        
     def forward(self, p_noisy: torch.Tensor):
         """
         Applies the baseline-model on a set of poses.

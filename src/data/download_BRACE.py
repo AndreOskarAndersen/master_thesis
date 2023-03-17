@@ -1,8 +1,6 @@
 import os
 import zipfile
 import wget
-import pandas as pd
-from pytube import YouTube
 from tqdm import tqdm
 from global_variables import *
 from global_variables import *
