@@ -122,6 +122,8 @@ def train(model: nn.Module,
     
     early_stopper = _EarlyStopper(patience=patience, min_delta=min_delta)
     
+    assert False, "MANGLER AT TILFØJE TESTING EFTER DEN HAR TRÆNET FÆRDIGT"
+    
     for epoch in tqdm(range(max_epoch), desc="Epoch", leave=False, total=max_epoch):
         model.train()
         
@@ -190,6 +192,8 @@ def train(model: nn.Module,
         
         if early_stopper.early_stop(val_loss):
             break
+        
+    # TODO: TESTING SKAL SKE HER
 
 def evaluate(model: nn.Module,
              dataloader: DataLoader,  

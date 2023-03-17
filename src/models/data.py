@@ -131,14 +131,14 @@ class _KeypointsDataset(Dataset):
                 # we update the lower_interval value.
                 prev_length = upper_interval
                 
-def get_dataloaders(dir_path: str, window_size: int, batch_size: int, eval_ratio: float = 0.4):
+def get_dataloaders(dir_path: str, window_size: int, batch_size: int, eval_ratio: float):
     """
     Function for getting train-, validation- and test-dataloader.
     
     Parameters
     ----------
     dir_path : str
-        Path to folder of json-files with keypoints.
+        Path to folder of processed samples
         
     window_size : int
         Amount of frames to load at a time

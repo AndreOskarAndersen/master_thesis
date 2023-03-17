@@ -1,6 +1,21 @@
+import os
 import numpy as np
 import torch
-from skimage.filters import gaussian
+
+def make_dir(path):
+    """
+    Makes a directory if it does not already exist.
+    
+    Parameters
+    ----------
+    path : str
+        Path of the directory to create.
+    """
+    
+    try:
+        os.mkdir(path)
+    except:
+        print(f"Folder {path} already exists. Using existing folder.")  
 
 def heatmaps2coordinates(video_sequence: torch.Tensor):
     """
@@ -68,8 +83,6 @@ def compute_PCK(gt_featuremaps: torch.Tensor, pred_featuremaps: torch.Tensor, no
     ratio : float
         Ratio of correctly predicted joints.
     """
-    
-    assert False, "SKAL VÆRE SIKKER PÅ, AT DEN FUNGERER PÅ SHAPE (num_batches, num_frames, num_heatmaps, height, width)"
 
     # Turning the heatmaps into arrays
     num_dimensions = 2
@@ -89,4 +102,3 @@ def compute_PCK(gt_featuremaps: torch.Tensor, pred_featuremaps: torch.Tensor, no
     ratio = num_correct/len(dist)
 
     return ratio
-    
