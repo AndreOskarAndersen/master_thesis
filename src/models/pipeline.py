@@ -50,7 +50,8 @@ class _EarlyStopper:
 
 def train(model: nn.Module,
           train_dataloader: DataLoader,  
-          eval_dataloader: DataLoader,  
+          eval_dataloader: DataLoader,
+          test_dataloader: DataLoader,
           criterion: type,
           optimizer: torch.optim.Optimizer,
           max_epoch: int,
@@ -75,6 +76,9 @@ def train(model: nn.Module,
         
     eval_dataloader : DataLoader
         Dataloader for evaluating the model
+        
+    test_dataloader : DataLoader
+        Dataloader for testing the model
         
     criterion : type
         Loss-function
@@ -121,8 +125,6 @@ def train(model: nn.Module,
     val_accs = []
     
     early_stopper = _EarlyStopper(patience=patience, min_delta=min_delta)
-    
-    assert False, "MANGLER AT TILFØJE TESTING EFTER DEN HAR TRÆNET FÆRDIGT"
     
     for epoch in tqdm(range(max_epoch), desc="Epoch", leave=False, total=max_epoch):
         model.train()
@@ -188,12 +190,13 @@ def train(model: nn.Module,
         torch.save(scheduler, saving_path + "scheduler.pth")
         
         # Scheduler and early stopping
-        scheduler.step(val_accs[-1])
+        scheduler.step(val_loss[-1])
         
         if early_stopper.early_stop(val_loss):
             break
         
-    # TODO: TESTING SKAL SKE HER
+    test_acc, test_loss = evaluate(model, test_dataloader, criterion, device, normalizing_constant, threshold, data_transformer)
+    print(f"\n\n {model} stopped training after {epoch + 1} epochs. Testing accuray: {test_acc}, testing loss: {test_loss}\n\n")
 
 def evaluate(model: nn.Module,
              dataloader: DataLoader,  

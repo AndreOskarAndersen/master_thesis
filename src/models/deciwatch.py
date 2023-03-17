@@ -272,7 +272,8 @@ class DeciWatch(nn.Module):
                  nheads: int, 
                  dim_feedforward: int, 
                  num_encoder_layers: int, 
-                 num_decoder_layers: int
+                 num_decoder_layers: int,
+                 num_frames: int
                  ):
         
         """
@@ -310,9 +311,14 @@ class DeciWatch(nn.Module):
             
         num_decoder_layers : int
             Number of sub-decoder-layers in the decoder
+            
+        num_frames : int
+            Number of frames in each video sequence
         """
         
         super(DeciWatch, self).__init__()
+        
+        assert (num_frames - 1) % sample_rate == 0
         
         self.pos_embed_dim = hidden_dims
         self.sample_rate = sample_rate
@@ -366,6 +372,7 @@ if __name__ == "__main__":
     num_layers = 5
     dropout = 0.1
     nheads = 4
+    num_frames = 11
     
     model = DeciWatch(
         num_keypoints * keypoints_dim,
@@ -375,15 +382,15 @@ if __name__ == "__main__":
         nheads=nheads,
         dim_feedforward=256,
         num_encoder_layers=num_layers,
-        num_decoder_layers=num_layers
+        num_decoder_layers=num_layers,
+        num_frames=num_frames
     )
     
     # Making data
-    batch_size = 2
-    num_frames = 100
+    batch_size = 1
     sequence = torch.ones(batch_size, num_frames, num_keypoints * keypoints_dim)
     
     # Predicting
     recover_output = model(sequence)
-    print(recover_output)
-    print(recover_output.shape)
+    #print(recover_output)
+    #print(recover_output.shape)
