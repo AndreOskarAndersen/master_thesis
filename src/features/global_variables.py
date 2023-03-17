@@ -9,6 +9,8 @@ RAW_DATA_FOLDER = DATA_PATH + "raw/"
 # Path to overall folder for the processed data
 OVERALL_DATA_FOLDER = DATA_PATH + "processed/"
 
+SUBFOLDERS = {"x": "input/", "y": "target/"}
+
 # Wanted height and width
 TARGET_HEIGHT, TARGET_WIDTH = 50, 50
 

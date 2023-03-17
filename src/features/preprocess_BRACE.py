@@ -107,9 +107,13 @@ def _preprocess_keypoints(video_annotations : Dict[str, Tuple[List[float]]]):
     
     Returns
     -------
-    preprocessed_keypoints_dict : torch.Tensor
-        Preprocessed keypoints.
+    processed_output_heatmaps : torch.Tensor
+        Preprocessed heatmaps of the keypoints.
+        Used as the output to a model
     
+    processed_input_heatmaps : torch.Tensor
+        Preprocessed heatmaps of the keypoints.
+        Used as the input to a model
     """
     
     # Reading annotations
@@ -117,7 +121,7 @@ def _preprocess_keypoints(video_annotations : Dict[str, Tuple[List[float]]]):
     
     if keypoints.sum().item() == 0:
         # If the frame does not contain any keypoints
-        return torch.zeros(NUM_KEYPOINTS, TARGET_HEIGHT, TARGET_WIDTH).bool()
+        return torch.zeros(NUM_KEYPOINTS, TARGET_HEIGHT, TARGET_WIDTH).bool(), torch.zeros(NUM_KEYPOINTS, TARGET_HEIGHT, TARGET_WIDTH).bool()
     
     # Making bbox a square, by expanding the shortest side
     x_min, y_min, x_max, y_max = bbox
@@ -164,12 +168,18 @@ def _preprocess_keypoints(video_annotations : Dict[str, Tuple[List[float]]]):
     # Flipping the keypoints horizontally
     keypoints[:, 1] = TARGET_HEIGHT - 1 - keypoints[:, 1]
     
-    # Tensor for storing heatmaps
-    processed_heatmaps = torch.zeros(NUM_KEYPOINTS, TARGET_HEIGHT, TARGET_WIDTH).bool()
+    # Tensor for storing input heatmaps
+    processed_input_heatmaps = torch.zeros(NUM_KEYPOINTS, TARGET_HEIGHT, TARGET_WIDTH).bool()
+    
+    # Tensor for storing output heatmaps
+    processed_output_heatmaps = torch.zeros(NUM_KEYPOINTS, TARGET_HEIGHT, TARGET_WIDTH).bool()
     
     # Function for translating keypoints for translating
     # BRACE keypoint-index to ClimbAlong keypoint-index
     translate = lambda i: CLIMBALONG_KEYPOINTS[BRACE_KEYPOINTS[i]]
+
+    # Values for randomly shifting keypoints
+    shifts = np.clip(np.round(np.random.normal(0, 2.5, size=(len(keypoints), 2))).astype(int), -10, 10)
     
     # Looping through each keypoint
     for i, keypoint in enumerate(keypoints):        
@@ -179,17 +189,29 @@ def _preprocess_keypoints(video_annotations : Dict[str, Tuple[List[float]]]):
         
         if not (0 <= keypoint[0] < TARGET_WIDTH and 0 <= keypoint[1] < TARGET_HEIGHT):
             continue
+        
+        # Value for randomly shifting keypoints
+        shift = shifts[i]
             
         # Translating keypoint-index to correct index
         i = translate(i)
         
         # Making heatmap from keypoint
-        heatmap = turn_keypoint_to_featuremap(keypoint, (TARGET_HEIGHT, TARGET_WIDTH))
+        output_heatmap = turn_keypoint_to_featuremap(keypoint, (TARGET_HEIGHT, TARGET_WIDTH))
         
         # Inserting data
-        processed_heatmaps[i] = heatmap
+        processed_output_heatmaps[i] = output_heatmap
+        
+        # Randomly shifting input keypoints
+        keypoint = np.clip(keypoint + shift, [0, 0], [TARGET_WIDTH - 1, TARGET_HEIGHT - 1])
+        
+        # Making heatmap from keypoint
+        input_heatmap = turn_keypoint_to_featuremap(keypoint, (TARGET_HEIGHT, TARGET_WIDTH))
+        
+        # Inserting data
+        processed_input_heatmaps[i] = input_heatmap
             
-    return processed_heatmaps
+    return processed_input_heatmaps, processed_output_heatmaps
             
 def preprocess():
     """
@@ -207,36 +229,32 @@ def preprocess():
         year = str(row["year"])
         
         # Path for storing the keypoints of this video
-        keypoints_path = OVERALL_DATA_FOLDER + video_id
+        input_keypoints_path = OVERALL_DATA_FOLDER + SUBFOLDERS["x"] + video_id
+        output_keypoints_path = OVERALL_DATA_FOLDER + SUBFOLDERS["y"] + video_id
         
         # Loading keypoints of video
         video_annotations = _load_keypoints(year, video_id)
         
         # Iterating through the keypoint-annotations of each clip of the current video
         for clip_interval, clip_annotations in tqdm(video_annotations.items(), desc="Storing clip-keypoints", leave=False, disable=False):
-            clip_storing_path = keypoints_path + "_" + clip_interval
-            make_dir(clip_storing_path)
+            input_clip_storing_path = input_keypoints_path + "_" + clip_interval
+            output_clip_storing_path = output_keypoints_path + "_" + clip_interval
+            
+            make_dir(input_clip_storing_path)
+            make_dir(output_clip_storing_path)
             
             for frame_number, frame_annotation in tqdm(clip_annotations.items(), desc="Storing frame-keypoints", leave=False, disable=False):
                 
-                # Path for storing stuff
-                frame_storing_path = clip_storing_path + frame_number + ".pt"
+                # Paths for storing stuff
+                input_frame_storing_path = input_clip_storing_path + frame_number + ".pt"
+                output_frame_storing_path = output_clip_storing_path + frame_number + ".pt"
                 
                 # Processing keypoints of the loaded clip
-                try:
-                    preprocessed_keypoints = _preprocess_keypoints(frame_annotation)
-                except Exception:
-                    import traceback
-                    print()
-                    print()
-                    print("video_id", video_id)
-                    print("year", year)
-                    print(frame_number)
-                    print(traceback.format_exc())
-                    exit(1)
+                processed_input_heatmaps, processed_output_heatmaps = _preprocess_keypoints(frame_annotation)
                     
                 # Saving keypoints of frame as tensor
-                torch.save(preprocessed_keypoints, frame_storing_path)
+                torch.save(processed_input_heatmaps, input_frame_storing_path)
+                torch.save(processed_output_heatmaps, output_frame_storing_path)
             
 if __name__ == "__main__":
     preprocess()

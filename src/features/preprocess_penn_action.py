@@ -48,9 +48,13 @@ def _preprocess_keypoints(label: Dict):
         
     Returns
     -------
-    processed_heatmaps : List[torch.Tensor]
-        List where the i'th entry contains the heatmaps of the
-        i'th frame. 
+    processed_input_heatmaps : List[torch.Tensor]
+        List where the i'th entry contains the input 
+        heatmaps of the i'th frame. 
+        
+    processed_output_heatmaps : List[torch.Tensor]
+        List where the i'th entry contains the output 
+        heatmaps of the i'th frame. 
     """
     
     keypoints = np.dstack((label["x"], label["y"])).astype(float)
@@ -105,8 +109,14 @@ def _preprocess_keypoints(label: Dict):
     # Penn action keypoint-index to ClimbAlong keypoint-index
     translate = lambda i: CLIMBALONG_KEYPOINTS[PENN_ACTION_KEYPOINTS[i]]
     
-    # List for storing final heatmaps
-    processed_heatmaps = [torch.zeros(NUM_KEYPOINTS, TARGET_HEIGHT, TARGET_WIDTH).bool() for _ in range(keypoints.shape[0])]
+    # List for storing output heatmaps
+    processed_output_heatmaps = [torch.zeros(NUM_KEYPOINTS, TARGET_HEIGHT, TARGET_WIDTH).bool() for _ in range(keypoints.shape[0])]
+    
+    # List for storing input heatmaps
+    processed_input_heatmaps = [torch.zeros(NUM_KEYPOINTS, TARGET_HEIGHT, TARGET_WIDTH).bool() for _ in range(keypoints.shape[0])]
+    
+    # Values for randomly shifting keypoints
+    shifts = np.clip(np.round(np.random.normal(0, 2.5, size=(len(keypoints), 2))).astype(int), -10, 10)
     
     # Looping through each frame
     for i, frame_keypoints in enumerate(keypoints):
@@ -116,16 +126,28 @@ def _preprocess_keypoints(label: Dict):
             if not (0 <= keypoint[0] < TARGET_WIDTH and 0 <= keypoint[1] < TARGET_HEIGHT):
                 continue
             
+            # Value for randomly shifting keypoints
+            shift = shifts[j]
+            
             # Translating keypoint-index to correct index
             j = translate(j)
             
             # Making heatmap from keypoint
-            heatmap = turn_keypoint_to_featuremap(keypoint, (TARGET_HEIGHT, TARGET_WIDTH))
+            output_heatmap = turn_keypoint_to_featuremap(keypoint, (TARGET_HEIGHT, TARGET_WIDTH))
             
             # Inserting data
-            processed_heatmaps[i][j] = heatmap
+            processed_output_heatmaps[i][j] = output_heatmap
             
-    return processed_heatmaps
+            # Randomly shifting input keypoints
+            keypoint = np.clip(keypoint + shift, [0, 0], [TARGET_WIDTH - 1, TARGET_HEIGHT - 1])
+            
+            # Making heatmap from keypoint
+            input_heatmap = turn_keypoint_to_featuremap(keypoint, (TARGET_HEIGHT, TARGET_WIDTH))
+            
+            # Inserting data
+            processed_input_heatmaps[i][j] = input_heatmap
+            
+    return processed_input_heatmaps, processed_output_heatmaps
             
 def preprocess():
     """
@@ -142,7 +164,8 @@ def preprocess():
         video_id = video_id[:-4]
         
         # Path for storing the keypoints of this video
-        keypoints_path = OVERALL_DATA_FOLDER + video_id + "/"
+        keypoints_input_path = OVERALL_DATA_FOLDER + SUBFOLDERS["x"] + video_id + "/"
+        keypoints_output_path = OVERALL_DATA_FOLDER + SUBFOLDERS["y"] + video_id + "/"
         
         # Path for storing meta-info of this sample
         label_path = PENN_ACTION_RAW_KEYPOINTS_PATH + video_id + ".mat"
@@ -155,19 +178,25 @@ def preprocess():
             continue
         
         # Making folder for storing keypoints of current video
-        make_dir(keypoints_path)
+        make_dir(keypoints_input_path)
+        make_dir(keypoints_output_path)
         
         # Process the keypoints
-        preprocessed_keypoints = _preprocess_keypoints(label)
+        processed_input_heatmaps, processed_output_heatmaps = _preprocess_keypoints(label)
         
         # Storing keypoints as individual frames
-        for frame_number, peprocessed_keypoint in enumerate(preprocessed_keypoints):
-        
+        for frame_number in range(len(processed_input_heatmaps)):
+            # Extracting preprocessed heatmaps
+            input_heatmaps = processed_input_heatmaps[frame_number]
+            output_heatmaps = processed_output_heatmaps[frame_number]
+            
             # Path for storing stuff
-            keypoints_storing_path = keypoints_path + str(frame_number) + ".pt"
+            input_heatmaps_storing_path = keypoints_input_path + str(frame_number) + ".pt"
+            output_heatmaps_storing_path = keypoints_output_path + str(frame_number) + ".pt"
             
             # Saving keypoints of frame as tensor
-            torch.save(peprocessed_keypoint, keypoints_storing_path)
+            torch.save(input_heatmaps, input_heatmaps_storing_path)
+            torch.save(output_heatmaps, output_heatmaps_storing_path)
         
         
 if __name__ == "__main__":
