@@ -81,16 +81,16 @@ def main(overall_models_dir: str, dataloaders, model_params, device):
     scheduler_reduce_factor = 0.5
     min_delta = 2.5
     
-    for model_param in model_params:
-        model = models_dict[model_param].to(device)
-        optimizer = optim.Adam(model.parameters(), lr=learning_rate).to(device)
-        scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=scheduler_reduce_factor, patience=scheduler_patience).to(device)
-        data_transformer = transforms_dict[model_param]
+    for model_name, model_param in model_params.items():
+        model = models_dict[model_name](**model_param).to(device)
+        optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+        scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=scheduler_reduce_factor, patience=scheduler_patience)
+        data_transformer = transforms_dict[model_name]
         
         _train_model(
             model,
             overall_models_dir,
-            model_param,
+            model_name,
             train_dataloader,
             eval_dataloader,
             test_dataloader,

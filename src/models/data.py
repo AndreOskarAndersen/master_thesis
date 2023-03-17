@@ -30,12 +30,10 @@ class _KeypointsDataset(Dataset):
         # Amount of frames to load at a time
         self.window_size = window_size
         
-        # Dict, where the key is the clip-name
-        # and the value is the amount of samples for that clip
-        self.mapper = self._get_lengths()
+        # Length of the dataset
+        self.length = self._get_lengths()
         
-        # Total number of samples
-        self.length = list(self.mapper.keys())[-1]
+        assert False, "TODO: LAV EN JSON (ELLER ANDET), SOM MAPPER FRA INDEX TIL SAMPLE_NAVN"
         
     def _get_lengths(self):
         """
@@ -51,14 +49,12 @@ class _KeypointsDataset(Dataset):
         """
         
         clips = os.listdir(self.target_dir)
-        mapper = {}
-        count = 0
+        total_count = 0
         
         for clip in tqdm(clips, desc="Loading dataset", leave=False):
-            count += len(os.listdir(self.target_dir + clip)) - self.window_size + 1
-            mapper[count] = clip
+            total_count += len(os.listdir(self.target_dir + clip)) - self.window_size + 1
         
-        return mapper
+        return total_count
     
     def _preprocess_items(self, item: torch.Tensor):
         """
@@ -184,11 +180,10 @@ if __name__ == "__main__":
     
     dir_path = "../../data/processed/"
     window_size = 10
-    batch_size = 2
+    batch_size = 16
+    eval_ratio = 0.4
     
-    train_loader, val_loader, test_loader = get_dataloaders(dir_path, window_size, batch_size)
+    train_loader, val_loader, test_loader = get_dataloaders(dir_path, window_size, batch_size, eval_ratio)
     
-    for x in train_loader:
-        print(x[0].shape)
-        print(x[1].shape)
-        break
+    for x in tqdm(train_loader, total=len(train_loader)):
+        pass

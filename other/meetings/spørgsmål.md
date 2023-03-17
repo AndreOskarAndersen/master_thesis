@@ -84,3 +84,8 @@
 
     3. Report:
         1. Ved "Related Work", skal jeg kun fokusere på pose estimation eller også andet object tracking?
+
+- 28/3:
+    1. Model:
+        1. Hvilken loss-function?
+        2. Hvilken evaluation metric?
