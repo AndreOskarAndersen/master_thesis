@@ -21,8 +21,11 @@ class _KeypointsDataset(Dataset):
             Amount of frames to load at a time
         """
         
-        # Path to the data-directory
-        self.dir_path = dir_path
+        # Path to target directory
+        self.target_dir = dir_path + "target/"
+        
+        # Path to input directory
+        self.input_dir = dir_path + "input/"
         
         # Amount of frames to load at a time
         self.window_size = window_size
@@ -47,13 +50,13 @@ class _KeypointsDataset(Dataset):
             that sample index range.
         """
         
-        clips = os.listdir(self.dir_path)
+        clips = os.listdir(self.target_dir)
         mapper = {}
         count = 0
         
         for clip in tqdm(clips, desc="Loading dataset", leave=False):
-            count += len(os.listdir(self.dir_path + clip)) - self.window_size + 1
-            mapper[count] = self.dir_path + clip
+            count += len(os.listdir(self.target_dir + clip)) - self.window_size + 1
+            mapper[count] = clip
         
         return mapper
     
@@ -74,9 +77,6 @@ class _KeypointsDataset(Dataset):
         
         # Applying gaussian blur to image
         item = torch.from_numpy(gaussian(item, channel_axis=0))
-        
-        # TODO: MANGLER AT FORSKYDE SAMPLES MED NOGET TILFÆLDIGT
-        assert False, "TODO: MANGLER AT FORSKYDE SAMPLES MED NOGET TILFÆLDIGT"
         
         return item
     
@@ -116,11 +116,15 @@ class _KeypointsDataset(Dataset):
                 
                 # Reading the sample
                 clip_dir = self.mapper[upper_interval]
-                clip_list_dir = os.listdir(clip_dir)
-                sample_names = clip_list_dir[i - prev_length:i - prev_length + self.window_size]
-                items = torch.stack([self._preprocess_items(torch.load(clip_dir + "/" + sample_name)) for sample_name in sample_names])
                 
-                return items # TODO: MANGLER AT SPLITTE DET OP, SÅ X OG Y RETURNERES.
+                interval = clip_dir.split("_")[-1].split("-")
+                lower_interval = int(interval[0])
+                
+                sample_names = [str(lower_interval + (i - prev_length) + j) + ".pt"for j in range(self.window_size)]
+                input_items = torch.stack([self._preprocess_items(torch.load(self.input_dir + clip_dir + "/" + sample_name)) for sample_name in sample_names])
+                target_items = torch.stack([self._preprocess_items(torch.load(self.target_dir + clip_dir + "/" + sample_name)) for sample_name in sample_names])
+                
+                return input_items, target_items
                 
             else:
                 # If we have not found the correct clip
@@ -185,5 +189,6 @@ if __name__ == "__main__":
     train_loader, val_loader, test_loader = get_dataloaders(dir_path, window_size, batch_size)
     
     for x in train_loader:
-        print(x.shape)
+        print(x[0].shape)
+        print(x[1].shape)
         break
