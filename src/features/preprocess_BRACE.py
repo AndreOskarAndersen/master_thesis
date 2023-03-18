@@ -38,9 +38,6 @@ def _load_keypoints(year: str, video_id: str):
     
     # Looping through all of the automatic annotations
     for keypoint_file in keypoints_listdir:
-        # Start and stop frames
-        frame_interval = keypoint_file.split("_")[-2] + "/"
-        
         # Path to keypoints
         keypoint_path = path + keypoint_file
         
@@ -50,6 +47,10 @@ def _load_keypoints(year: str, video_id: str):
         # Columns used for naming frames.
         keys = list(annotations.columns)
         keys = list(map(lambda x: x[-10:-4].lstrip("0"), keys))
+        
+        # Clip interval
+        keys_int = list(map(int, keys))
+        clip_interval = str(min(keys_int)) + "_" + str(max(keys_int)) + "/"
         
         # Removing "score"-attribute
         clip_keypoints = annotations.loc["keypoints"]
@@ -68,7 +69,7 @@ def _load_keypoints(year: str, video_id: str):
         
         # Storing keypoints, bboxes and their corresponding frame-number
         clip_annotations = dict(zip(keys, zip(clip_bboxes, clip_keypoints)))
-        video_annotations[frame_interval] = clip_annotations
+        video_annotations[clip_interval] = clip_annotations
             
     # Loading manual annotations
     path = RAW_BRACE_PATH + RAW_KEYPOINT_FOLDERS["manual"] + RAW_KEYPOINTS_SUBFOLDERS["manual"] + year + "/" + video_id + "/"

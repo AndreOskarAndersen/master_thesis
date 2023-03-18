@@ -5,9 +5,11 @@ from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader, Dataset
 from torch.utils.data.sampler import SubsetRandomSampler
 from skimage.filters import gaussian
+from typing import Tuple
+from time import time
 
 class _KeypointsDataset(Dataset):
-    def __init__(self, dir_path: str, window_size: int):
+    def __init__(self, dir_path: str, window_size: int, heatmap_shape: Tuple[int, int, int]):
         """
         Keypoints dataset
         
@@ -19,42 +21,63 @@ class _KeypointsDataset(Dataset):
             
         window_size : int
             Amount of frames to load at a time
+            
+        heatmap_shape : Tuple[int, int, int]
+            Shape of a single heatmap
         """
-        
-        # Path to target directory
-        self.target_dir = dir_path + "target/"
         
         # Path to input directory
         self.input_dir = dir_path + "input/"
         
+        # Path to target directory
+        self.target_dir = dir_path + "target/"
+        
         # Amount of frames to load at a time
         self.window_size = window_size
         
-        # Length of the dataset
-        self.length = self._get_lengths()
+        # Mapping from index to sample
+        self.mapper = self._get_mapper()
         
-        assert False, "TODO: LAV EN JSON (ELLER ANDET), SOM MAPPER FRA INDEX TIL SAMPLE_NAVN"
+        self.heatmap_shape = heatmap_shape
         
-    def _get_lengths(self):
+    def _get_mapper(self):
         """
-        Method for creating dictioary for mapping an index-range
-        to a clip.
+        Function for loading dataset.
         
         Returns
         -------
-        lengths : dict
-            Dict, where the key is the top-value of an index-range
-            and the corresponding value is the name of a clip for 
-            that sample index range.
+        mapper : dict
+            Dictionary that maps from an index to the corresponding samples
         """
         
-        clips = os.listdir(self.target_dir)
-        total_count = 0
+        # Dict that maps from index to samples
+        mapper = {}
         
-        for clip in tqdm(clips, desc="Loading dataset", leave=False):
-            total_count += len(os.listdir(self.target_dir + clip)) - self.window_size + 1
+        # Name of all clips
+        clips = os.listdir(self.input_dir)
         
-        return total_count
+        # Looping through each clip
+        for clip_name in tqdm(clips, desc="Loading dataset", leave=False):
+            
+            # Names of the frames of the current clip
+            frames = os.listdir(self.input_dir + clip_name)
+            
+            # If the clip is a BRACE_clip, extract the lower interval
+            # If not, we use 0 as the lower interval
+            if "_" in clip_name:
+                lower_interval = int(clip_name.split("_")[-2])
+            else:
+                lower_interval = 0
+                
+            # Number of samples for this clip
+            num_samples = len(frames) - self.window_size + 1
+            
+            # Saving each sample in the mapper
+            # with its corresponding index
+            for sample in range(num_samples):
+                mapper[len(mapper)] = [clip_name + "/" + str(lower_interval + sample + window_ele) + ".pt" for window_ele in range(self.window_size)]
+                
+        return mapper         
     
     def _preprocess_items(self, item: torch.Tensor):
         """
@@ -81,7 +104,7 @@ class _KeypointsDataset(Dataset):
         Returns the total number of samples
         """
         
-        return self.length
+        return len(self.mapper)
 
     def __getitem__(self, i: int):
         """
@@ -98,36 +121,18 @@ class _KeypointsDataset(Dataset):
             The i'th sample
         """
         
-        # Variable that keeps track of
-        # the lower interval value
-        prev_length = 0
+        sample_names = self.mapper[i]
         
-        # Looping through each clip
-        # untill we find the correct clip
-        # based on the index
-        for upper_interval in self.mapper.keys():
-            
-            # If we have found the correct clip
-            if i < upper_interval:
+        input_samples = torch.zeros((self.window_size, *self.heatmap_shape), dtype=float)
+        target_samples = torch.zeros((self.window_size, *self.heatmap_shape), dtype=float)
+        
+        for j, sample_name in enumerate(sample_names):
+            input_samples[j] = self._preprocess_items(torch.load(self.input_dir + sample_name))
+            target_samples[j] = self._preprocess_items(torch.load(self.target_dir + sample_name))
+        
+        return input_samples, target_samples
                 
-                # Reading the sample
-                clip_dir = self.mapper[upper_interval]
-                
-                interval = clip_dir.split("_")[-1].split("-")
-                lower_interval = int(interval[0])
-                
-                sample_names = [str(lower_interval + (i - prev_length) + j) + ".pt"for j in range(self.window_size)]
-                input_items = torch.stack([self._preprocess_items(torch.load(self.input_dir + clip_dir + "/" + sample_name)) for sample_name in sample_names])
-                target_items = torch.stack([self._preprocess_items(torch.load(self.target_dir + clip_dir + "/" + sample_name)) for sample_name in sample_names])
-                
-                return input_items, target_items
-                
-            else:
-                # If we have not found the correct clip
-                # we update the lower_interval value.
-                prev_length = upper_interval
-                
-def get_dataloaders(dir_path: str, window_size: int, batch_size: int, eval_ratio: float):
+def get_dataloaders(dir_path: str, window_size: int, batch_size: int, eval_ratio: float, heatmap_shape: Tuple[int, int, int] = (25, 50, 50)):
     """
     Function for getting train-, validation- and test-dataloader.
     
@@ -156,7 +161,8 @@ def get_dataloaders(dir_path: str, window_size: int, batch_size: int, eval_ratio
     test_loader : DataLoader
         Test-dataloader
     """
-    total_dataset = _KeypointsDataset(dir_path, window_size)
+    
+    total_dataset = _KeypointsDataset(dir_path, window_size, heatmap_shape)
     
     dataset_len = len(total_dataset)
     indices = list(range(dataset_len))
@@ -183,7 +189,8 @@ if __name__ == "__main__":
     batch_size = 16
     eval_ratio = 0.4
     
-    train_loader, val_loader, test_loader = get_dataloaders(dir_path, window_size, batch_size, eval_ratio)
+    total_dataset = _KeypointsDataset(dir_path, window_size, (25, 50, 50))
+    loader = DataLoader(total_dataset, batch_size=batch_size)
     
-    for x in tqdm(train_loader, total=len(train_loader)):
+    for x in tqdm(loader, total=len(loader), leave=False):
         pass
