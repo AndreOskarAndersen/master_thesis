@@ -79,26 +79,6 @@ class _KeypointsDataset(Dataset):
                 
         return mapper         
     
-    def _preprocess_items(self, item: torch.Tensor):
-        """
-        Preprocesses an image by applying gaussian blur.
-        
-        Parameter
-        ---------
-        item : torch.Tensor
-            Image to preprocess
-            
-        Returns
-        -------
-        item : torch.Tensor
-            Preprocessed image.
-        """
-        
-        # Applying gaussian blur to image
-        item = torch.from_numpy(gaussian(item, channel_axis=0))
-        
-        return item
-    
     def __len__(self):
         """
         Returns the total number of samples
@@ -127,8 +107,8 @@ class _KeypointsDataset(Dataset):
         target_samples = torch.zeros((self.window_size, *self.heatmap_shape), dtype=float)
         
         for j, sample_name in enumerate(sample_names):
-            input_samples[j] = self._preprocess_items(torch.load(self.input_dir + sample_name))
-            target_samples[j] = self._preprocess_items(torch.load(self.target_dir + sample_name))
+            input_samples[j] = torch.load(self.input_dir + sample_name)
+            target_samples[j] = torch.load(self.target_dir + sample_name)
         
         return input_samples, target_samples
                 

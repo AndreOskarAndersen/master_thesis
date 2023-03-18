@@ -170,10 +170,10 @@ def _preprocess_keypoints(video_annotations : Dict[str, Tuple[List[float]]]):
     keypoints[:, 1] = TARGET_HEIGHT - 1 - keypoints[:, 1]
     
     # Tensor for storing input heatmaps
-    processed_input_heatmaps = torch.zeros(NUM_KEYPOINTS, TARGET_HEIGHT, TARGET_WIDTH).bool()
+    processed_input_heatmaps = torch.zeros(NUM_KEYPOINTS, TARGET_HEIGHT, TARGET_WIDTH).type(torch.uint8)
     
     # Tensor for storing output heatmaps
-    processed_output_heatmaps = torch.zeros(NUM_KEYPOINTS, TARGET_HEIGHT, TARGET_WIDTH).bool()
+    processed_output_heatmaps = torch.zeros(NUM_KEYPOINTS, TARGET_HEIGHT, TARGET_WIDTH).type(torch.uint8)
     
     # Function for translating keypoints for translating
     # BRACE keypoint-index to ClimbAlong keypoint-index

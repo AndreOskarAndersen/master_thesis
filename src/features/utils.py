@@ -1,4 +1,5 @@
 import os
+import numpy as np
 import torch
 from skimage.filters import gaussian
 
@@ -19,7 +20,7 @@ def make_dir(path):
         
 def turn_keypoint_to_featuremap(keypoint: torch.Tensor, featuremap_shape: torch.Size):
     """
-    Turns a 2D keypoint-coordinate into a feature map.
+    Turns a 2D keypoint-coordinate into a feature map with gaussian blur.
     
     Parameters
     ----------
@@ -36,8 +37,9 @@ def turn_keypoint_to_featuremap(keypoint: torch.Tensor, featuremap_shape: torch.
         Feature map corresponding to keypoints.
     """
     
-    featuremap = torch.zeros(featuremap_shape)
+    featuremap = np.zeros(featuremap_shape)
     featuremap[keypoint[1], keypoint[0]] = 1
-    featuremap = featuremap.bool()
+    featuremap = torch.from_numpy(gaussian(featuremap) * 255)
+    featuremap = torch.round(featuremap).type(torch.uint8)
     
     return featuremap

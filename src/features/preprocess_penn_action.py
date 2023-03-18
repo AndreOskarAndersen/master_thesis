@@ -110,10 +110,10 @@ def _preprocess_keypoints(label: Dict):
     translate = lambda i: CLIMBALONG_KEYPOINTS[PENN_ACTION_KEYPOINTS[i]]
     
     # List for storing output heatmaps
-    processed_output_heatmaps = [torch.zeros(NUM_KEYPOINTS, TARGET_HEIGHT, TARGET_WIDTH).bool() for _ in range(keypoints.shape[0])]
+    processed_output_heatmaps = [torch.zeros(NUM_KEYPOINTS, TARGET_HEIGHT, TARGET_WIDTH).type(torch.uint8) for _ in range(keypoints.shape[0])]
     
     # List for storing input heatmaps
-    processed_input_heatmaps = [torch.zeros(NUM_KEYPOINTS, TARGET_HEIGHT, TARGET_WIDTH).bool() for _ in range(keypoints.shape[0])]
+    processed_input_heatmaps = [torch.zeros(NUM_KEYPOINTS, TARGET_HEIGHT, TARGET_WIDTH).type(torch.uint8) for _ in range(keypoints.shape[0])]
     
     # Values for randomly shifting keypoints
     shifts = np.clip(np.round(np.random.normal(0, 2.5, size=(len(keypoints), 2))).astype(int), -10, 10)
