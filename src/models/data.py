@@ -9,7 +9,7 @@ from typing import Tuple
 from time import time
 
 class _KeypointsDataset(Dataset):
-    def __init__(self, dir_path: str, window_size: int, heatmap_shape: Tuple[int, int, int]):
+    def __init__(self, dir_path: str, window_size: int, heatmap_shape: Tuple[int, int, int], device: torch.device):
         """
         Keypoints dataset
         
@@ -24,6 +24,9 @@ class _KeypointsDataset(Dataset):
             
         heatmap_shape : Tuple[int, int, int]
             Shape of a single heatmap
+            
+        device : torch.device
+            Device to use
         """
         
         # Path to input directory
@@ -39,6 +42,7 @@ class _KeypointsDataset(Dataset):
         self.mapper = self._get_mapper()
         
         self.heatmap_shape = heatmap_shape
+        self.device = device
         
     def _get_mapper(self):
         """
@@ -101,18 +105,30 @@ class _KeypointsDataset(Dataset):
             The i'th sample
         """
         
-        sample_names = self.mapper[i]
-        
-        input_samples = torch.zeros((self.window_size, *self.heatmap_shape), dtype=float)
-        target_samples = torch.zeros((self.window_size, *self.heatmap_shape), dtype=float)
-        
-        for j, sample_name in enumerate(sample_names):
-            input_samples[j] = torch.load(self.input_dir + sample_name)
-            target_samples[j] = torch.load(self.target_dir + sample_name)
+        try:
+            sample_names = self.mapper[i]
+            
+            input_samples = torch.zeros((self.window_size, *self.heatmap_shape), dtype=float, device=self.device)
+            target_samples = torch.zeros((self.window_size, *self.heatmap_shape), dtype=float, device=self.device)
+            
+            for j, sample_name in enumerate(sample_names):
+                input_samples[j] = torch.load(self.input_dir + sample_name)
+                target_samples[j] = torch.load(self.target_dir + sample_name)
+        except Exception as e:
+            print()
+            print("CRASH", i, sample_names)
+            exit(1)
         
         return input_samples, target_samples
                 
-def get_dataloaders(dir_path: str, window_size: int, batch_size: int, eval_ratio: float, heatmap_shape: Tuple[int, int, int] = (25, 50, 50)):
+def get_dataloaders(dir_path: str, 
+                    window_size: int, 
+                    batch_size: int, 
+                    eval_ratio: float, 
+                    device: torch.device, 
+                    heatmap_shape: Tuple[int, int, int] = (25, 50, 50), 
+                    num_workers: int = 0
+                    ):
     """
     Function for getting train-, validation- and test-dataloader.
     
@@ -130,6 +146,15 @@ def get_dataloaders(dir_path: str, window_size: int, batch_size: int, eval_ratio
     eval_ratio : float
         Ratio of data that should be used for evaluating the model.
         
+    device : torch.device
+        Device to use
+        
+    heatmap_shape : Tuple[int, int, int]
+        Shape of a single heatmap
+        
+    num_workers : int
+        Number of workers to use when loading data
+        
     Returns
     -------
     train_loader : DataLoader
@@ -142,7 +167,7 @@ def get_dataloaders(dir_path: str, window_size: int, batch_size: int, eval_ratio
         Test-dataloader
     """
     
-    total_dataset = _KeypointsDataset(dir_path, window_size, heatmap_shape)
+    total_dataset = _KeypointsDataset(dir_path, window_size, heatmap_shape, device)
     
     dataset_len = len(total_dataset)
     indices = list(range(dataset_len))
@@ -153,9 +178,9 @@ def get_dataloaders(dir_path: str, window_size: int, batch_size: int, eval_ratio
     val_sampler = SubsetRandomSampler(val_indices)
     test_sampler = SubsetRandomSampler(test_indices)
     
-    train_loader = DataLoader(total_dataset, batch_size=batch_size, sampler=train_sampler)
-    val_loader = DataLoader(total_dataset, batch_size=batch_size, sampler=val_sampler)
-    test_loader = DataLoader(total_dataset, batch_size=batch_size, sampler=test_sampler)
+    train_loader = DataLoader(total_dataset, batch_size=batch_size, sampler=train_sampler, num_workers=num_workers)
+    val_loader = DataLoader(total_dataset, batch_size=batch_size, sampler=val_sampler, num_workers=num_workers)
+    test_loader = DataLoader(total_dataset, batch_size=batch_size, sampler=test_sampler, num_workers=num_workers)
     
     return train_loader, val_loader, test_loader
    
@@ -168,9 +193,14 @@ if __name__ == "__main__":
     window_size = 10
     batch_size = 16
     eval_ratio = 0.4
+    device = "cpu" #torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
-    total_dataset = _KeypointsDataset(dir_path, window_size, (25, 50, 50))
-    loader = DataLoader(total_dataset, batch_size=batch_size)
-    
+    total_dataset = _KeypointsDataset(dir_path, window_size, (25, 50, 50), device)
+    loader = DataLoader(total_dataset, batch_size=16, num_workers=2)
     for x in tqdm(loader, total=len(loader), leave=False):
         pass
+    
+    # '../../data/processed/input/ws8ipOc_2hY_3274_3623/3426.pt'
+    # '../../data/processed/input/ws8ipOc_2hY_3274_3623/3445.pt'
+    # '../../data/processed/input/XkqFeIQ-e98_4939_5488/4950.pt'
+    # '../../data/processed/input/yoF-3w5sQQk_6298_6791/6673.pt'

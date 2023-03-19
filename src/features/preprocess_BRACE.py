@@ -2,10 +2,49 @@ import os
 import numpy as np
 import pandas as pd
 import torch
+import itertools
 from tqdm import tqdm
 from typing import Tuple, Dict, List
 from utils import make_dir, turn_keypoint_to_featuremap
 from global_variables import *
+
+def groupc(arr: list):
+    """
+    Function for grouping sequential numbers into intervals.
+    
+    Parameters
+    ----------
+    arr : list
+        list of numbers to group
+        
+    Note:
+    -----
+    Inspired by the following url
+    https://www.geeksforgeeks.org/python-consecutive-elements-grouping-in-list/
+            
+    Returns
+    -------
+    elements : list
+        list of string-intervals
+        
+    indicies : list
+        list of tuples intervals-indicies
+    """
+    
+    indicies = []
+    elements = []
+    i = 0
+    while i < len(arr):
+        j = i
+        while j < len(arr) - 1 and arr[j + 1] == arr[j] + 1:
+            j += 1
+            
+        indicies.append((i, j))
+        elements.append(str(arr[i]) + "_" + str(arr[j]) + "/")
+        
+        i = j + 1
+        
+    return elements, indicies
 
 def _load_keypoints(year: str, video_id: str):
     """
@@ -46,11 +85,7 @@ def _load_keypoints(year: str, video_id: str):
         
         # Columns used for naming frames.
         keys = list(annotations.columns)
-        keys = list(map(lambda x: x[-10:-4].lstrip("0"), keys))
-        
-        # Clip interval
-        keys_int = list(map(int, keys))
-        clip_interval = str(min(keys_int)) + "_" + str(max(keys_int)) + "/"
+        keys = list(map(lambda x: int(x[-10:-4].lstrip("0")), keys))
         
         # Removing "score"-attribute
         clip_keypoints = annotations.loc["keypoints"]
@@ -68,8 +103,13 @@ def _load_keypoints(year: str, video_id: str):
                        for clip_keypoint in clip_keypoints]
         
         # Storing keypoints, bboxes and their corresponding frame-number
-        clip_annotations = dict(zip(keys, zip(clip_bboxes, clip_keypoints)))
-        video_annotations[clip_interval] = clip_annotations
+        interval_elements, interval_indices = groupc(keys)
+        for interval_element, interval_index in zip(interval_elements, interval_indices):            
+            interval_keys = list(map(str, keys[interval_index[0]:interval_index[1] + 1]))
+            interval_bboxes = clip_bboxes[interval_index[0]:interval_index[1] + 1]
+            interval_keypoints = clip_keypoints[interval_index[0]:interval_index[1] + 1]
+            interval_annotations = dict(zip(interval_keys, zip(interval_bboxes, interval_keypoints)))
+            video_annotations[interval_element] = interval_annotations
             
     # Loading manual annotations
     path = RAW_BRACE_PATH + RAW_KEYPOINT_FOLDERS["manual"] + RAW_KEYPOINTS_SUBFOLDERS["manual"] + year + "/" + video_id + "/"
