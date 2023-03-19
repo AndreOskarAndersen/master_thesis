@@ -7,7 +7,7 @@ from deciwatch import DeciWatch
 from unipose import Unipose
 from utils import make_dir
 from torch.utils.data import DataLoader
-from typing import Dict, Callable
+from typing import Callable
 from utils import heatmaps2coordinates
 
 def _train_model(model,
@@ -23,7 +23,7 @@ def _train_model(model,
                  threshold: float,
                  early_stopping_patience: int,
                  min_delta: float,
-                 scheduler: torch.optim.lr_scheduler.LRScheduler,
+                 scheduler: type,
                  data_transformer: Callable
                  ):
     
@@ -44,7 +44,7 @@ def _train_model(model,
         train_dataloader,
         eval_dataloader,
         test_dataloader,
-        torch.nn.MSELoss().to(device),
+        torch.nn.MSELoss(),
         optimizer,
         max_epochs,
         device,
@@ -69,11 +69,11 @@ def main(overall_models_dir: str, dataloaders, model_params, device):
     models_dict = {"baseline": Baseline, "unipose": Unipose, "deciwatch": DeciWatch}
     
     # Dictionary of data transformers to apply
-    transforms_dict = {"baseline": lambda x: x, "unipose": lambda x: x, "deciwatch": heatmaps2coordinates}
+    transforms_dict = {"baseline": lambda x: x, "unipose": lambda x: x, "deciwatch": lambda x: heatmaps2coordinates(x.cpu()).to(device)}
     
     # Constants
-    learning_rate = 10**-4
-    max_epochs = 100
+    learning_rate = 1e-4
+    max_epochs = 50
     normalizing_constant = 1
     threshold = 0.2 # TODO: BURDE NOK ÆNDRE, SÅ DEN IKKE ER KONSTANT
     early_stopping_patience = 10
@@ -106,22 +106,26 @@ def main(overall_models_dir: str, dataloaders, model_params, device):
         )
 
 if __name__ == "__main__":
+    torch.backends.cudnn.benchmark = True
+    
     overall_data_dir = "../../data/processed/"
     overall_models_dir = "../../models/"
     
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print("Using device", device)
 
     # Data parameters
-    window_size = 11
+    window_size = 5 #11
     batch_size = 16
     eval_ratio = 0.4
     keypoints_dim = 2
     num_keypoints = 25
+    num_workers = 2
     
     # Baseline parameters
     baseline_params = {
         "num_frames": window_size,
-        "kernel_size": 5,
+        "kernel_size": (window_size, 3, 3),
         "stride": 1
     } 
     
@@ -137,23 +141,24 @@ if __name__ == "__main__":
     # Deciwatch parameters
     deciwatch_params = {
         "keypoints_numel": keypoints_dim * num_keypoints,
-        "sample_rate": 1,
+        "sample_rate": 4, #10,
         "hidden_dims": 128,
         "dropout": 0.1,
         "nheads": 4,
         "dim_feedforward": 2048,
         "num_encoder_layers": 5,
         "num_decoder_layers": 5,
-        "num_frames": window_size
-        # TODO: TILFØJ DEVICE
+        "num_frames": window_size,
+        "device": device
     }
     
     model_params = {
-        "baseline": baseline_params,
+        #"baseline": baseline_params,
         "deciwatch": deciwatch_params,
-        "unipose": unipose_params
+        #"unipose": unipose_params
     }
-    dataloaders = get_dataloaders(overall_data_dir, window_size, batch_size, eval_ratio)
+    
+    dataloaders = get_dataloaders(overall_data_dir, window_size, batch_size, eval_ratio, device, num_workers=num_workers)
     
     main(overall_models_dir, 
          dataloaders,

@@ -5,6 +5,7 @@ from torch.utils.data import DataLoader
 from tqdm.auto import tqdm
 from utils import compute_PCK
 from typing import Callable
+from time import time
 
 class _EarlyStopper:
     def __init__(self, patience: int, min_delta: float):
@@ -61,7 +62,7 @@ def train(model: nn.Module,
           patience : int,
           min_delta : float,
           saving_path: str,
-          scheduler: torch.optim.lr_scheduler.LRScheduler = None,
+          scheduler: type = None,
           data_transformer: Callable = lambda x: x):
     """
     Function for training a model using a dataloader.
@@ -119,49 +120,43 @@ def train(model: nn.Module,
     """
     
     train_losses = []
-    train_accs = []
     
     val_losses = []
     val_accs = []
     
     early_stopper = _EarlyStopper(patience=patience, min_delta=min_delta)
+    scaler = torch.cuda.amp.GradScaler()
     
-    for epoch in tqdm(range(max_epoch), desc="Epoch", leave=False, total=max_epoch):
+    for epoch in tqdm(range(max_epoch), desc="Epoch", leave=False, total=max_epoch, disable=False):
         model.train()
         
         train_losses.append(0)
-        train_accs.append(0)
         
-        for x, y in tqdm(train_dataloader, desc="Sample", leave=False, total=len(train_dataloader)):
-            # resetting optimizer
-            optimizer.zero_grad()
-            
+        for x, y in tqdm(train_dataloader, desc="Sample", leave=False, total=len(train_dataloader), disable=False):
+
             # Loading data
-            x = data_transformer(x).to(device)
-            y = data_transformer(y).to(device)
+            x = data_transformer(x).float()
+            y = data_transformer(y).float()
+            
+            # resetting optimizer
+            optimizer.zero_grad(set_to_none=True)
             
             # Predicting
-            pred = model(x).to(device)
+            pred = model(x)
             
             # Computes loss
             loss = criterion(pred, y)
             
-            # Computing train accuracy
-            acc = compute_PCK(y, pred)
+            # Backpropegation
+            scaler.scale(loss).backward()
+            scaler.step(optimizer)
+            scaler.update()
             
             # Store train loss
             train_losses[-1] += loss.item()
             
-            # Store train acc
-            train_accs[-1] += acc
-            
-            # Backpropegation
-            loss.backward()
-            optimizer.step()
-            
         # Averaging the training stats
         train_losses[-1] /= len(train_dataloader)
-        train_accs[-1] /= len(train_dataloader)
         
         # Validating the model
         val_acc, val_loss = evaluate(model, eval_dataloader, criterion, device, normalizing_constant, threshold, data_transformer)
@@ -176,9 +171,6 @@ def train(model: nn.Module,
 
         # Saving validation losses
         np.save(saving_path + "val_loss.npy", val_losses)
-        
-        # Saving training accuracies
-        np.save(saving_path + "train_acc.npy", train_accs)
 
         # Saving validation accuracies
         np.save(saving_path + "val_acc.npy", val_accs)
@@ -254,8 +246,8 @@ def evaluate(model: nn.Module,
         for i, (x, y) in tqdm(enumerate(dataloader), leave=False, desc="Evaluating", disable=False, total=len(dataloader)):
             
             # Storing data on device
-            x = data_transformer(x).to(device)
-            y = data_transformer(y).to(device)
+            x = data_transformer(x)
+            y = data_transformer(y)
             
             # Predicting
             pred = model(x)

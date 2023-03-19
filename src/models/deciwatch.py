@@ -1,6 +1,8 @@
 import numpy as np
 import torch
 from torch import nn
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning) 
 
 def _get_masks(num_frames, sample_rate, batch_size):
     """
@@ -94,7 +96,8 @@ class _DenoiseNet(nn.Module):
                  num_layers: int, 
                  keypoints_numel: int, 
                  nheads: int, 
-                 dropout: float
+                 dropout: float,
+                 device : torch.device
                  ):
         """
         Implementation of the DenoiseNet-part of DeciWatch, as described by
@@ -121,9 +124,13 @@ class _DenoiseNet(nn.Module):
             
         dropout : float
             The amount of dropout to apply
+            
+        device : torch.device
+            Device to use
         """
         
         super(_DenoiseNet, self).__init__()
+        self.device = device
         
         self.linear_de = nn.Linear(keypoints_numel, hidden_dims)
         self.linear_dd = nn.Linear(hidden_dims, keypoints_numel)
@@ -163,7 +170,7 @@ class _DenoiseNet(nn.Module):
             Denoised features.
         """
         
-        f_clean = self.encoder(self.linear_de(video_sequence) + e_pos, mask=torch.eye(video_sequence.shape[0], dtype=bool), src_key_padding_mask=encoder_mask)
+        f_clean = self.encoder(self.linear_de(video_sequence) + e_pos, mask=torch.eye(video_sequence.shape[0], dtype=bool).to(self.device), src_key_padding_mask=encoder_mask)
         p_clean = self.linear_dd(f_clean) + video_sequence
         
         return p_clean, f_clean
@@ -273,7 +280,8 @@ class DeciWatch(nn.Module):
                  dim_feedforward: int, 
                  num_encoder_layers: int, 
                  num_decoder_layers: int,
-                 num_frames: int
+                 num_frames: int,
+                 device: torch.device
                  ):
         
         """
@@ -314,6 +322,9 @@ class DeciWatch(nn.Module):
             
         num_frames : int
             Number of frames in each video sequence
+            
+        device : torch.device
+            Device to use
         """
         
         super(DeciWatch, self).__init__()
@@ -322,9 +333,10 @@ class DeciWatch(nn.Module):
         
         self.pos_embed_dim = hidden_dims
         self.sample_rate = sample_rate
+        self.device = device
 
         self.e_pos = PositionEmbeddingSine_1D(self.pos_embed_dim // 2)
-        self.denoise_net = _DenoiseNet(hidden_dims, dim_feedforward, num_encoder_layers, keypoints_numel, nheads, dropout)
+        self.denoise_net = _DenoiseNet(hidden_dims, dim_feedforward, num_encoder_layers, keypoints_numel, nheads, dropout, device)
         self.recover_net = _RecoverNet(hidden_dims, dim_feedforward, num_decoder_layers, keypoints_numel, nheads, dropout, sample_rate)
 
     def forward(self, video_sequence: torch.Tensor):
@@ -348,7 +360,11 @@ class DeciWatch(nn.Module):
         
         # Gets masks and positional embedding
         encoder_mask, decoder_mask = _get_masks(num_frames, sample_rate=self.sample_rate, batch_size=batch_size)
-        e_pos = self.e_pos(batch_size, num_frames)
+        
+        encoder_mask = encoder_mask.to(self.device)
+        decoder_mask = decoder_mask.to(self.device)
+        
+        e_pos = self.e_pos(batch_size, num_frames).to(self.device)
         
         # Masks the frames of the video sequence, such that only every sample_rate'th frame is unmasked.
         video_sequence = (video_sequence.permute(0, 2, 1) * encoder_mask.int()[0]).permute(2, 0, 1)
@@ -364,12 +380,15 @@ if __name__ == "__main__":
     Example on using the DeciWatch Implementation
     """
     
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    
     # Making model
-    num_keypoints = 16
+    num_keypoints = 25
     keypoints_dim = 2
     sample_rate = 10
     embedding_dim = 128
     num_layers = 5
+    dim_feedforward = 256
     dropout = 0.1
     nheads = 4
     num_frames = 11
@@ -380,17 +399,18 @@ if __name__ == "__main__":
         embedding_dim,
         dropout=dropout,
         nheads=nheads,
-        dim_feedforward=256,
+        dim_feedforward=dim_feedforward,
         num_encoder_layers=num_layers,
         num_decoder_layers=num_layers,
-        num_frames=num_frames
-    )
+        num_frames=num_frames,
+        device=device
+    ).to(device)
     
     # Making data
     batch_size = 1
-    sequence = torch.ones(batch_size, num_frames, num_keypoints * keypoints_dim)
+    sequence = torch.ones(batch_size, num_frames, num_keypoints * keypoints_dim).to(device)
     
     # Predicting
     recover_output = model(sequence)
-    #print(recover_output)
-    #print(recover_output.shape)
+    print(recover_output)
+    print(recover_output.shape)

@@ -33,7 +33,7 @@ def heatmaps2coordinates(video_sequence: torch.Tensor):
         Keypoint coordinates.
     """
     
-    assert len(video_sequence.shape) == 5, "Your video sequence should have the following shape: (num_batches, num_frames, num_heatmaps, height, width)"
+    assert len(video_sequence.shape) == 5, f"Your video sequence should have the following shape: (num_batches, num_frames, num_heatmaps, height, width). Yours have shape {video_sequence.shape}"
     
     # Extracting useful info
     num_batches, num_frames, num_heatmaps = video_sequence.shape[:3]
@@ -86,8 +86,13 @@ def compute_PCK(gt_featuremaps: torch.Tensor, pred_featuremaps: torch.Tensor, no
 
     # Turning the heatmaps into arrays
     num_dimensions = 2
-    gt_kp = np.array(heatmaps2coordinates(gt_featuremaps)).reshape(-1, num_dimensions)
-    pred_kp = np.array(heatmaps2coordinates(pred_featuremaps)).reshape(-1, num_dimensions)
+    
+    if len(gt_featuremaps.shape) == 5:
+        gt_kp = np.array(heatmaps2coordinates(gt_featuremaps)).reshape(-1, num_dimensions)
+        pred_kp = np.array(heatmaps2coordinates(pred_featuremaps)).reshape(-1, num_dimensions)
+    else:
+        gt_kp = gt_featuremaps.detach().numpy().reshape(-1, num_dimensions)
+        pred_kp = pred_featuremaps.detach().numpy().reshape(-1, num_dimensions)
 
     # Distance between ground truth keypoints and predictions
     dist = np.linalg.norm(gt_kp - pred_kp, axis=1)
