@@ -171,8 +171,8 @@ def get_dataloaders(dir_path: str,
     
     dataset_len = len(total_dataset)
     indices = list(range(dataset_len))
-    train_indices, test_indices = train_test_split(indices, test_size=eval_ratio, shuffle=True)
-    val_indices, test_indices = train_test_split(test_indices, test_size=0.5, shuffle=True)
+    train_indices, test_indices = train_test_split(indices, test_size=eval_ratio, shuffle=False)
+    val_indices, test_indices = train_test_split(test_indices, test_size=0.5, shuffle=False)
     
     train_sampler = SubsetRandomSampler(train_indices)
     val_sampler = SubsetRandomSampler(val_indices)
@@ -193,14 +193,9 @@ if __name__ == "__main__":
     window_size = 10
     batch_size = 16
     eval_ratio = 0.4
-    device = "cpu" #torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
     total_dataset = _KeypointsDataset(dir_path, window_size, (25, 50, 50), device)
     loader = DataLoader(total_dataset, batch_size=16, num_workers=2)
     for x in tqdm(loader, total=len(loader), leave=False):
         pass
-    
-    # '../../data/processed/input/ws8ipOc_2hY_3274_3623/3426.pt'
-    # '../../data/processed/input/ws8ipOc_2hY_3274_3623/3445.pt'
-    # '../../data/processed/input/XkqFeIQ-e98_4939_5488/4950.pt'
-    # '../../data/processed/input/yoF-3w5sQQk_6298_6791/6673.pt'

@@ -1,6 +1,6 @@
-import numpy as np
 import torch
 from torch import nn
+
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning) 
 
@@ -43,7 +43,7 @@ def _get_masks(num_frames, sample_rate, batch_size):
     return encoder_mask, decoder_mask
 
 class PositionEmbeddingSine_1D(nn.Module):
-    def __init__(self, d_model: int):
+    def __init__(self, d_model: int, device: torch.device):
         """
         Positional embedding, generalized to work on images.
         
@@ -59,7 +59,8 @@ class PositionEmbeddingSine_1D(nn.Module):
         super(PositionEmbeddingSine_1D, self).__init__()
         
         self.d_model = d_model
-        self.denum = 10000**(2 * np.arange(0, self.d_model)/self.d_model)
+        self.denum = 10000**(2 * torch.arange(self.d_model, device=device)/self.d_model)
+        self.device = device
 
     def forward(self, batch_size: int, num_frames: int):
         """
@@ -79,10 +80,10 @@ class PositionEmbeddingSine_1D(nn.Module):
             Positional embedding.
         """
         
-        pos = torch.arange(num_frames).unsqueeze(0).repeat(batch_size, 1)
-        pos = pos / (pos[:, -1:] + 1e-6) * 2 * np.pi
+        pos = torch.arange(num_frames, device=self.device).unsqueeze(0).repeat(batch_size, 1)
+        pos = pos / (pos[:, -1:] + 1e-6) * 2 * torch.pi
 
-        e_pos = torch.zeros(batch_size, num_frames, self.d_model * 2)
+        e_pos = torch.zeros(batch_size, num_frames, self.d_model * 2, device=self.device)
         e_pos[:, :, 0::2] = torch.sin(pos[:, :, None] / self.denum)
         e_pos[:, :, 1::2] = torch.cos(pos[:, :, None] / self.denum)
         e_pos = e_pos.permute(1, 0, 2)
@@ -169,8 +170,8 @@ class _DenoiseNet(nn.Module):
         f_clean : torch.Tensor
             Denoised features.
         """
-        
-        f_clean = self.encoder(self.linear_de(video_sequence) + e_pos, mask=torch.eye(video_sequence.shape[0], dtype=bool).to(self.device), src_key_padding_mask=encoder_mask)
+
+        f_clean = self.encoder(self.linear_de(video_sequence) + e_pos, mask=torch.eye(video_sequence.shape[0], dtype=bool, device=self.device), src_key_padding_mask=encoder_mask)
         p_clean = self.linear_dd(f_clean) + video_sequence
         
         return p_clean, f_clean
@@ -281,6 +282,7 @@ class DeciWatch(nn.Module):
                  num_encoder_layers: int, 
                  num_decoder_layers: int,
                  num_frames: int,
+                 batch_size: int,
                  device: torch.device
                  ):
         
@@ -320,6 +322,9 @@ class DeciWatch(nn.Module):
         num_decoder_layers : int
             Number of sub-decoder-layers in the decoder
             
+        batch_size : int
+            Number of samples per batch
+            
         num_frames : int
             Number of frames in each video sequence
             
@@ -333,11 +338,18 @@ class DeciWatch(nn.Module):
         
         self.pos_embed_dim = hidden_dims
         self.sample_rate = sample_rate
+        self.batch_size = batch_size
+        self.num_frames = num_frames
         self.device = device
 
-        self.e_pos = PositionEmbeddingSine_1D(self.pos_embed_dim // 2)
+        self.e_pos = PositionEmbeddingSine_1D(self.pos_embed_dim // 2, device)
         self.denoise_net = _DenoiseNet(hidden_dims, dim_feedforward, num_encoder_layers, keypoints_numel, nheads, dropout, device)
         self.recover_net = _RecoverNet(hidden_dims, dim_feedforward, num_decoder_layers, keypoints_numel, nheads, dropout, sample_rate)
+        
+        self.encoder_mask, self.decoder_mask = _get_masks(num_frames, sample_rate=self.sample_rate, batch_size=self.batch_size)
+        self.encoder_mask = self.encoder_mask.to(self.device)
+        self.decoder_mask = self.decoder_mask.to(self.device)
+        self.e_pos_val = self.e_pos(batch_size, num_frames).to(self.device)
 
     def forward(self, video_sequence: torch.Tensor):
         """
@@ -346,7 +358,7 @@ class DeciWatch(nn.Module):
         Parameters
         ----------
         video_sequence : torch.Tensor
-            Sequence of frames to apåply DeciWatch on.
+            Sequence of frames to apply DeciWatch on.
             Has to have shape (batch_size, num_frames, keypoints_numel)
             
         Returns
@@ -359,12 +371,15 @@ class DeciWatch(nn.Module):
         batch_size, num_frames, keypoints_numel = video_sequence.shape
         
         # Gets masks and positional embedding
-        encoder_mask, decoder_mask = _get_masks(num_frames, sample_rate=self.sample_rate, batch_size=batch_size)
-        
-        encoder_mask = encoder_mask.to(self.device)
-        decoder_mask = decoder_mask.to(self.device)
-        
-        e_pos = self.e_pos(batch_size, num_frames).to(self.device)
+        if batch_size == self.batch_size:
+            encoder_mask = self.encoder_mask
+            decoder_mask = self.decoder_mask
+            e_pos = self.e_pos_val
+        else:
+            encoder_mask, decoder_mask = _get_masks(num_frames, sample_rate=self.sample_rate, batch_size=batch_size)
+            encoder_mask = encoder_mask.to(self.device)
+            decoder_mask = decoder_mask.to(self.device)
+            e_pos = self.e_pos(batch_size, num_frames).to(self.device)
         
         # Masks the frames of the video sequence, such that only every sample_rate'th frame is unmasked.
         video_sequence = (video_sequence.permute(0, 2, 1) * encoder_mask.int()[0]).permute(2, 0, 1)
@@ -392,6 +407,7 @@ if __name__ == "__main__":
     dropout = 0.1
     nheads = 4
     num_frames = 11
+    batch_size = 1
     
     model = DeciWatch(
         num_keypoints * keypoints_dim,
@@ -403,14 +419,14 @@ if __name__ == "__main__":
         num_encoder_layers=num_layers,
         num_decoder_layers=num_layers,
         num_frames=num_frames,
+        batch_size=batch_size,
         device=device
     ).to(device)
     
     # Making data
-    batch_size = 1
     sequence = torch.ones(batch_size, num_frames, num_keypoints * keypoints_dim).to(device)
     
     # Predicting
     recover_output = model(sequence)
-    print(recover_output)
+    #print(recover_output)
     print(recover_output.shape)

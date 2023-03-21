@@ -62,6 +62,7 @@ def train(model: nn.Module,
           patience : int,
           min_delta : float,
           saving_path: str,
+          disable_tqdm: bool,
           scheduler: type = None,
           data_transformer: Callable = lambda x: x):
     """
@@ -109,6 +110,9 @@ def train(model: nn.Module,
     saving_path : str
         Path to folder where stuff should be saved
         
+    disable_tqdm : bool
+        Whether to disable tqdm
+        
     scheduler : torch.optim.lr_scheduler.LRScheduler
         Scheduler to use
         
@@ -127,12 +131,12 @@ def train(model: nn.Module,
     early_stopper = _EarlyStopper(patience=patience, min_delta=min_delta)
     scaler = torch.cuda.amp.GradScaler()
     
-    for epoch in tqdm(range(max_epoch), desc="Epoch", leave=False, total=max_epoch, disable=False):
+    for epoch in tqdm(range(max_epoch), desc="Epoch", leave=False, total=max_epoch, disable=disable_tqdm):
         model.train()
         
         train_losses.append(0)
         
-        for x, y in tqdm(train_dataloader, desc="Sample", leave=False, total=len(train_dataloader), disable=False):
+        for x, y in tqdm(train_dataloader, desc="Sample", leave=False, total=len(train_dataloader), disable=disable_tqdm):
 
             # Loading data
             x = data_transformer(x).float()
@@ -159,21 +163,21 @@ def train(model: nn.Module,
         train_losses[-1] /= len(train_dataloader)
         
         # Validating the model
-        val_acc, val_loss = evaluate(model, eval_dataloader, criterion, device, normalizing_constant, threshold, data_transformer)
-        val_accs.append(val_acc)
+        val_loss = evaluate(model, eval_dataloader, criterion, device, normalizing_constant, threshold, data_transformer)
+        #val_accs.append(val_acc)
         val_losses.append(val_loss)
     
         # Saving model
         torch.save(model.state_dict(), saving_path + "/epoch_{}".format(epoch) + ".pth")
 
         # Saving training losses
-        np.save(saving_path + "train_loss.npy", train_losses)
+        np.save(saving_path + "train_losses.npy", train_losses)
 
         # Saving validation losses
-        np.save(saving_path + "val_loss.npy", val_losses)
+        np.save(saving_path + "val_losses.npy", val_losses)
 
         # Saving validation accuracies
-        np.save(saving_path + "val_acc.npy", val_accs)
+        np.save(saving_path + "val_accs.npy", val_accs)
 
         # Saving optimizer
         torch.save(optimizer, saving_path + "optimizer.pth")
@@ -182,7 +186,7 @@ def train(model: nn.Module,
         torch.save(scheduler, saving_path + "scheduler.pth")
         
         # Scheduler and early stopping
-        scheduler.step(val_loss[-1])
+        scheduler.step(val_losses[-1])
         
         if early_stopper.early_stop(val_loss):
             break
@@ -246,22 +250,20 @@ def evaluate(model: nn.Module,
         for i, (x, y) in tqdm(enumerate(dataloader), leave=False, desc="Evaluating", disable=False, total=len(dataloader)):
             
             # Storing data on device
-            x = data_transformer(x)
-            y = data_transformer(y)
+            x = data_transformer(x).float()
+            y = data_transformer(y).float()
             
             # Predicting
             pred = model(x)
             
             # Computing PCK of the current iteration
-            PCK = compute_PCK(y, pred, normalizing_constant, threshold)
-            PCKs[i] = PCK
+            #PCK = compute_PCK(y, pred, normalizing_constant, threshold)
+            #PCKs[i] = PCK
             
             # Computing loss of the current iteration
-            loss = criterion(pred, y).item()
-            losses[i] = loss
+            losses[i] = criterion(pred, y).item()
     
     # Computing mean PCK and loss
-    PCK_mean = np.mean(PCKs)
     losses_mean = np.mean(losses) 
     
-    return PCK_mean, losses_mean
+    return losses_mean

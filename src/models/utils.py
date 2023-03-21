@@ -1,6 +1,12 @@
 import os
 import numpy as np
 import torch
+import torch.nn as nn
+
+def init_params(model):
+    for p in model.parameters():
+        if (len(p.shape) > 1): # cannot init batchnorms. 
+            nn.init.xavier_normal_(p)
 
 def make_dir(path):
     """
