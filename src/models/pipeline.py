@@ -243,22 +243,26 @@ def evaluate(model: nn.Module,
     
     # Pre-allocating memory for storing info
     losses = [0.0 for _ in range(len(dataloader))]
-    PCKs = [0.0 for _ in range(len(dataloader))]
+    PCKs = []
     
     # Looping through dataloader
     with torch.no_grad():
-        for i, (x, y) in tqdm(enumerate(dataloader), leave=False, desc="Evaluating", disable=False, total=len(dataloader)):
+        for i, (x, y) in tqdm(enumerate(dataloader), leave=False, desc="Evaluating", disable=True, total=len(dataloader)):
+            
+            if i < 5:
+                continue
             
             # Storing data on device
-            x = data_transformer(x).float()
-            y = data_transformer(y).float()
+            x = data_transformer(x).float().to(device)
+            y = data_transformer(y).float().to(device)
             
             # Predicting
-            pred = model(x)
+            pred = model(y)
             
             # Computing PCK of the current iteration
-            #PCK = compute_PCK(y, pred, normalizing_constant, threshold)
-            #PCKs[i] = PCK
+            PCK = compute_PCK(y, pred)
+            if PCK != -1:
+                PCKs.append(PCK)
             
             # Computing loss of the current iteration
             losses[i] = criterion(pred, y).item()
@@ -267,3 +271,30 @@ def evaluate(model: nn.Module,
     losses_mean = np.mean(losses) 
     
     return losses_mean
+
+if __name__ == "__main__":
+    from data import get_dataloaders
+    from config import *
+    from baseline import Baseline
+    from deciwatch import DeciWatch
+    from utils import heatmaps2coordinates
+    
+    import random
+    import os
+    seed = 1
+    
+    random.seed(seed)
+    os.environ['PYTHONHASHSEED'] = str(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+    
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    deciwatch_params["device"] = device
+    train_dataloader, eval_dataloader, test_dataloader = get_dataloaders(overall_data_dir, window_size, 1, eval_ratio, device, num_workers=1)
+    model = DeciWatch(**deciwatch_params).to(device)
+    #model = Baseline(**baseline_params).to(device)
+    criterion = torch.nn.MSELoss()
+    evaluate(model, test_dataloader, criterion, device, 1, 1, heatmaps2coordinates)
