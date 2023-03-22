@@ -75,9 +75,9 @@ if __name__ == "__main__":
     
     # Collecting model params
     model_params = {
-        "baseline": baseline_params,
+        #"baseline": baseline_params,
         #"unipose": unipose_params,
-        #"deciwatch": deciwatch_params
+        "deciwatch": deciwatch_params
     }
     
     # Getting dataloaders

@@ -196,6 +196,6 @@ if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
     total_dataset = _KeypointsDataset(dir_path, window_size, (25, 50, 50), device)
-    loader = DataLoader(total_dataset, batch_size=16, num_workers=2)
-    for x in tqdm(loader, total=len(loader), leave=False):
+    loader = DataLoader(total_dataset, batch_size=16, num_workers=1)
+    for x in tqdm(loader, total=len(loader), leave=False, disable=True):
         pass

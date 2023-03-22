@@ -141,7 +141,8 @@ class _DenoiseNet(nn.Module):
                 d_model=hidden_dims, 
                 nhead=nheads, 
                 dim_feedforward=dim_feedforward,
-                dropout=dropout
+                dropout=dropout,
+                activation=nn.LeakyReLU()
             ), 
             num_layers=num_layers
         )
@@ -229,7 +230,8 @@ class _RecoverNet(nn.Module):
                 d_model=hidden_dims, 
                 nhead=nheads, 
                 dim_feedforward=dim_feedforward, 
-                dropout=dropout
+                dropout=dropout,
+                activation=nn.LeakyReLU()
             ),
             num_layers=num_layers,
             norm=nn.LayerNorm(hidden_dims)
@@ -268,7 +270,7 @@ class _RecoverNet(nn.Module):
                                                   tgt_key_padding_mask=decoder_mask, 
                                                   memory_key_padding_mask=encoder_mask
                                                   )) + p_preliminary
-        
+
         return p_estimated
 
 class DeciWatch(nn.Module):

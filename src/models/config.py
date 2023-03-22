@@ -1,5 +1,5 @@
 # Training onstants
-learning_rate = 1e-4
+learning_rate = 1e-3
 normalizing_constant = 1
 threshold = 0.2 # TODO: BURDE NOK ÆNDRE, SÅ DEN IKKE ER KONSTANT
 max_epochs = 50
@@ -39,7 +39,7 @@ deciwatch_params = {
     "hidden_dims": 128,
     "dropout": 0.1,
     "nheads": 4,
-    "dim_feedforward": 2048,
+    "dim_feedforward": 256,
     "num_encoder_layers": 5,
     "num_decoder_layers": 5,
     "num_frames": window_size,
