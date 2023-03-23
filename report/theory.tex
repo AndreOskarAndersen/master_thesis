@@ -55,32 +55,32 @@ One common recurrent neural network unit is the \textbf{convolutional long short
 \\
 The ConvLSTM cell consists of three gates. The first gate is the input gate $\mathsf{I}_t$, which controls whether or not to accumulate the information of a new input to the cell. This gate is defined as
 \begin{equation}
-    \mathsf{I}_t = \sigma \left( \bm{W}_{xi} * \mathsf{X}_t + \bm{W}_{hi} * \mathsf{H}_{t - 1} + \mathsf{W}_{ci} \circ \mathsf{C}_{t - 1} + \mathsf{B}_i \right)
+    \mathsf{I}_t = \sigma \left( \mathsf{W}_{xi} * \mathsf{X}_t + \mathsf{W}_{hi} * \mathsf{H}_{t - 1} + \mathsf{W}_{ci} \circ \mathsf{C}_{t - 1} + \mathsf{B}_i \right)
 \end{equation}
-where $\mathsf{X}_t$ is the current input image, $\mathsf{H}_{t - 1}$ is the hidden state of the previous time step, $\mathsf{C}_{t - 1}$ is the cell output of the previous time step, and $\bm{W}_{xi}$, $\bm{W}_{hi}$, $\mathsf{W}_{ci}$ and $\mathsf{B}_i$ are learnable parameters
+where $\mathsf{X}_t$ is the current input image, $\mathsf{H}_{t - 1}$ is the hidden state of the previous time step, $\mathsf{C}_{t - 1}$ is the cell output of the previous time step, and $\mathsf{W}_{xi}$, $\mathsf{W}_{hi}$, $\mathsf{W}_{ci}$ and $\mathsf{B}_i$ are learnable parameters
 \\
 \\
 The second gate is the \textbf{forget gate} unit $\mathsf{F}_t$ (at time step $t$), which controls whether or not to "forget" the status of the cell output of the previous time step. The forget gate is defined as
 \begin{equation}
-    \mathsf{F}_t = \sigma \left( \bm{W}_{xf} * \mathsf{X}_t + \bm{W}_{hf} * \mathsf{H}_{t - 1} + \mathsf{W}_{cf} \circ \mathsf{C}_{t - 1} + \mathsf{B}_f \right)
+    \mathsf{F}_t = \sigma \left( \mathsf{W}_{xf} * \mathsf{X}_t + \mathsf{W}_{hf} * \mathsf{H}_{t - 1} + \mathsf{W}_{cf} \circ \mathsf{C}_{t - 1} + \mathsf{B}_f \right)
 \end{equation}
-where $\bm{W}_{xf}$, $\bm{W}_{hf}$, $\mathsf{W}_{cf}$ and $\mathsf{B}_f$ are learnable parameters.
+where $\mathsf{W}_{xf}$, $\mathsf{W}_{hf}$, $\mathsf{W}_{cf}$ and $\mathsf{B}_f$ are learnable parameters.
 \\
 \\
 The last gate is the \textbf{output gate} unit $\mathsf{O}_t$, which controls whether or not the latest cell output will be proagated to the final state $\mathsf{H}_t$. This cell is defined as
 \begin{equation}
-    \mathsf{O}_t = \sigma \left( \bm{W}_{xo} * \mathsf{X}_t + \bm{W}_{ho} * \mathsf{H}_{t - 1} + \mathsf{W}_{co} \circ \mathsf{C}_t + \mathsf{B}_o \right)
+    \mathsf{O}_t = \sigma \left( \mathsf{W}_{xo} * \mathsf{X}_t + \mathsf{W}_{ho} * \mathsf{H}_{t - 1} + \mathsf{W}_{co} \circ \mathsf{C}_t + \mathsf{B}_o \right)
 \end{equation}
-where $\bm{W}_{xo}$, $\bm{W}_{ho}$, $\mathsf{W}_{co}$ and $\mathsf{B}_o$ are learnable parameters.
+where $\mathsf{W}_{xo}$, $\mathsf{W}_{ho}$, $\mathsf{W}_{co}$ and $\mathsf{B}_o$ are learnable parameters.
 \\
 \\
 By combining the three gates, we get the following definition of the ConvLSTM Cell.
 Let $\mathsf{X}_1, \mathsf{X}_2, ..., \mathsf{X}_t$ be a sequence of input images. Then, at each time step $t$, we compute \cite{conv_lstm}
 \begin{align}
-    \mathsf{I}_t &= \sigma \left( \bm{W}_{xi} * \mathsf{X}_t + \bm{W}_{hi} * \mathsf{H}_{t - 1} + \mathsf{W}_{ci} \circ \mathsf{C}_{t - 1} + \mathsf{B}_i \right) \\
-    \mathsf{F}_t &= \sigma \left( \bm{W}_{xf} * \mathsf{X}_t + \bm{W}_{hf} * \mathsf{H}_{t - 1} + \mathsf{W}_{cf} \circ \mathsf{C}_{t - 1} + \mathsf{B}_f \right) \\
-    \mathsf{C}_t &= \mathsf{F}_t \circ \mathsf{C}_{t - 1} + \mathsf{I}_t \circ \text{tanh} \left( \bm{W}_{xc} * \mathsf{X}_t + \bm{W}_{hc} * \mathsf{H}_{t - 1} + \mathsf{B}_c \right) \\
-    \mathsf{O}_t &= \sigma \left( \bm{W}_{xo} * \mathsf{X}_t + \bm{W}_{ho} * \mathsf{H}_{t - 1} + \mathsf{W}_{co} \circ \mathsf{C}_t + \mathsf{B}_o \right) \\
+    \mathsf{I}_t &= \sigma \left( \mathsf{W}_{xi} * \mathsf{X}_t + \mathsf{W}_{hi} * \mathsf{H}_{t - 1} + \mathsf{W}_{ci} \circ \mathsf{C}_{t - 1} + \mathsf{B}_i \right) \\
+    \mathsf{F}_t &= \sigma \left( \mathsf{W}_{xf} * \mathsf{X}_t + \mathsf{W}_{hf} * \mathsf{H}_{t - 1} + \mathsf{W}_{cf} \circ \mathsf{C}_{t - 1} + \mathsf{B}_f \right) \\
+    \mathsf{C}_t &= \mathsf{F}_t \circ \mathsf{C}_{t - 1} + \mathsf{I}_t \circ \text{tanh} \left( \mathsf{W}_{xc} * \mathsf{X}_t + \mathsf{W}_{hc} * \mathsf{H}_{t - 1} + \mathsf{B}_c \right) \\
+    \mathsf{O}_t &= \sigma \left( \mathsf{W}_{xo} * \mathsf{X}_t + \mathsf{W}_{ho} * \mathsf{H}_{t - 1} + \mathsf{W}_{co} \circ \mathsf{C}_t + \mathsf{B}_o \right) \\
     \mathsf{H}_t &= \mathsf{O}_t \circ \text{tanh}(\mathsf{C}_t)
 \end{align}
 For $t = 1$, both $\mathsf{H}_{t - 1}$ and $\mathsf{C}_{t - 1}$ have to be initialized \cite{conv_lstm}.
@@ -89,11 +89,39 @@ For $t = 1$, both $\mathsf{H}_{t - 1}$ and $\mathsf{C}_{t - 1}$ have to be initi
 
 
 \subsection{Transformer}
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width = 0.5 \textwidth]{./entities/transformer.PNG}
+    \caption{An illustration of the Transformer architecture \cite{d2l}.}
+    \label{fig:transformer_illustration}
+\end{figure}
+The sequential nature of RNNs precludes parallelization withing training examples, heavily slowing down the training of these models. Another type of model for sequential data is the \textbf{Transformer}, which eschews recurrence and instead relies on the \textbf{attention} mechanism to draw dependencies between input and output The Transformer allows for more parallelization and can reach state of the art results \cite{https://doi.org/10.48550/arxiv.1706.03762}.
+\\
+\\
+The Transformer follow an encoder-decoder structure, where the encoder maps an input sequence $\bm{x}$ to a sequence of continuous representations $\bm{z}$. The decoder then uses $\bm{z}$ to generate an output sequence $\bm{y}$, one element at a time. At each step the model consumes the previously generated output element as additional input when generating the next output \cite{https://doi.org/10.48550/arxiv.1706.03762}. Figure \ref{fig:transormer_illustration} illustrates the overall Transformer architecture.
+
+\subsubsection{Attention}
+bla bla bla
+\\
+\\
+\textbf{Scaled Dot-Product Attention:} bla bla bla 
+\\
+\\
+\textbf{Multi-Head Attention: }  bla bla bla
+
 \subsubsection{Encoder}
+The encoder consists of $N$ identical layers, where each layer consists of two sub-layers. The first sub-layer is a \textbf{multi-head} \textbf{self-attention} mechanism, and the second sub-layer is a position-wise fully connected feed-forward network. Around each sub-layer is a \textbf{residual connection}, which is followed by a round of \textbf{layer normalization} \cite{https://doi.org/10.48550/arxiv.1706.03762}.
+
 \subsubsection{Decoder}
+The decoder also consists of $N$ identical layers. In addition to the two sub-layers in each encoder layer, the decoder also consists of a third sub-layer, which performs multi-head attention over the output of the encoder stack. Also here, is residual connections used around each of the sub-layers, followed by layer normalization. To ensure, that the predicitons for position $i$ only depends on the known outputs at positions less than $i$, the self-attention sub-layer in the decoder stack is modified \cite{https://doi.org/10.48550/arxiv.1706.03762}.
 
 \subsection{Training a Neural Network}
 \subsubsection{Activation function}
+\subsubsection{multi-head}
+\subsubsection{self-attention}
+\subsubsection{attention}
+\subsubsection{residual connection}
+\subsubsection{layer normalization}
 \label{subsubsec:activation_func}
 
 \end{document}
