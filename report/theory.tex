@@ -75,7 +75,7 @@ where $\mathsf{W}_{xo}$, $\mathsf{W}_{ho}$, $\mathsf{W}_{co}$ and $\mathsf{B}_o$
 \\
 \\
 By combining the three gates, we get the following definition of the ConvLSTM Cell.
-Let $\mathsf{X}_1, \mathsf{X}_2, ..., \mathsf{X}_t$ be a sequence of input images. Then, at each time step $t$, we compute \cite{conv_lstm}
+Let $\mathsf{X}_1, \mathsf{X}_2, ..., \mathsf{X}_t$ be a sequence of input images. Then, at each time step $t$, we compute
 \begin{align}
     \mathsf{I}_t &= \sigma \left( \mathsf{W}_{xi} * \mathsf{X}_t + \mathsf{W}_{hi} * \mathsf{H}_{t - 1} + \mathsf{W}_{ci} \circ \mathsf{C}_{t - 1} + \mathsf{B}_i \right) \\
     \mathsf{F}_t &= \sigma \left( \mathsf{W}_{xf} * \mathsf{X}_t + \mathsf{W}_{hf} * \mathsf{H}_{t - 1} + \mathsf{W}_{cf} \circ \mathsf{C}_{t - 1} + \mathsf{B}_f \right) \\
@@ -95,31 +95,52 @@ For $t = 1$, both $\mathsf{H}_{t - 1}$ and $\mathsf{C}_{t - 1}$ have to be initi
     \caption{An illustration of the Transformer architecture \cite{d2l}.}
     \label{fig:transformer_illustration}
 \end{figure}
-The sequential nature of RNNs precludes parallelization withing training examples, heavily slowing down the training of these models. Another type of model for sequential data is the \textbf{Transformer}, which eschews recurrence and instead relies on the \textbf{attention} mechanism to draw dependencies between input and output The Transformer allows for more parallelization and can reach state of the art results \cite{https://doi.org/10.48550/arxiv.1706.03762}.
-\\
-\\
-The Transformer follow an encoder-decoder structure, where the encoder maps an input sequence $\bm{x}$ to a sequence of continuous representations $\bm{z}$. The decoder then uses $\bm{z}$ to generate an output sequence $\bm{y}$, one element at a time. At each step the model consumes the previously generated output element as additional input when generating the next output \cite{https://doi.org/10.48550/arxiv.1706.03762}. Figure \ref{fig:transormer_illustration} illustrates the overall Transformer architecture.
+The sequential nature of RNNs precludes parallelization withing training examples, heavily slowing down the training of these models. Another type of model for sequential data is the \textbf{Transformer}, which eschews recurrence and instead relies on an \textbf{attention} mechanism to draw dependencies between input and output. The Transformer allows for more parallelization and can reach state of the art results \cite{https://doi.org/10.48550/arxiv.1706.03762}.
 
 \subsubsection{Attention}
-bla bla bla
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width = 0.5 \textwidth]{./entities/attention.PNG}
+    \caption{Illustration of (lef) the Scaled Dot-Product Attention, and (right) the Multi-Head Attention, which consists of several attention layers running in parallel \cite{https://doi.org/10.48550/arxiv.1706.03762}.}
+    \label{fig:attention_illustration}
+\end{figure}
+An attention function is a function that maps a given query and a given set of key-value pairs to an output. In this function the query, keys, values, and output are all vectors, and the output is a weighted sum of the values, where the weight of each value if computed by a compatibility function of the query with the corresponding key \cite{https://doi.org/10.48550/arxiv.1706.03762}. Figure \ref{fig:attention_illustration} illustrates the two types of attention functions used in the Transformer.
 \\
 \\
-\textbf{Scaled Dot-Product Attention:} bla bla bla 
+\textbf{Scaled Dot-Product Attention:} The scaled dot-product attention is the core attention function of the transform. The function takes queries and keys of dimensions $d_k$ as input, and values of dimension $d_v$. In practice, the attention function is computed on a set of queries, keys and values simultaneously, by packing them into matrices $\bm{Q}, \bm{K}$, and $\bm{V}$, respectively. Thus, the scaled dot-product attention is computed as
+\begin{equation}
+    \text{Attention}(\bm{Q}, \bm{K}, \bm{V}) = \text{softmax}\left( \frac{\bm{Q}\bm{K}^T}{\sqrt{d_k}} \right) \bm{V}
+\end{equation} 
+where the scaling of $\bm{Q}\bm{K}^T$ is done to counteract the cases with a large $d_k$, which would result in the softmax-function having an extremely small gradient \cite{https://doi.org/10.48550/arxiv.1706.03762}.
 \\
 \\
-\textbf{Multi-Head Attention: }  bla bla bla
+\textbf{Multi-Head Attention:} The \textbf{multi-head attention} is the used attention function by the Transformer and is an extention to the scaled dot-product attention. This attention function linearly projects the queries, keys and values $h$ times with different, learned linear projections to $d_k$, $d_k$, and $d_v$ dimensions, respectively. For each of the projected queries, keys and values, the scaled dot-product attention is applied, yielding $d_v$-dimensional output values. These output values are finally concatenated and further projected, resulting in the final values. By using multi-head attention, the model is allowed to jointly attend to information from different representation subspaces at different positions \cite{https://doi.org/10.48550/arxiv.1706.03762}.
 
-\subsubsection{Encoder}
-The encoder consists of $N$ identical layers, where each layer consists of two sub-layers. The first sub-layer is a \textbf{multi-head} \textbf{self-attention} mechanism, and the second sub-layer is a position-wise fully connected feed-forward network. Around each sub-layer is a \textbf{residual connection}, which is followed by a round of \textbf{layer normalization} \cite{https://doi.org/10.48550/arxiv.1706.03762}.
-
-\subsubsection{Decoder}
-The decoder also consists of $N$ identical layers. In addition to the two sub-layers in each encoder layer, the decoder also consists of a third sub-layer, which performs multi-head attention over the output of the encoder stack. Also here, is residual connections used around each of the sub-layers, followed by layer normalization. To ensure, that the predicitons for position $i$ only depends on the known outputs at positions less than $i$, the self-attention sub-layer in the decoder stack is modified \cite{https://doi.org/10.48550/arxiv.1706.03762}.
+\subsubsection{The Architecture}
+The Transformer follow an encoder-decoder structure, where the encoder maps an input sequence $\bm{x}$ to a sequence of continuous representations $\bm{z}$. The decoder then uses $\bm{z}$ to generate an output sequence $\bm{y}$, one element at a time. At each step the model consumes the previously generated output element as additional input when generating the next output \cite{https://doi.org/10.48550/arxiv.1706.03762}. Figure \ref{fig:transformer_illustration} illustrates the overall architecture of the Transformer.
+\\
+\\
+\noindent \textbf{Encoder:} The encoder consists of $N$ identical layers, where each layer consists of two sub-layers. The first sub-layer is a multi-head \textbf{self-attention} layer, and the second sub-layer is a position-wise fully-connected feedforward network. Around each sub-layer is a \textbf{residual connection}, which is followed by a round of \textbf{layer normalization}. In this self-attention layer the keys, values and queries come from the output of the previous layer in the encoder. Each position in the encoder can attend to all positions in the previous layer of the encoder \cite{https://doi.org/10.48550/arxiv.1706.03762}.
+\\
+\\
+\noindent \textbf{Decoder:} The decoder also consists of $N$ identical layers. In addition to the two sub-layers in each encoder layer, the decoder also consists of a third sub-layer, which performs multi-head attention over the output of the encoder stack. Also here, is residual connections used around each of the sub-layers, followed by layer normalization. To ensure, that the predicitons for position $i$ only depends on the known outputs at positions less than $i$, the self-attention sub-layer in the decoder stack is modified. This self-attention sub-layer, allows each position in the decoder to attend to all positions in the decoder up to and including that position. The self-attention sub-layer is modified by masking out all values in the input of the softmax which correspond to illegal connections \cite{https://doi.org/10.48550/arxiv.1706.03762}.
+\\
+\\
+\noindent \textbf{Feedforward Networks:} Each of the layers in the encoder and decoder contains a fully-connected feedforward layer, consisting of two linear transformations with the ReLU activation-function applied in between, as described below \cite{https://doi.org/10.48550/arxiv.1706.03762}
+\begin{equation}
+    FFN(\bm{x}) = \max \left(0, \bm{x} \bm{W}_1 + \bm{b}_1 \right) \bm{W}_2 + \bm{b}_2.
+\end{equation}
+\\
+\\
+\noindent \textbf{Positional Encoding:} As the model does not contain any recurrences nor any convolutions, it has to carry some other type of information to know about the relative or absolute position of the elements in the input sequence. This is done by adding \textbf{positional encodings} to the input of the encoder and decoder stacks. The positional encoding is a vector of size $d_model$ and is defined as the following
+\begin{align}
+    \bm{PE}_{pos, 2i} &= \sin \left( \frac{pos}{10000^{\frac{2i}{d_model}}} \right) \\
+    \bm{PE}_{pos, 2i + 1} &= \cos \left( \frac{pos}{10000^{\frac{2i}{d_model}}} \right) \\
+\end{align}
+where \textit{pos} is the position and $i$ is the dimension \cite{https://doi.org/10.48550/arxiv.1706.03762}.
 
 \subsection{Training a Neural Network}
 \subsubsection{Activation function}
-\subsubsection{multi-head}
-\subsubsection{self-attention}
-\subsubsection{attention}
 \subsubsection{residual connection}
 \subsubsection{layer normalization}
 \label{subsubsec:activation_func}
