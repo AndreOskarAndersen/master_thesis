@@ -33,8 +33,8 @@ def _get_masks(num_frames, sample_rate, batch_size, device):
         Mask for the decoder
     """
           
-    encoder_mask = torch.zeros(num_frames, dtype=bool, device=device)
-    encoder_mask[::sample_rate] = 1
+    encoder_mask = torch.ones(num_frames, dtype=bool, device=device)
+    encoder_mask[::sample_rate] = 0
     encoder_mask = encoder_mask.unsqueeze(0).repeat(batch_size, 1)
 
     decoder_mask = torch.zeros(num_frames, dtype=bool, device=device)
@@ -384,7 +384,7 @@ class DeciWatch(nn.Module):
             e_pos = self.e_pos(batch_size, num_frames)
         
         # Masks the frames of the video sequence, such that only every sample_rate'th frame is unmasked.
-        video_sequence = (video_sequence.permute(0, 2, 1) * encoder_mask.int()[0]).permute(2, 0, 1)
+        video_sequence = (video_sequence.permute(0, 2, 1) * (1 - encoder_mask.int()[0])).permute(2, 0, 1)
         
         # Runs the DenoiseNet and RecoverNet
         p_clean, f_clean = self.denoise_net(video_sequence, e_pos, encoder_mask)
@@ -430,5 +430,5 @@ if __name__ == "__main__":
     
     # Predicting
     recover_output = model(sequence)
-    #print(recover_output)
+    print(recover_output)
     print(recover_output.shape)
