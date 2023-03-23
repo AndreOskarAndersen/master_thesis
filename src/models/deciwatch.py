@@ -4,7 +4,7 @@ from torch import nn
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning) 
 
-def _get_masks(num_frames, sample_rate, batch_size):
+def _get_masks(num_frames, sample_rate, batch_size, device):
     """
     Function for getting encoding and decoder masks.
     
@@ -33,11 +33,11 @@ def _get_masks(num_frames, sample_rate, batch_size):
         Mask for the decoder
     """
           
-    encoder_mask = torch.zeros(num_frames, dtype=bool)
+    encoder_mask = torch.zeros(num_frames, dtype=bool, device=device)
     encoder_mask[::sample_rate] = 1
     encoder_mask = encoder_mask.unsqueeze(0).repeat(batch_size, 1)
 
-    decoder_mask = torch.zeros(num_frames, dtype=bool)
+    decoder_mask = torch.zeros(num_frames, dtype=bool, device=device)
     decoder_mask = decoder_mask.unsqueeze(0).repeat(batch_size, 1)
 
     return encoder_mask, decoder_mask
@@ -348,10 +348,10 @@ class DeciWatch(nn.Module):
         self.denoise_net = _DenoiseNet(hidden_dims, dim_feedforward, num_encoder_layers, keypoints_numel, nheads, dropout, device)
         self.recover_net = _RecoverNet(hidden_dims, dim_feedforward, num_decoder_layers, keypoints_numel, nheads, dropout, sample_rate)
         
-        self.encoder_mask, self.decoder_mask = _get_masks(num_frames, sample_rate=self.sample_rate, batch_size=self.batch_size)
-        self.encoder_mask = self.encoder_mask.to(self.device)
-        self.decoder_mask = self.decoder_mask.to(self.device)
-        self.e_pos_val = self.e_pos(batch_size, num_frames).to(self.device)
+        self.encoder_mask, self.decoder_mask = _get_masks(num_frames, sample_rate=self.sample_rate, batch_size=self.batch_size, device=device)
+        self.encoder_mask = self.encoder_mask
+        self.decoder_mask = self.decoder_mask
+        self.e_pos_val = self.e_pos(batch_size, num_frames)
 
     def forward(self, video_sequence: torch.Tensor):
         """
@@ -378,10 +378,10 @@ class DeciWatch(nn.Module):
             decoder_mask = self.decoder_mask
             e_pos = self.e_pos_val
         else:
-            encoder_mask, decoder_mask = _get_masks(num_frames, sample_rate=self.sample_rate, batch_size=batch_size)
-            encoder_mask = encoder_mask.to(self.device)
-            decoder_mask = decoder_mask.to(self.device)
-            e_pos = self.e_pos(batch_size, num_frames).to(self.device)
+            encoder_mask, decoder_mask = _get_masks(num_frames, sample_rate=self.sample_rate, batch_size=batch_size, device=device)
+            encoder_mask = encoder_mask
+            decoder_mask = decoder_mask
+            e_pos = self.e_pos(batch_size, num_frames)
         
         # Masks the frames of the video sequence, such that only every sample_rate'th frame is unmasked.
         video_sequence = (video_sequence.permute(0, 2, 1) * encoder_mask.int()[0]).permute(2, 0, 1)
