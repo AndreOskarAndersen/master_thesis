@@ -407,24 +407,25 @@ if __name__ == "__main__":
     Example on using the Baseline Implementation
     """
     
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    
     # Making data
     batch_size = 2
     num_frames = 100
     num_keypoints = 16
     frame_height = 8
     frame_width = 8
-    video_sequence = torch.rand(batch_size, num_frames, num_keypoints, frame_height, frame_width)
+    video_sequence = torch.rand(batch_size, num_frames, num_keypoints, frame_height, frame_width).to(device)
     
     # Making models
     rnn_type = "lstm"
     bidirectional = True
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     lstm = Unipose(rnn_type=rnn_type, 
                  bidirectional=bidirectional,
                  num_keypoints=num_keypoints, 
                  device=device,
-                 frame_shape=video_sequence[:, 0].shape)
+                 frame_shape=video_sequence[:, 0].shape).to(device)
     
     # Predicting
     start_time = time()
