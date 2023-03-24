@@ -5,7 +5,7 @@ from pipeline import train
 from baseline import Baseline
 from deciwatch import DeciWatch
 from unipose import Unipose
-from utils import make_dir, heatmaps2coordinates, init_params
+from utils import make_dir, heatmaps2coordinates
 from config import *
 
 def main(overall_models_dir: str, dataloaders, model_params, device):
@@ -27,7 +27,6 @@ def main(overall_models_dir: str, dataloaders, model_params, device):
         
         # Initializing model
         model = models_dict[model_name](**model_param).to(device)
-        init_params(model)
         
         # Creating various objects
         optimizer = optim.Adam(model.parameters(), lr=learning_rate)

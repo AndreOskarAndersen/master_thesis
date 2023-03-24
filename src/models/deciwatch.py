@@ -1,10 +1,11 @@
+import numpy as np
 import torch
 from torch import nn
 
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning) 
 
-def _get_masks(num_frames, sample_rate, batch_size, device):
+def _get_masks(num_frames, num_samples, batch_size, device):
     """
     Function for getting encoding and decoder masks.
     
@@ -15,11 +16,10 @@ def _get_masks(num_frames, sample_rate, batch_size, device):
     Parameters
     ----------
     num_frames : int
-        Number of frames per video sequence
+        Number of frames in the original video sequence.
         
-    sample_rate : int
-        Ratio of samples to use for inference.
-        Noted as 'N' in the paper.
+    num_samples : int
+        Number of sampled frames from the video sequence.
         
     batch_size : int
         Number of video sequences per batch.
@@ -33,8 +33,7 @@ def _get_masks(num_frames, sample_rate, batch_size, device):
         Mask for the decoder
     """
           
-    encoder_mask = torch.ones(num_frames, dtype=bool, device=device)
-    encoder_mask[::sample_rate] = 0
+    encoder_mask = torch.zeros(num_samples, dtype=bool, device=device)
     encoder_mask = encoder_mask.unsqueeze(0).repeat(batch_size, 1)
 
     decoder_mask = torch.zeros(num_frames, dtype=bool, device=device)
@@ -144,7 +143,8 @@ class _DenoiseNet(nn.Module):
                 dropout=dropout,
                 activation=nn.LeakyReLU()
             ), 
-            num_layers=num_layers
+            num_layers=num_layers,
+            norm=nn.LayerNorm(hidden_dims)
         )
         
     def forward(self, video_sequence: torch.Tensor, e_pos: torch.Tensor, encoder_mask: torch.Tensor):
@@ -185,7 +185,7 @@ class _RecoverNet(nn.Module):
                  keypoints_numel: int, 
                  nheads: int, 
                  dropout: float, 
-                 sample_rate: int
+                 original_size: int
                  ):
         
         """
@@ -222,7 +222,7 @@ class _RecoverNet(nn.Module):
         super(_RecoverNet, self).__init__()
         
         self.linear_rd = nn.Linear(hidden_dims, keypoints_numel)
-        self.linear_pr = lambda x: torch.nn.functional.interpolate(input=x[::sample_rate, : , :].permute(1,2,0), size=x.shape[0], mode="linear", align_corners=True).permute(2, 0, 1)
+        self.linear_pr = lambda x: torch.nn.functional.interpolate(input=x.permute(1,2,0), size=original_size, mode="linear", align_corners=True).permute(2, 0, 1)
         self.conv = nn.Conv1d(keypoints_numel, hidden_dims, kernel_size=5, stride=1, padding=2)
         
         self.decoder = nn.TransformerDecoder(
@@ -236,8 +236,8 @@ class _RecoverNet(nn.Module):
             num_layers=num_layers,
             norm=nn.LayerNorm(hidden_dims)
         )
-        
-    def forward(self, p_clean, f_clean, encoder_mask, decoder_mask, e_pos):
+    
+    def forward(self, p_clean, f_clean, encoder_mask, decoder_mask, encoder_e_pos, decoder_e_pos):
         """
         Rusn the RecoverNet on p_clean 
         
@@ -265,13 +265,13 @@ class _RecoverNet(nn.Module):
         """
         
         p_preliminary = self.linear_pr(p_clean)
-        p_estimated = self.linear_rd(self.decoder(self.conv(p_preliminary.permute(1, 2, 0)).permute(2, 0, 1) + e_pos, 
-                                                  f_clean, 
+        p_estimated = self.linear_rd(self.decoder(self.conv(p_preliminary.permute(1, 2, 0)).permute(2, 0, 1) + decoder_e_pos, 
+                                                  f_clean + encoder_e_pos, 
                                                   tgt_key_padding_mask=decoder_mask, 
-                                                  memory_key_padding_mask=encoder_mask
-                                                  )) + p_preliminary
+                                                  memory_key_padding_mask=encoder_mask)) + p_preliminary
 
         return p_estimated
+
 
 class DeciWatch(nn.Module):
     def __init__(self, 
@@ -338,20 +338,19 @@ class DeciWatch(nn.Module):
         
         assert (num_frames - 1) % sample_rate == 0
         
-        self.pos_embed_dim = hidden_dims
         self.sample_rate = sample_rate
         self.batch_size = batch_size
         self.num_frames = num_frames
+        self.num_samples = int(np.ceil(num_frames/sample_rate))
         self.device = device
 
-        self.e_pos = PositionEmbeddingSine_1D(self.pos_embed_dim // 2, device)
+        self.e_pos = PositionEmbeddingSine_1D(hidden_dims // 2, device)
         self.denoise_net = _DenoiseNet(hidden_dims, dim_feedforward, num_encoder_layers, keypoints_numel, nheads, dropout, device)
-        self.recover_net = _RecoverNet(hidden_dims, dim_feedforward, num_decoder_layers, keypoints_numel, nheads, dropout, sample_rate)
+        self.recover_net = _RecoverNet(hidden_dims, dim_feedforward, num_decoder_layers, keypoints_numel, nheads, dropout, num_frames)
         
-        self.encoder_mask, self.decoder_mask = _get_masks(num_frames, sample_rate=self.sample_rate, batch_size=self.batch_size, device=device)
-        self.encoder_mask = self.encoder_mask
-        self.decoder_mask = self.decoder_mask
-        self.e_pos_val = self.e_pos(batch_size, num_frames)
+        self.encoder_mask, self.decoder_mask = _get_masks(num_frames, self.num_samples, batch_size=batch_size, device=self.device)
+        self.encoder_e_pos = self.e_pos(batch_size, self.num_samples)
+        self.decoder_e_pos = self.e_pos(batch_size, num_frames)
 
     def forward(self, video_sequence: torch.Tensor):
         """
@@ -372,23 +371,21 @@ class DeciWatch(nn.Module):
         # Extracts batch_size, num_frames and keypoints_numel from the video sequence
         batch_size, num_frames, keypoints_numel = video_sequence.shape
         
-        # Gets masks and positional embedding
-        if batch_size == self.batch_size:
-            encoder_mask = self.encoder_mask
-            decoder_mask = self.decoder_mask
-            e_pos = self.e_pos_val
-        else:
-            encoder_mask, decoder_mask = _get_masks(num_frames, sample_rate=self.sample_rate, batch_size=batch_size, device=device)
-            encoder_mask = encoder_mask
-            decoder_mask = decoder_mask
-            e_pos = self.e_pos(batch_size, num_frames)
-        
         # Masks the frames of the video sequence, such that only every sample_rate'th frame is unmasked.
-        video_sequence = (video_sequence.permute(0, 2, 1) * (1 - encoder_mask.int()[0])).permute(2, 0, 1)
+        video_sequence = video_sequence[:, ::self.sample_rate].permute(1, 0, 2)
+        
+        if batch_size == self.batch_size:
+            encoder_mask, decoder_mask = self.encoder_mask, self.decoder_mask
+            encoder_e_pos = self.encoder_e_pos
+            decoder_e_pos = self.decoder_e_pos
+        else:
+            encoder_mask, decoder_mask = _get_masks(num_frames, self.num_samples, batch_size=batch_size, device=self.device)
+            encoder_e_pos = self.e_pos(batch_size, self.num_samples)
+            decoder_e_pos = self.e_pos(batch_size, num_frames)
         
         # Runs the DenoiseNet and RecoverNet
-        p_clean, f_clean = self.denoise_net(video_sequence, e_pos, encoder_mask)
-        p_estimated = self.recover_net(p_clean, f_clean, encoder_mask, decoder_mask, e_pos).permute(1, 0, 2).reshape(batch_size, num_frames, keypoints_numel)
+        p_clean, f_clean = self.denoise_net(video_sequence, encoder_e_pos, encoder_mask)
+        p_estimated = self.recover_net(p_clean, f_clean, encoder_mask, decoder_mask, encoder_e_pos, decoder_e_pos).permute(1, 0, 2).reshape(batch_size, num_frames, keypoints_numel)
 
         return p_estimated
 
@@ -430,5 +427,5 @@ if __name__ == "__main__":
     
     # Predicting
     recover_output = model(sequence)
-    print(recover_output)
+    #print(recover_output)
     print(recover_output.shape)

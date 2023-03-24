@@ -4,11 +4,6 @@ import torch
 import torch.nn as nn
 from typing import Union
 
-def init_params(model):
-    for p in model.parameters():
-        if (len(p.shape) > 1): # cannot init batchnorms. 
-            nn.init.xavier_normal_(p)
-
 def make_dir(path):
     """
     Makes a directory if it does not already exist.
