@@ -20,7 +20,7 @@ def main(overall_models_dir: str, dataloaders, model_params, device):
     models_dict = {"baseline": Baseline, "unipose": Unipose, "deciwatch": DeciWatch}
     
     # Dictionary of data transformers to apply
-    transforms_dict = {"baseline": lambda x: x, "unipose": lambda x: x, "deciwatch": lambda x: heatmaps2coordinates(x.cpu()).to(device)}
+    data_transforms = {"baseline": lambda x: x, "unipose": lambda x: x, "deciwatch": lambda x: heatmaps2coordinates(x.cpu()).to(device)}
     
     # Looping through each model setup
     for model_name, model_param in model_params.items():
@@ -34,7 +34,7 @@ def main(overall_models_dir: str, dataloaders, model_params, device):
         criterion = torch.nn.MSELoss()
         
         # Getting data transformer
-        data_transformer = transforms_dict[model_name]
+        data_transformer = data_transforms[model_name]
         
         # Making folder for training details
         training_path = overall_models_dir + model_name + "/"

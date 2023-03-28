@@ -1,8 +1,11 @@
 import os
 import numpy as np
 import torch
-import torch.nn as nn
-from typing import Union
+from typing import Union, List
+from baseline import Baseline
+from deciwatch import DeciWatch
+from unipose import Unipose
+from global_variables import GENERAL_MISSING_INDICIES, PA_MISSING_INDICIES
 
 def make_dir(path):
     """
@@ -138,3 +141,49 @@ def compute_PCK(gt_featuremaps: torch.Tensor, pred_featuremaps: torch.Tensor):
     pck = num_correct/gt_kps.shape[0] if gt_kps.shape[0] != 0 else -1
 
     return pck 
+
+def modify_grad(x: torch.Tensor, is_pa: List[bool], model_type: Union[Baseline, Unipose, DeciWatch]):
+    """
+    Function for cancelling out gradient.
+    
+    Parameters
+    ----------
+    x : torch.Tensor
+        Tensor which the gradient should be removed
+        
+    is_pa : List[bool]
+        Indicies that decides whether a batch from the Penn-Action dataset.
+        
+    model_type : Union[Baseline, Unipose, DeciWatch]
+        Type of the model
+        
+    Returns
+    -------
+    x : torch.Tensor
+        Version of x where gradients have been cancelled out.
+        Used to decide whether to indec x as heatmaps or coordinates.
+        
+    Note
+    ----
+    Inspired by the following code-snippet
+    https://discuss.pytorch.org/t/how-to-detach-a-rows-of-a-tensor/21058/4
+    """
+    
+    if model_type == Baseline or model_type == Unipose:
+        x[:, :, GENERAL_MISSING_INDICIES] = 0
+        x[np.ix_(is_pa, np.arange(x.shape[1]), PA_MISSING_INDICIES)] = 0
+    elif model_type == DeciWatch:
+        general_inds_1 = [x * 2 for x in GENERAL_MISSING_INDICIES]
+        general_inds_2 = [x * 2 + 1 for x in GENERAL_MISSING_INDICIES]
+        pa_inds_1 = [x * 2 for x in PA_MISSING_INDICIES]
+        pa_inds_2 = [x * 2 + 1 for x in PA_MISSING_INDICIES]
+        
+        x[:, :, general_inds_1] = 0
+        x[:, :, general_inds_2] = 0
+        
+        x[is_pa, :, pa_inds_1] = 0
+        x[is_pa, :, pa_inds_2] = 0
+    else:
+        raise TypeError(f"Incorrect model_type. You passed {model_type}")
+        
+    return x

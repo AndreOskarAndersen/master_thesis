@@ -4,9 +4,7 @@ from tqdm.auto import tqdm
 from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader, Dataset
 from torch.utils.data.sampler import SubsetRandomSampler
-from skimage.filters import gaussian
-from typing import Tuple
-from time import time
+from typing import Tuple, List
 
 class _KeypointsDataset(Dataset):
     def __init__(self, dir_path: str, window_size: int, heatmap_shape: Tuple[int, int, int], device: torch.device):
@@ -83,6 +81,22 @@ class _KeypointsDataset(Dataset):
                 
         return mapper         
     
+    def _is_PA(self, sample_names: List[str]):
+        """
+        Method for returning whether the current sample is from Penn-action
+        
+        Parameters
+        ----------
+        sample_names : List[str]
+            List of sample names
+            
+        Returns
+        -------
+            True, if the current sample is from Penn-action, else False.
+        """
+        
+        return sample_names[0][4] == "/"      
+    
     def __len__(self):
         """
         Returns the total number of samples
@@ -107,6 +121,7 @@ class _KeypointsDataset(Dataset):
         
         try:
             sample_names = self.mapper[i]
+            is_PA = self._is_PA(sample_names)
             
             input_samples = torch.zeros((self.window_size, *self.heatmap_shape), dtype=float, device=self.device)
             target_samples = torch.zeros((self.window_size, *self.heatmap_shape), dtype=float, device=self.device)
@@ -119,7 +134,7 @@ class _KeypointsDataset(Dataset):
             print("CRASH", i, sample_names)
             exit(1)
         
-        return input_samples, target_samples
+        return input_samples, target_samples, is_PA
                 
 def get_dataloaders(dir_path: str, 
                     window_size: int, 

@@ -5,7 +5,7 @@ early_stopping_patience = 5
 scheduler_patience = 3
 scheduler_reduce_factor = 0.5
 min_delta = 2.5
-disable_tqdm = False
+disable_tqdm = True
 
 # Data parameters
 window_size = 5 #11

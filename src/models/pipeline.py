@@ -3,9 +3,8 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from tqdm.auto import tqdm
-from utils import compute_PCK
+from utils import compute_PCK, modify_grad
 from typing import Callable
-from time import time
 
 class _EarlyStopper:
     def __init__(self, patience: int, min_delta: float):
@@ -128,7 +127,7 @@ def train(model: nn.Module,
         
         train_losses.append(0)
         
-        for x, y in tqdm(train_dataloader, desc="Sample", leave=False, total=len(train_dataloader), disable=disable_tqdm):
+        for x, y, is_pa in tqdm(train_dataloader, desc="Sample", leave=False, total=len(train_dataloader), disable=disable_tqdm):
 
             # Loading data
             x = data_transformer(x).float()
@@ -141,10 +140,12 @@ def train(model: nn.Module,
             pred = model(x)
             
             # Computes loss
+            pred.register_hook(lambda x: modify_grad(x, is_pa, type(model))) # Removes loss of missing keypoints.
             loss = criterion(pred, y)
             
             # Backpropegation
             scaler.scale(loss).backward()
+            
             scaler.step(optimizer)
             scaler.update()
             
@@ -190,8 +191,6 @@ def evaluate(model: nn.Module,
              dataloader: DataLoader,  
              criterion: type, 
              device: torch.device, 
-             normalizing_constant: float, 
-             threshold: float,
              data_transformer: Callable = lambda x: x):
     """
     Evaluates a model on a dataloader using a criterion and PCK
@@ -233,11 +232,8 @@ def evaluate(model: nn.Module,
     
     # Looping through dataloader
     with torch.no_grad():
-        for i, (x, y) in tqdm(enumerate(dataloader), leave=False, desc="Evaluating", disable=True, total=len(dataloader)):
-            
-            if i < 5:
-                continue
-            
+        for i, (x, y, is_pa) in tqdm(enumerate(dataloader), leave=False, desc="Evaluating", disable=True, total=len(dataloader)):
+                        
             # Storing data on device
             x = data_transformer(x).float().to(device)
             y = data_transformer(y).float().to(device)
@@ -251,7 +247,9 @@ def evaluate(model: nn.Module,
                 PCKs.append(PCK)
             
             # Computing loss of the current iteration
-            losses[i] = criterion(pred, y).item()
+            pred.register_hook(lambda x: modify_grad(x, is_pa, type(model))) # Removes loss of missing keypoints.
+            loss = criterion(pred, y).item()
+            losses[i] = loss.item()
     
     # Computing mean PCK and loss
     losses_mean = np.mean(losses) 
