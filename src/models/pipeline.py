@@ -57,8 +57,6 @@ def train(model: nn.Module,
           optimizer: torch.optim.Optimizer,
           max_epoch: int,
           device: torch.device, 
-          normalizing_constant: float, 
-          threshold: float,
           patience : int,
           min_delta : float,
           saving_path: str,
@@ -93,12 +91,6 @@ def train(model: nn.Module,
         
     device : torch.device
         Device to use
-        
-    normalizing_constant : float
-        Normalizing constant used for PCK
-        
-    threshold : float
-        Threshold used for PCK
         
     patience : int
             Amount of epochs to wait before stopping the training
@@ -163,7 +155,7 @@ def train(model: nn.Module,
         train_losses[-1] /= len(train_dataloader)
         
         # Validating the model
-        val_loss = evaluate(model, eval_dataloader, criterion, device, normalizing_constant, threshold, data_transformer)
+        val_loss = evaluate(model, eval_dataloader, criterion, device, data_transformer)
         #val_accs.append(val_acc)
         val_losses.append(val_loss)
     
@@ -191,7 +183,7 @@ def train(model: nn.Module,
         if early_stopper.early_stop(val_loss):
             break
         
-    test_acc, test_loss = evaluate(model, test_dataloader, criterion, device, normalizing_constant, threshold, data_transformer)
+    test_acc, test_loss = evaluate(model, test_dataloader, criterion, device, data_transformer)
     print(f"\n\n {model} stopped training after {epoch + 1} epochs. Testing accuray: {test_acc}, testing loss: {test_loss}\n\n")
 
 def evaluate(model: nn.Module,
@@ -217,12 +209,6 @@ def evaluate(model: nn.Module,
         
     device : torch.device
         Device to use for processing
-        
-    normalizing_constant : float
-        Normalizing constant used for PCK
-        
-    threshold : float
-        Threshold used for PCK
         
     data_transformer : Callable
         Any transformation to apply to the input data

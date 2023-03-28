@@ -50,8 +50,6 @@ def main(overall_models_dir: str, dataloaders, model_params, device):
             optimizer,
             max_epochs,
             device,
-            normalizing_constant,
-            threshold,
             early_stopping_patience,
             min_delta,
             training_path,
@@ -74,9 +72,9 @@ if __name__ == "__main__":
     
     # Collecting model params
     model_params = {
-        #"baseline": baseline_params,
+        "baseline": baseline_params,
         #"unipose": unipose_params,
-        "deciwatch": deciwatch_params
+        #"deciwatch": deciwatch_params
     }
     
     # Getting dataloaders

@@ -399,13 +399,13 @@ if __name__ == "__main__":
     # Making model
     num_keypoints = 25
     keypoints_dim = 2
-    sample_rate = 10
+    sample_rate = 4
     embedding_dim = 128
     num_layers = 5
     dim_feedforward = 256
     dropout = 0.1
     nheads = 4
-    num_frames = 11
+    num_frames = 5
     batch_size = 1
     
     model = DeciWatch(
@@ -423,9 +423,20 @@ if __name__ == "__main__":
     ).to(device)
     
     # Making data
-    sequence = torch.ones(batch_size, num_frames, num_keypoints * keypoints_dim).to(device)
+    #sequence = torch.ones(batch_size, num_frames, num_keypoints * keypoints_dim).to(device)
     
     # Predicting
-    recover_output = model(sequence)
+    #recover_output = model(sequence)
     #print(recover_output)
-    print(recover_output.shape)
+    #print(recover_output.shape)
+    
+    param_size = 0
+    
+    for param in model.parameters():
+        param_size += param.nelement() * param.element_size()
+    buffer_size = 0
+    for buffer in model.buffers():
+        buffer_size += buffer.nelement() * buffer.element_size()
+
+    size_all_mb = (param_size + buffer_size) / 1024 ** 2
+    print('model size: {:.3f}MB'.format(size_all_mb))

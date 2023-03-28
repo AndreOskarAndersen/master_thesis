@@ -1,7 +1,5 @@
 # Training onstants
 learning_rate = 1e-3
-normalizing_constant = 1
-threshold = 0.2 # TODO: BURDE NOK ÆNDRE, SÅ DEN IKKE ER KONSTANT
 max_epochs = 50
 early_stopping_patience = 5
 scheduler_patience = 3
@@ -20,7 +18,7 @@ num_workers = 2
 # Baseline parameters
 baseline_params = {
     "num_frames": window_size,
-    "kernel_size": (window_size, 3, 3),
+    "kernel_size": (window_size, 5, 5),
     "stride": 1
 } 
 
