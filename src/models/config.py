@@ -34,7 +34,7 @@ data_params = {
 
 # Baseline parameters
 baseline_params = {
-    "num_frames": window_size,
+    "num_keypoints": num_keypoints,
     "kernel_size": (window_size, 5, 5),
     "stride": 1
 } 

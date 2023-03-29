@@ -2,15 +2,15 @@ import torch
 import torch.nn as nn
 
 class Baseline(nn.Module):
-    def __init__(self, num_frames: int, kernel_size: int, stride: int):
+    def __init__(self, num_keypoints: int, kernel_size: int, stride: int):
         super(Baseline, self).__init__()
         """
         Implementation of Baseline model, consisting of a single 3D-convolution.
         
         Parameters
         -----
-        num_frames : int
-            Number of frames per sample
+        num_keypoints : int
+            Number of keypoints per sample
             
         kernel_size : int
             Size of the kernel used by the convolution.
@@ -20,12 +20,14 @@ class Baseline(nn.Module):
         """
         
         self.conv = nn.Conv3d(
-            in_channels=num_frames,
-            out_channels=num_frames,
+            in_channels=num_keypoints,
+            out_channels=num_keypoints,
             kernel_size=kernel_size,
             stride=stride,
             padding="same"
         )
+        
+        self.relu = nn.ReLU()
         
     def forward(self, p_noisy: torch.Tensor):
         """
@@ -41,8 +43,10 @@ class Baseline(nn.Module):
         pred : torch.Tensor
             Set of processed poses.
         """
-        
+        p_noisy = p_noisy.permute(0, 2, 1, 3, 4)
         pred = self.conv(p_noisy)
+        pred = pred.permute(0, 2, 1, 3, 4)
+        pred = self.relu(pred)
         
         return pred
 

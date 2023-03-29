@@ -1,0 +1,28 @@
+{
+    "training_params": {
+        "learning_rate": 0.001,
+        "max_epochs": 50,
+        "early_stopping_patience": 5,
+        "scheduler_patience": 3,
+        "scheduler_reduce_factor": 0.5,
+        "min_delta": 2.5,
+        "disable_tqdm": false
+    },
+    "data_params": {
+        "window_size": 5,
+        "batch_size": 16,
+        "eval_ratio": 0.4,
+        "keypoints_dim": 2,
+        "num_keypoints": 25,
+        "num_workers": 2
+    },
+    "model_params": {
+        "num_keypoints": 25,
+        "kernel_size": [
+            5,
+            5,
+            5
+        ],
+        "stride": 1
+    }
+}
