@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from tqdm.auto import tqdm
-from utils import compute_PCK, modify_grad
+from utils import compute_PCK, modify_grad, make_dir
 from typing import Callable
 
 class _EarlyStopper:
@@ -123,9 +123,14 @@ def train(model: nn.Module,
     scaler = torch.cuda.amp.GradScaler()
     
     for epoch in tqdm(range(max_epoch), desc="Epoch", leave=False, total=max_epoch, disable=disable_tqdm):
-        model.train()
         
-        train_losses.append(0)
+        # Making dirs for storing the current epoch
+        epoch_dir = saving_path + str(epoch + 1) + "/"
+        make_dir(epoch_dir)
+        
+        # Preparing the training of the model
+        model.train()
+        train_losses.append(0.0)
         
         for x, y, is_pa in tqdm(train_dataloader, desc="Sample", leave=False, total=len(train_dataloader), disable=disable_tqdm):
 
@@ -161,22 +166,22 @@ def train(model: nn.Module,
         val_losses.append(val_loss)
     
         # Saving model
-        torch.save(model.state_dict(), saving_path + "/epoch_{}".format(epoch) + ".pth")
+        torch.save(model.state_dict(), epoch_dir + "model.pth")
 
         # Saving training losses
-        np.save(saving_path + "train_losses.npy", train_losses)
+        np.save(epoch_dir + "train_losses.npy", train_losses)
 
         # Saving validation losses
-        np.save(saving_path + "val_losses.npy", val_losses)
+        np.save(epoch_dir + "val_losses.npy", val_losses)
 
         # Saving validation accuracies
-        np.save(saving_path + "val_accs.npy", val_accs)
+        np.save(epoch_dir + "val_accs.npy", val_accs)
 
         # Saving optimizer
-        torch.save(optimizer, saving_path + "optimizer.pth")
+        torch.save(optimizer, epoch_dir + "optimizer.pth")
 
         # Saving scheduler
-        torch.save(scheduler, saving_path + "scheduler.pth")
+        torch.save(scheduler, epoch_dir + "scheduler.pth")
         
         # Scheduler and early stopping
         scheduler.step(val_losses[-1])

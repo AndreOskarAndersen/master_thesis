@@ -1,11 +1,20 @@
-# Training onstants
+# Training constants
 learning_rate = 1e-3
 max_epochs = 50
 early_stopping_patience = 5
 scheduler_patience = 3
 scheduler_reduce_factor = 0.5
 min_delta = 2.5
-disable_tqdm = True
+disable_tqdm = False
+training_params = {
+    "learning_rate": learning_rate,
+    "max_epochs": max_epochs,
+    "early_stopping_patience": early_stopping_patience,
+    "scheduler_patience": scheduler_patience,
+    "scheduler_reduce_factor": scheduler_reduce_factor,
+    "min_delta": 2.5,
+    "disable_tqdm": disable_tqdm
+}
 
 # Data parameters
 window_size = 5 #11
@@ -14,6 +23,14 @@ eval_ratio = 0.4
 keypoints_dim = 2
 num_keypoints = 25
 num_workers = 2
+data_params = {
+    "window_size": 5,
+    "batch_size": 16,
+    "eval_ratio": 0.4,
+    "keypoints_dim": 2,
+    "num_keypoints": 25,
+    "num_workers": 2
+}
 
 # Baseline parameters
 baseline_params = {
@@ -22,6 +39,8 @@ baseline_params = {
     "stride": 1
 } 
 
+baseline_setups = [baseline_params]
+
 # Unipose parameters
 unipose_params = {
     "rnn_type": "lstm",
@@ -29,6 +48,8 @@ unipose_params = {
     "num_keypoints": num_keypoints,
     "frame_shape": (num_keypoints, 50, 50)
 }
+
+unipose_setups = [unipose_params]
 
 # Deciwatch parameters
 deciwatch_params = {
@@ -43,6 +64,8 @@ deciwatch_params = {
     "num_frames": window_size,
     "batch_size": batch_size
 }
+
+deciwatch_setups = [deciwatch_params]
 
 # Paths
 overall_data_dir = "../../data/processed/"

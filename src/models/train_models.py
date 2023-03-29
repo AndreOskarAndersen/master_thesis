@@ -1,5 +1,7 @@
 import torch
 import torch.optim as optim
+import json
+from time import time
 from data import get_dataloaders
 from pipeline import train
 from baseline import Baseline
@@ -8,7 +10,13 @@ from unipose import Unipose
 from utils import make_dir, heatmaps2coordinates
 from config import *
 
-def main(overall_models_dir: str, dataloaders, model_params, device):
+def save_config(model_params, training_path):
+    config = {"training_params": training_params, "data_params": data_params, "model_params": model_params}
+    
+    with open(training_path + "config.json", "w") as f:
+        json.dump(config, f, indent=4)
+
+def main(overall_models_dir: str, dataloaders, all_setups, device):
 
     # Making folder for storing training data
     make_dir(overall_models_dir)
@@ -22,41 +30,47 @@ def main(overall_models_dir: str, dataloaders, model_params, device):
     # Dictionary of data transformers to apply
     data_transforms = {"baseline": lambda x: x, "unipose": lambda x: x, "deciwatch": lambda x: heatmaps2coordinates(x.cpu()).to(device)}
     
-    # Looping through each model setup
-    for model_name, model_param in model_params.items():
+    # Looping through each model-type
+    for model_name, model_setups in all_setups.items():
         
-        # Initializing model
-        model = models_dict[model_name](**model_param).to(device)
+        # Looping through the setup of the current model-type
+        for model_setup in model_setups:
         
-        # Creating various objects
-        optimizer = optim.Adam(model.parameters(), lr=learning_rate)
-        scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=scheduler_reduce_factor, patience=scheduler_patience)
-        criterion = torch.nn.MSELoss()
-        
-        # Getting data transformer
-        data_transformer = data_transforms[model_name]
-        
-        # Making folder for training details
-        training_path = overall_models_dir + model_name + "/"
-        make_dir(training_path)
-        
-        # Training the model
-        train(
-            model,
-            train_dataloader,
-            eval_dataloader,
-            test_dataloader,
-            criterion,
-            optimizer,
-            max_epochs,
-            device,
-            early_stopping_patience,
-            min_delta,
-            training_path,
-            disable_tqdm,
-            scheduler,
-            data_transformer
-        )
+            # Initializing model
+            model = models_dict[model_name](**model_setup).to(device)
+            
+            # Creating various objects
+            optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+            scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=scheduler_reduce_factor, patience=scheduler_patience)
+            criterion = torch.nn.MSELoss()
+            
+            # Getting data transformer
+            data_transformer = data_transforms[model_name]
+            
+            # Making folder for training details
+            training_path = overall_models_dir + model_name + "_" + str(time()) + "/"
+            make_dir(training_path)
+            
+            # Saving documentation about training parameters
+            save_config(model_setup, training_path)
+            
+            # Training the model
+            train(
+                model,
+                train_dataloader,
+                eval_dataloader,
+                test_dataloader,
+                criterion,
+                optimizer,
+                max_epochs,
+                device,
+                early_stopping_patience,
+                min_delta,
+                training_path,
+                disable_tqdm,
+                scheduler,
+                data_transformer
+            )
 
 if __name__ == "__main__":
     
@@ -71,13 +85,13 @@ if __name__ == "__main__":
     deciwatch_params["device"] = device
     
     # Collecting model params
-    model_params = {
-        "baseline": baseline_params,
-        #"unipose": unipose_params,
-        #"deciwatch": deciwatch_params
+    model_setups = {
+        "baseline": baseline_setups,
+        "unipose": unipose_setups,
+        "deciwatch": deciwatch_setups
     }
     
     # Getting dataloaders
     dataloaders = get_dataloaders(overall_data_dir, window_size, batch_size, eval_ratio, device, num_workers=num_workers)
     
-    main(overall_models_dir, dataloaders, model_params, device)
+    main(overall_models_dir, dataloaders, model_setups, device)
