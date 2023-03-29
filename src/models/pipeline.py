@@ -187,6 +187,10 @@ def train(model: nn.Module,
         scheduler.step(val_losses[-1])
         
         if early_stopper.early_stop(val_loss):
+            print()
+            print("====================")
+            print("STOPPED EARLY")
+            print("====================")
             break
         
     test_acc, test_loss = evaluate(model, test_dataloader, criterion, device, data_transformer)
