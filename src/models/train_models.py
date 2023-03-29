@@ -89,8 +89,8 @@ if __name__ == "__main__":
     
     # Collecting model params
     model_setups = {
-        "baseline": baseline_setups,
-        "unipose": unipose_setups,
+        #"baseline": baseline_setups,
+        #"unipose": unipose_setups,
         "deciwatch": deciwatch_setups
     }
     

@@ -145,7 +145,7 @@ def train(model: nn.Module,
             pred = model(x)
             
             # Computes loss
-            pred.register_hook(lambda x: modify_grad(x, is_pa, type(model))) # Removes loss of missing keypoints.
+            pred.register_hook(lambda x: modify_grad(x, is_pa, type(model))) # Removes gradient of missing keypoints.
             loss = criterion(pred, y)
             
             # Backpropegation
@@ -161,21 +161,21 @@ def train(model: nn.Module,
         train_losses[-1] /= len(train_dataloader)
         
         # Validating the model
-        val_loss = evaluate(model, eval_dataloader, criterion, device, data_transformer)
-        #val_accs.append(val_acc)
+        val_loss, val_acc = evaluate(model, eval_dataloader, criterion, device, data_transformer)
+        val_accs.append(val_acc)
         val_losses.append(val_loss)
     
         # Saving model
         torch.save(model.state_dict(), epoch_dir + "model.pth")
 
         # Saving training losses
-        np.save(epoch_dir + "train_losses.npy", train_losses)
+        np.save(saving_path + "train_losses.npy", train_losses)
 
         # Saving validation losses
-        np.save(epoch_dir + "val_losses.npy", val_losses)
+        np.save(saving_path + "val_losses.npy", val_losses)
 
         # Saving validation accuracies
-        np.save(epoch_dir + "val_accs.npy", val_accs)
+        np.save(saving_path + "val_accs.npy", val_accs)
 
         # Saving optimizer
         torch.save(optimizer, epoch_dir + "optimizer.pth")
@@ -222,11 +222,11 @@ def evaluate(model: nn.Module,
     
     Returns
     -------
-    PCK_mean : float
-        Average PCK of the model on the dataloader
-        
     losses_mean : float
         Average loss of the model on the dataloder
+    
+    PCK_mean : float
+        Average PCK of the model on the dataloader
     """
     
     model.eval()
@@ -237,7 +237,7 @@ def evaluate(model: nn.Module,
     
     # Looping through dataloader
     with torch.no_grad():
-        for i, (x, y, is_pa) in tqdm(enumerate(dataloader), leave=False, desc="Evaluating", disable=True, total=len(dataloader)):
+        for i, (x, y, _) in tqdm(enumerate(dataloader), leave=False, desc="Evaluating", disable=False, total=len(dataloader)):
                         
             # Storing data on device
             x = data_transformer(x).float().to(device)
@@ -252,38 +252,10 @@ def evaluate(model: nn.Module,
                 PCKs.append(PCK)
             
             # Computing loss of the current iteration
-            pred.register_hook(lambda x: modify_grad(x, is_pa, type(model))) # Removes loss of missing keypoints.
-            loss = criterion(pred, y).item()
-            losses[i] = loss.item()
+            losses[i] = criterion(pred, y).item()
     
     # Computing mean PCK and loss
     losses_mean = np.mean(losses) 
+    PCK_mean = np.mean(PCKs)
     
-    return losses_mean
-
-if __name__ == "__main__":
-    from data import get_dataloaders
-    from config import *
-    from baseline import Baseline
-    from deciwatch import DeciWatch
-    from utils import heatmaps2coordinates
-    
-    import random
-    import os
-    seed = 1
-    
-    random.seed(seed)
-    os.environ['PYTHONHASHSEED'] = str(seed)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed(seed)
-    torch.backends.cudnn.deterministic = True
-    torch.backends.cudnn.benchmark = False
-    
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    deciwatch_params["device"] = device
-    train_dataloader, eval_dataloader, test_dataloader = get_dataloaders(overall_data_dir, window_size, 1, eval_ratio, device, num_workers=1)
-    model = DeciWatch(**deciwatch_params).to(device)
-    #model = Baseline(**baseline_params).to(device)
-    criterion = torch.nn.MSELoss()
-    evaluate(model, test_dataloader, criterion, device, 1, 1, heatmaps2coordinates)
+    return losses_mean, PCK_mean

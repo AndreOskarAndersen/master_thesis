@@ -4,7 +4,7 @@ max_epochs = 50
 early_stopping_patience = 5
 scheduler_patience = 3
 scheduler_reduce_factor = 0.5
-min_delta = 2.5
+min_delta = 0
 disable_tqdm = False
 training_params = {
     "learning_rate": learning_rate,
