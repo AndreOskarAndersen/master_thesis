@@ -13,6 +13,9 @@ from config import *
 def save_config(model_params, training_path):
     config = {"training_params": training_params, "data_params": data_params, "model_params": model_params}
     
+    if "device" in config["model_params"]:
+        config["model_params"]["device"] = "cuda"
+    
     with open(training_path + "config.json", "w") as f:
         json.dump(config, f, indent=4)
 

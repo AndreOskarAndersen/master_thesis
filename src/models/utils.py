@@ -181,8 +181,9 @@ def modify_grad(x: torch.Tensor, is_pa: List[bool], model_type: Union[Baseline, 
         x[:, :, general_inds_1] = 0
         x[:, :, general_inds_2] = 0
         
-        x[is_pa, :, pa_inds_1] = 0
-        x[is_pa, :, pa_inds_2] = 0
+        
+        x[np.ix_(is_pa, np.arange(x.shape[1]), pa_inds_1)] = 0
+        x[np.ix_(is_pa, np.arange(x.shape[1]), pa_inds_2)] = 0
     else:
         raise TypeError(f"Incorrect model_type. You passed {model_type}")
         
