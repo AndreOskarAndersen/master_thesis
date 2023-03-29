@@ -4,6 +4,77 @@
 \section{Deep Learning Theory}
 The following section covers the most important background theory for the experiments in Section \ref{sec:experiments}. This includes an introduction to various types of neural networks, as well as an introduction to the optimization of such networks.
 
+\subsection{General Machine Learning Terminology}
+The following section covers the general terminology and some algorithms, that will be used through this paper. 
+\\
+\\
+\noindent \textbf{Loss Function:} Training a machine learning model is generally done by minimizing a predefined \textbf{loss function}, which is used for measuring the error of the model. One common loss function for regression is the \textbf{Mean Squared error (MSE)}. Let $f^*(\bm{x})$ be a vector of ground truth observations and $f(\bm{x}; \bm{\theta})$ be an estimation of $f^*(\bm{x})$. Then, MSE is defined as
+\begin{equation}
+    MSE = \frac{1}{n} \sum_{i = 1} ^n \left( f^*\left(\bm{x}^{(i)}\right) - f\left(\bm{x}^{(i)}; \bm{\theta}\right)\right)^2.
+\end{equation}
+Thus, MSE measures the average squared difference between the ground truth observations and the estimated observations \cite{ISL}.
+\\
+\\
+\noindent \textbf{Optimizer:} The minimization of the loss function is usually done by an \textbf{optimizer}, which is a type of algorithm, that is typically some type of variation of \textbf{gradient descent}. Gradient descent is a process that iteratively updates the parameters of a function by
+\begin{equation}
+    \bm{\theta} \leftarrow \bm{\theta} - \eta \nabla_{\bm{\theta}} L\left( f\left(\bm{x}^{(i)}; \bm{\theta}\right), f^*\left(\bm{x}^{(i)}\right) \right)
+\end{equation}
+where $\eta$ is called the \textbf{learning-rate}, which controls the stepsize of each update, and $L$ is a loss function such as MSE.
+\\
+\\
+One of the most used optimizers is \textbf{ADAM}, which is an optimizer that uses \textbf{momentum} and \textbf{adaptive learning-rate} to accelerate its learning. Momentum works by accumulating an exponentially decaying moving average of past gradients and continuing to move in their direction, which especially accelerates learning in the face of high curvature, small but consistent gradients, or noisy gradients. Adaptive learning rate is a mechanism for adapting individual learning rates for the model parameters. The idea is as follows; if the partial derivative of the loss, with respsect to a given model parameter, remains the same sign, then the learning rate should increase. If that partial derivate changes sign, then the learning rate should decrease \cite{DL_book}.
+\begin{algorithm}[htbp]
+    \caption{Adam \cite{DL_book}}
+    \label{Algorithm:ADAM}
+    \begin{algorithmic}
+        \Require Learning rate $\eta$
+        \Require Exponential decay rates for moment estimates, $\rho_1$ and $\rho_2$ in $[0, 1)$
+        \Require Small constant $\delta$ used for numerical stabilization
+        \Require Initial parameters $\bm{\theta}$
+
+        \State Initialize 1st and 2nd moment variables $\bm{s} = \bm{0}$, $\bm{r} = \bm{0}$
+
+        \While{stopping criterion not met}
+            \State \begin{varwidth}[t]{\linewidth} Sample a minibatch of $m$ random observations from the training set $\{\bm{x}^{(1)}, ..., \bm{x}^{(m)}\}$ with corresponding targets $\bm{y}^{(i)}$
+            \end{varwidth}
+            \State Compute gradient: $\bm{g}  \leftarrow  \frac{1}{m} \nabla_{\bm{\theta}} \sum_i L\left( f \left(\bm{x}^{(i)}; \bm{\theta} \right), \bm{y}^{(i)} \right)$
+            \State $t \leftarrow t + 1$
+            \State Update biased first moment estimate: $\bm{s} \leftarrow \rho_1 \bm{s} + (1 - \rho_1) \bm{g}$
+            \State Update biased second moment estimate: $\bm{r} \leftarrow \rho_2 \bm{r} + (1 - \rho_2) \bm{g} \odot \bm{g}$
+            \State Correct bias in first moment: $\hat{\bm{s}} \leftarrow \frac{\bm{s}}{1 - \rho_1 ^t}$
+            \State Correct bias in second moment: $\hat{\bm{r}} \leftarrow \frac{\bm{r}}{1 - \rho_2 ^t}$
+            \State Compute update: $\Delta \bm{\theta} = - \eta \frac{\hat{\bm{s}}}{\sqrt{\hat{\bm{r}}} + \delta}$
+            \State Apply update: $\bm{\theta} = \bm{\theta} + \Delta \bm{\theta}$ 
+        \EndWhile
+    \end{algorithmic}
+\end{algorithm}
+\\
+\\
+\noindent \textbf{Batch:}
+\\
+\\
+\noindent \textbf{Epoch:} bla bla bla
+\\
+\\
+\noindent \textbf{Layer Normalization:} bla bla bla
+\\
+\\
+\noindent \textbf{Activation function:} bla bla bla
+\label{subsubsec:activation_func}
+\\
+\\
+\noindent \textbf{Residual Connection:} bla bla bla
+\\
+\\
+\noindent \textbf{Evaluation Metric:} bla bla bla
+\\
+\\
+\noindent \textbf{Dropout:} bla bla bla
+
+\subsubsection{Optimizer}
+\subsubsection{Loss Function}
+\subsubsection{Layer normalization}
+
 \subsection{Feedforward Neural Networks}
 \textbf{Feedforward neural networks} are the most basic type of neural networks. The aim of a feedforward neural network is to approximate some function $f^*$, by defining a mapping $\bm{y} = f(\bm{x}; \bm{\theta})$ and learning the parameters $\bm{\theta}$, that results in the best approximation of $f^*$. These models are called \textbf{feedforward} because there are no \textbf{feedback} connections in which the outputs of the model are fed back into itself. Instead, information flows through the function being evaluated from $\bm{x}$, through the intermediate computations used to define $f$, and finally to the output $\bm{y}$. Feedforward neural networks generally consists of multiple \textbf{layers}, arranged in a chain structure, with each layer being a function of the layer that preceded it \cite{DL_book}. 
 
@@ -132,17 +203,13 @@ The Transformer follow an encoder-decoder structure, where the encoder maps an i
 \end{equation}
 \\
 \\
-\noindent \textbf{Positional Encoding:} As the model does not contain any recurrences nor any convolutions, it has to carry some other type of information to know about the relative or absolute position of the elements in the input sequence. This is done by adding \textbf{positional encodings} to the input of the encoder and decoder stacks. The positional encoding is a vector of size $d_model$ and is defined as the following
+\noindent \textbf{Positional Encoding:} As the model does not contain any recurrences nor any convolutions, it has to carry some other type of information to know about the relative or absolute position of the elements in the input sequence. This is done by adding \textbf{positional encodings} to the input of the encoder and decoder stacks. The positional encoding is a vector of size $d_{model}$ and is defined as the following
 \begin{align}
-    \bm{PE}_{pos, 2i} &= \sin \left( \frac{pos}{10000^{\frac{2i}{d_model}}} \right) \\
-    \bm{PE}_{pos, 2i + 1} &= \cos \left( \frac{pos}{10000^{\frac{2i}{d_model}}} \right) \\
+    \bm{PE}_{pos, 2i} &= \sin \left( \frac{pos}{10000^{\frac{2i}{d_{model}}}} \right) \\
+    \bm{PE}_{pos, 2i + 1} &= \cos \left( \frac{pos}{10000^{\frac{2i}{d_{model}}}} \right) \\
 \end{align}
 where \textit{pos} is the position and $i$ is the dimension \cite{https://doi.org/10.48550/arxiv.1706.03762}.
 
-\subsection{Training a Neural Network}
-\subsubsection{Activation function}
-\subsubsection{residual connection}
-\subsubsection{layer normalization}
-\label{subsubsec:activation_func}
+
 
 \end{document}
