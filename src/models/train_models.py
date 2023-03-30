@@ -71,8 +71,8 @@ def main(overall_models_dir: str, dataloaders, all_setups, device):
                 min_delta,
                 training_path,
                 disable_tqdm,
-                scheduler,
-                data_transformer
+                scheduler=scheduler,
+                data_transformer=data_transformer
             )
 
 if __name__ == "__main__":
