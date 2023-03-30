@@ -53,7 +53,6 @@ python-dateutil==2.8.2
 pytube==12.1.2
 pytz==2022.7.1
 PyWavelets==1.4.1
-pywin32==305
 pyzmq==25.0.0
 requests==2.28.2
 scikit-image==0.20.0
@@ -66,9 +65,6 @@ stack-data==0.6.2
 sympy==1.11.1
 threadpoolctl==3.1.0
 tifffile==2023.2.3
-torch==2.0.0+cu117
-torchaudio==2.0.1+cu117
-torchvision==0.15.1+cu117
 tornado==6.2
 tqdm==4.64.1
 traitlets==5.9.0
