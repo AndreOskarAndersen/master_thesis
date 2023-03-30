@@ -1,6 +1,7 @@
 import numpy as np
 import torch
 import torch.nn as nn
+import pickle
 from torch.utils.data import DataLoader
 from tqdm.auto import tqdm
 from utils import compute_PCK, modify_grad, make_dir
@@ -28,6 +29,7 @@ class _EarlyStopper:
         self.min_delta = min_delta
         self.counter = 0
         self.min_validation_loss = np.inf
+        self.stop = False
 
     def early_stop(self, validation_loss: float):
         """
@@ -45,8 +47,8 @@ class _EarlyStopper:
         elif validation_loss > self.min_validation_loss + self.min_delta:
             self.counter += 1
             if self.counter >= self.patience:
-                return True
-        return False
+                self.stop = True
+        self.stop = False
 
 def train(model: nn.Module,
           train_dataloader: DataLoader,  
@@ -164,6 +166,9 @@ def train(model: nn.Module,
         val_loss, val_acc = evaluate(model, eval_dataloader, criterion, device, data_transformer)
         val_accs.append(val_acc)
         val_losses.append(val_loss)
+        
+        # Passint data to early stopper
+        early_stopper.early_stop(val_loss)
     
         # Saving model
         torch.save(model.state_dict(), epoch_dir + "model.pth")
@@ -185,8 +190,10 @@ def train(model: nn.Module,
         
         # Scheduler and early stopping
         scheduler.step(val_losses[-1])
+        with open(epoch_dir + "early_stopper.pkl", "wb") as f:
+            pickle.dump(early_stopper, f)
         
-        if early_stopper.early_stop(val_loss):
+        if early_stopper.stop:
             print()
             print("====================")
             print("STOPPED EARLY")
