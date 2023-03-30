@@ -62,7 +62,9 @@ def train(model: nn.Module,
           min_delta : float,
           saving_path: str,
           disable_tqdm: bool,
+          min_epoch: int = 0,
           scheduler: type = None,
+          early_stopper: _EarlyStopper = None,
           data_transformer: Callable = lambda x: x):
     """
     Function for training a model using a dataloader.
@@ -121,10 +123,15 @@ def train(model: nn.Module,
     val_losses = []
     val_accs = []
     
-    early_stopper = _EarlyStopper(patience=patience, min_delta=min_delta)
+    if early_stopper is not None:
+        early_stopper = _EarlyStopper(patience=patience, min_delta=min_delta)
     scaler = torch.cuda.amp.GradScaler()
     
-    for epoch in tqdm(range(max_epoch), desc="Epoch", leave=False, total=max_epoch, disable=disable_tqdm):
+    torch.save(train_dataloader, saving_path + "train_dataloader.pth")
+    torch.save(eval_dataloader, saving_path + "eval_dataloader.pth")
+    torch.save(test_dataloader, saving_path + "test_dataloader.pth")
+    
+    for epoch in tqdm(range(min_epoch, max_epoch), desc="Epoch", leave=False, total=max_epoch, disable=disable_tqdm):
         
         # Making dirs for storing the current epoch
         epoch_dir = saving_path + str(epoch + 1) + "/"

@@ -22,7 +22,7 @@ batch_size = 16
 eval_ratio = 0.4
 keypoints_dim = 2
 num_keypoints = 25
-num_workers = 2
+num_workers = 0
 data_params = {
     "window_size": 5,
     "batch_size": 16,
