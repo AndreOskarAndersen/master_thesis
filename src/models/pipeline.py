@@ -190,7 +190,7 @@ def train(model: nn.Module,
         
         # Scheduler and early stopping
         scheduler.step(val_losses[-1])
-        with open(epoch_dir + "early_stopper.pkl") as f:
+        with open(epoch_dir + "early_stopper.pkl", "wb") as f:
             pickle.dump(early_stopper, f)
         
         if early_stopper.stop:
