@@ -1,3 +1,4 @@
+import sys
 import torch
 import torch.optim as optim
 import json
@@ -88,11 +89,17 @@ if __name__ == "__main__":
     deciwatch_params["device"] = device
     
     # Collecting model params
-    model_setups = {
-        "baseline": baseline_setups,
-        "unipose": unipose_setups,
-        "deciwatch": deciwatch_setups
-    }
+    model_types = ["baseline", "unipose", "deciwatch"]
+    model_setups = [baseline_setups, unipose_setups, deciwatch_setups]
+    
+    if len(sys.argv) == 1:
+        model_setups = {
+            "baseline": baseline_setups,
+            "unipose": unipose_setups,
+            "deciwatch": deciwatch_setups
+        }
+    else:
+        model_setups = {model_types[int(sys.argv[1])]: model_setups[int(sys.argv[1])]}
     
     # Getting dataloaders
     dataloaders = get_dataloaders(overall_data_dir, window_size, batch_size, eval_ratio, device, num_workers=num_workers)
