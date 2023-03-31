@@ -123,7 +123,7 @@ def train(model: nn.Module,
     val_losses = []
     val_accs = []
     
-    if early_stopper is not None:
+    if early_stopper is None:
         early_stopper = _EarlyStopper(patience=patience, min_delta=min_delta)
     scaler = torch.cuda.amp.GradScaler()
     
