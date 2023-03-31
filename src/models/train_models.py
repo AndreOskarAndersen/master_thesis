@@ -83,7 +83,7 @@ if __name__ == "__main__":
     
     # Device to use
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print("Using device", device)
+    print("Using device", device, torch.cuda.get_device_name(0))
     
     unipose_params["device"] = device
     deciwatch_params["device"] = device
