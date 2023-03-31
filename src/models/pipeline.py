@@ -31,7 +31,7 @@ class _EarlyStopper:
         self.min_validation_loss = np.inf
         self.stop = False
 
-    def early_stop(self, validation_loss: float):
+    def step(self, validation_loss: float):
         """
         validation_loss : float
             Validation loss
@@ -174,8 +174,8 @@ def train(model: nn.Module,
         val_accs.append(val_acc)
         val_losses.append(val_loss)
         
-        # Passint data to early stopper
-        early_stopper.early_stop(val_loss)
+        # Passing data to early stopper
+        early_stopper.step(val_loss)
     
         # Saving model
         torch.save(model.state_dict(), epoch_dir + "model.pth")
