@@ -15,7 +15,7 @@ def main():
     pass
 
 if __name__ == "__main__":
-    model_names = []
+    model_names = ["baseline_1680296597.796767", "unipose_1680296597.3504632", "deciwatch_1680298998.0573385"]
     
     model_name = model_names[int(sys.argv[1])]
     model_dir = overall_models_dir + model_name + "/"
@@ -36,6 +36,9 @@ if __name__ == "__main__":
     with open(model_dir + "config.json", "r") as f:
         config = json.load(f)
         
+    if "device" in config["model_params"] and config["model_params"]["device"] == "cuda":
+        config["model_params"]["device"] = device
+
     # Path for objects of the current epoch
     num_epochs = len(train_losses)
     epoch_dir = model_dir + str(num_epochs) + "/"
@@ -49,7 +52,7 @@ if __name__ == "__main__":
     model_type = model_name.split("_")[0]
     model = models_dict[model_type](**config["model_params"]).to(device)
     model.load_state_dict(torch.load(epoch_dir + "model.pth"))
-    
+
     # Loading optimizer
     optimizer = torch.load(epoch_dir + "optimizer.pth")
     
