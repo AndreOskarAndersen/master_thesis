@@ -73,7 +73,7 @@ if __name__ == "__main__":
         test_dataloader,
         nn.MSELoss(),
         optimizer,
-        config["training_params"]["max_epoch"],
+        config["training_params"]["max_epochs"],
         device,
         1,
         0,
