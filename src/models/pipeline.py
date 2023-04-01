@@ -6,6 +6,7 @@ from torch.utils.data import DataLoader
 from tqdm.auto import tqdm
 from utils import compute_PCK, modify_grad, make_dir
 from typing import Callable
+from torch.cuda.amp import GradScaler
 
 class _EarlyStopper:
     def __init__(self, patience: int, min_delta: float):
@@ -65,7 +66,8 @@ def train(model: nn.Module,
           min_epoch: int = 0,
           scheduler: type = None,
           early_stopper: _EarlyStopper = None,
-          data_transformer: Callable = lambda x: x):
+          data_transformer: Callable = lambda x: x,
+          scaler: GradScaler = None):
     """
     Function for training a model using a dataloader.
     
@@ -125,7 +127,9 @@ def train(model: nn.Module,
     
     if early_stopper is None:
         early_stopper = _EarlyStopper(patience=patience, min_delta=min_delta)
-    scaler = torch.cuda.amp.GradScaler()
+        
+    if scaler is None:
+        scaler = torch.cuda.amp.GradScaler()
     
     torch.save(train_dataloader, saving_path + "train_dataloader.pth")
     torch.save(eval_dataloader, saving_path + "eval_dataloader.pth")
@@ -194,6 +198,9 @@ def train(model: nn.Module,
 
         # Saving scheduler
         torch.save(scheduler, epoch_dir + "scheduler.pth")
+        
+        # Saving scaler
+        torch.save(scaler, epoch_dir + "scaler.pt")
         
         # Scheduler and early stopping
         scheduler.step(val_losses[-1])

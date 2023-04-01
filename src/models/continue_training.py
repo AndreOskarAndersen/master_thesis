@@ -47,7 +47,7 @@ if __name__ == "__main__":
     # Loading model
     models_dict = {"baseline": Baseline, "unipose": Unipose, "deciwatch": DeciWatch}
     model_type = model_name.split("_")[0]
-    model = models_dict[model_type](**config["model_params"])
+    model = models_dict[model_type](**config["model_params"]).to(device)
     model.load_state_dict(torch.load(epoch_dir + "model.pth"))
     
     # Loading optimizer
