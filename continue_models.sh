@@ -4,7 +4,7 @@
 #SBATCH --cpus-per-task=4
 #SBATCH --mem 8000000K
 #SBATCH --time=4-02:00:00
-#SBATCH --array 0-2%3
+#SBATCH --array 0-1%2
 
 # Loading modules
 module load python/3.9.9
@@ -30,4 +30,4 @@ echo $CUDA_VISIBLE_DEVICES
 
 # Running script
 cd ./src/models
-python3 -m train_models ${SLURM_ARRAY_TASK_ID}
+python3 -m continue_training ${SLURM_ARRAY_TASK_ID}

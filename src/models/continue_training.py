@@ -1,3 +1,4 @@
+import sys
 import pickle
 import numpy as np
 import json
@@ -14,7 +15,9 @@ def main():
     pass
 
 if __name__ == "__main__":
-    model_name = "baseline_1680166765.6507914"
+    model_names = []
+    
+    model_name = model_names[int(sys.argv[1])]
     model_dir = overall_models_dir + model_name + "/"
     
     # Some kind of optimization
