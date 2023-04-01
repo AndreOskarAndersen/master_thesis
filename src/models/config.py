@@ -1,8 +1,8 @@
 # Training constants
 learning_rate = 1e-3
 max_epochs = 50
-early_stopping_patience = 5
-scheduler_patience = 3
+early_stopping_patience = 10
+scheduler_patience = 5
 scheduler_reduce_factor = 0.1
 min_delta = 0
 disable_tqdm = False
