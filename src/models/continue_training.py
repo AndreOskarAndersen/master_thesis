@@ -58,12 +58,12 @@ if __name__ == "__main__":
     
     # loading data transformer
     data_transforms = {"baseline": lambda x: x, "unipose": lambda x: x, "deciwatch": lambda x: heatmaps2coordinates(x.cpu()).to(device)}
-    data_transformer = data_transforms[model_name]
+    data_transformer = data_transforms[model_name.split("_")[0]]
     
     # loading dataloaders
-    train_dataloader = torch.load(model_dir + "train.dataloader.pth")
-    eval_dataloader = torch.load(model_dir + "eval.dataloader.pth")
-    test_dataloader = torch.load(model_dir + "test.dataloader.pth")
+    train_dataloader = torch.load(model_dir + "train_dataloader.pth")
+    eval_dataloader = torch.load(model_dir + "eval_dataloader.pth")
+    test_dataloader = torch.load(model_dir + "test_dataloader.pth")
     
     # Training model
     train(
