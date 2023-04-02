@@ -142,49 +142,20 @@ def compute_PCK(gt_featuremaps: torch.Tensor, pred_featuremaps: torch.Tensor):
 
     return pck 
 
-def modify_grad(x: torch.Tensor, is_pa: List[bool], model_type: Union[Baseline, Unipose, DeciWatch]):
-    """
-    Function for cancelling out gradient.
-    
-    Parameters
-    ----------
-    x : torch.Tensor
-        Tensor which the gradient should be removed
-        
-    is_pa : List[bool]
-        Indicies that decides whether a batch from the Penn-Action dataset.
-        
-    model_type : Union[Baseline, Unipose, DeciWatch]
-        Type of the model
-        
-    Returns
-    -------
-    x : torch.Tensor
-        Version of x where gradients have been cancelled out.
-        Used to decide whether to indec x as heatmaps or coordinates.
-        
-    Note
-    ----
-    Inspired by the following code-snippet
-    https://discuss.pytorch.org/t/how-to-detach-a-rows-of-a-tensor/21058/4
-    """
-    
+def modify_target(pred, target, is_pa, model_type):
     if model_type == Baseline or model_type == Unipose:
-        x[:, :, GENERAL_MISSING_INDICIES] = 0
-        x[np.ix_(is_pa, np.arange(x.shape[1]), PA_MISSING_INDICIES)] = 0
-    elif model_type == DeciWatch:
+        target[:, :, GENERAL_MISSING_INDICIES] = pred[:, :, GENERAL_MISSING_INDICIES].detach().clone()
+        target[np.ix_(is_pa, np.arange(target.shape[1]), PA_MISSING_INDICIES)] = pred[np.ix_(is_pa, np.arange(target.shape[1]), PA_MISSING_INDICIES)].detach().clone()
+    else:
         general_inds_1 = [x * 2 for x in GENERAL_MISSING_INDICIES]
         general_inds_2 = [x * 2 + 1 for x in GENERAL_MISSING_INDICIES]
         pa_inds_1 = [x * 2 for x in PA_MISSING_INDICIES]
         pa_inds_2 = [x * 2 + 1 for x in PA_MISSING_INDICIES]
         
-        x[:, :, general_inds_1] = 0
-        x[:, :, general_inds_2] = 0
+        target[:, :, general_inds_1] = pred[:, :, general_inds_1].detach().clone()
+        target[:, :, general_inds_2] = pred[:, :, general_inds_2].detach().clone()
         
-        x[np.ix_(is_pa, np.arange(x.shape[1]), pa_inds_1)] = 0
-        x[np.ix_(is_pa, np.arange(x.shape[1]), pa_inds_2)] = 0
+        target[np.ix_(is_pa, np.arange(target.shape[1]), pa_inds_1)] = pred[np.ix_(is_pa, np.arange(pred.shape[1]), pa_inds_1)].detach().clone()
+        target[np.ix_(is_pa, np.arange(target.shape[1]), pa_inds_2)] = pred[np.ix_(is_pa, np.arange(pred.shape[1]), pa_inds_2)].detach().clone()
         
-    else:
-        raise TypeError(f"Incorrect model_type. You passed {model_type}")
-        
-    return x
+    return target

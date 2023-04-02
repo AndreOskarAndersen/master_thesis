@@ -4,7 +4,7 @@ import torch.nn as nn
 import pickle
 from torch.utils.data import DataLoader
 from tqdm.auto import tqdm
-from utils import compute_PCK, modify_grad, make_dir
+from utils import compute_PCK, make_dir, modify_target
 from typing import Callable
 from torch.cuda.amp import GradScaler
 
@@ -152,20 +152,19 @@ def train(model: nn.Module,
             y = data_transformer(y).float()
             
             # resetting optimizer
-            optimizer.zero_grad(set_to_none=True)
+            optimizer.zero_grad()
             
             # Predicting
             pred = model(x)
+            y = modify_target(pred, y, is_pa, type(model))
             
             # Computes loss
-            pred.register_hook(lambda x: modify_grad(x, is_pa, type(model))) # Removes gradient of missing keypoints.
             loss = criterion(pred, y)
             
             # Backpropegation
-            scaler.scale(loss).backward()
+            loss.backward()
             
-            scaler.step(optimizer)
-            scaler.update()
+            optimizer.step()
             
             # Store train loss
             train_losses[-1] += loss.item()

@@ -12,7 +12,7 @@ training_params = {
     "early_stopping_patience": early_stopping_patience,
     "scheduler_patience": scheduler_patience,
     "scheduler_reduce_factor": scheduler_reduce_factor,
-    "min_delta": 2.5,
+    "min_delta": min_delta,
     "disable_tqdm": disable_tqdm
 }
 

@@ -78,9 +78,6 @@ def main(overall_models_dir: str, dataloaders, all_setups, device):
 
 if __name__ == "__main__":
     
-    # Some kind of optimization
-    torch.backends.cudnn.benchmark = True
-    
     # Device to use
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print("Using device", device, torch.cuda.get_device_name(0))
