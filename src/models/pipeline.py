@@ -261,7 +261,7 @@ def evaluate(model: nn.Module,
     
     # Looping through dataloader
     with torch.no_grad():
-        for i, (x, y, _) in tqdm(enumerate(dataloader), leave=False, desc="Evaluating", disable=False, total=len(dataloader)):
+        for i, (x, y, is_pa) in tqdm(enumerate(dataloader), leave=False, desc="Evaluating", disable=False, total=len(dataloader)):
                         
             # Storing data on device
             x = data_transformer(x).float().to(device)
@@ -269,6 +269,7 @@ def evaluate(model: nn.Module,
             
             # Predicting
             pred = model(y)
+            y = modify_target(pred, y, is_pa, type(model))
             
             # Computing PCK of the current iteration
             PCK = compute_PCK(y, pred)
