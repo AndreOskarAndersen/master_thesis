@@ -351,6 +351,10 @@ class DeciWatch(nn.Module):
         self.encoder_mask, self.decoder_mask = _get_masks(num_frames, self.num_samples, batch_size=batch_size, device=self.device)
         self.encoder_e_pos = self.e_pos(batch_size, self.num_samples)
         self.decoder_e_pos = self.e_pos(batch_size, num_frames)
+        
+        for p in self.parameters():
+            if p.dim() > 1:
+                nn.init.xavier_uniform_(p)
 
     def forward(self, video_sequence: torch.Tensor):
         """

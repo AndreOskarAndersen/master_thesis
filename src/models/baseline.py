@@ -29,6 +29,10 @@ class Baseline(nn.Module):
         
         self.relu = nn.ReLU()
         
+        for p in self.parameters():
+            if p.dim() > 1:
+                nn.init.xavier_uniform_(p)
+        
     def forward(self, p_noisy: torch.Tensor):
         """
         Applies the baseline-model on a set of poses.

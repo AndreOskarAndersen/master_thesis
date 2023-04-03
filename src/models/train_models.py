@@ -1,5 +1,6 @@
 import sys
 import torch
+import torch.nn as nn
 import torch.optim as optim
 import json
 from time import time

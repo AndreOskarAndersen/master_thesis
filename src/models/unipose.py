@@ -227,6 +227,10 @@ class Unipose(nn.Module):
         
         self.relu = nn.ReLU()
         
+        for p in self.parameters():
+            if p.dim() > 1:
+                nn.init.xavier_uniform_(p)
+        
     def _init_hidden(self, shape: torch.Size, device: torch.device):
         """
         Function for initializing hidden state(s)
