@@ -49,7 +49,6 @@ class _EarlyStopper:
             self.counter += 1
             if self.counter >= self.patience:
                 self.stop = True
-        self.stop = False
 
 def train(model: nn.Module,
           train_dataloader: DataLoader,  
