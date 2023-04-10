@@ -22,7 +22,12 @@ Thus, MSE measures the average squared difference between the ground truth obser
 where $\eta$ is called the \textbf{learning-rate}, which controls the stepsize of each update, and $L$ is a loss function such as MSE.
 \\
 \\
-One of the most used optimizers is \textbf{ADAM}, which is an optimizer that uses \textbf{momentum} and \textbf{adaptive learning-rate} to accelerate its learning. Momentum works by accumulating an exponentially decaying moving average of past gradients and continuing to move in their direction, which especially accelerates learning in the face of high curvature, small but consistent gradients, or noisy gradients. Adaptive learning rate is a mechanism for adapting individual learning rates for the model parameters. The idea is as follows; if the partial derivative of the loss, with respsect to a given model parameter, remains the same sign, then the learning rate should increase. If that partial derivate changes sign, then the learning rate should decrease \cite{DL_book}.
+One of the most used optimizers is \textbf{ADAM}, which is an optimizer that uses \textbf{momentum} and \textbf{adaptive learning-rate} to accelerate its learning. Momentum works by accumulating an exponentially decaying moving average of past gradients and continuing to move in their direction, which especially accelerates learning in the face of high curvature, small but consistent gradients, or noisy gradients. Adaptive learning rate is a mechanism for adapting individual learning rates for the model parameters. The idea is as follows; if the partial derivative of the loss, with respect to a given model parameter, remains the same sign, then the learning rate should increase. If that partial derivate changes sign, then the learning rate should decrease. The algorithm uses a hyperparameter $\rho$ for controling the length scale of the moving average The pseudocode of the algorithm has been illustrated in Algorithm \ref{Algorithm:ADAM}. \cite{DL_book}. 
+\\
+\\
+\noindent \textbf{Online, mini-batch and batch gradient methods:} Unlike gradient descent, ADAM bases its computations on a \textbf{mini-batch} of samples instead of basing it on a single sample. Thus, there are three ways of sampling data for the optimizer. The first way is done by sampling a single sample at each iteration. This class of methods is called \textbf{online gradient methods}. The advantage of these methods is, that each iteration is very quick, as we only have to compute the gradient of a single sample, however, the main disadvantage is, that the algorithm uses a lot of iterations. On the other hand we have \textbf{batch gradient methods} which uses the average gradient of all of the $n$ samples of the dataset to comptute $\nabla L(f(\bm{x}, \bm{y}))$. By doing so the algorithm only requires one iteration, however, this iteration is much slower than each iteration of the online gradient methods. The last class of methods is \textbf{mini-batch gradient methods} which uses the average gradient of $|B|$ samples of the dataset for computing $\nabla L(f(\bm{x}, \bm{y}))$, where $B$ is a predefined hyperparameter called the \textbf{mini-batch size}. This method lies in between the online gradient methods and batch gradient methods, as it uses fewer iterations than the online gradient methods, however, it uses more iterations than the batch gradient methods. Likewise, each iteration is faster to compute than it is for the batch gradient methods, but slower than it is for the online gradient methods. Further, online gradient methods can lead to a very noisy learning process due to the high variance of the computed gradients of the samples, which can make it more difficult for the optimizer to reach the minimum of the loss function. mini-batch gradient methods and batch gradient methods removes this noise by averaging the computed gradient at each iteration, essentially leading to a quicker learning process \cite{DL_book}. 
+\\
+\\
 \begin{algorithm}[htbp]
     \caption{Adam \cite{DL_book}}
     \label{Algorithm:ADAM}
@@ -31,10 +36,9 @@ One of the most used optimizers is \textbf{ADAM}, which is an optimizer that use
         \Require Exponential decay rates for moment estimates, $\rho_1$ and $\rho_2$ in $[0, 1)$
         \Require Small constant $\delta$ used for numerical stabilization
         \Require Initial parameters $\bm{\theta}$
-
         \State Initialize 1st and 2nd moment variables $\bm{s} = \bm{0}$, $\bm{r} = \bm{0}$
-
         \While{stopping criterion not met}
+
             \State \begin{varwidth}[t]{\linewidth} Sample a minibatch of $m$ random observations from the training set $\{\bm{x}^{(1)}, ..., \bm{x}^{(m)}\}$ with corresponding targets $\bm{y}^{(i)}$
             \end{varwidth}
             \State Compute gradient: $\bm{g}  \leftarrow  \frac{1}{m} \nabla_{\bm{\theta}} \sum_i L\left( f \left(\bm{x}^{(i)}; \bm{\theta} \right), \bm{y}^{(i)} \right)$
@@ -48,38 +52,32 @@ One of the most used optimizers is \textbf{ADAM}, which is an optimizer that use
         \EndWhile
     \end{algorithmic}
 \end{algorithm}
+\noindent \textbf{Evaluation:} We often want to know how well a machine learning model performs on an unseen sample. This is commonly done by splitting the dataset into three non-overlapping subsets to avoid a biased evaluation. The first dataset is the \textbf{training} dataset which is used for training the machine learning model. The second dataset is the \textbf{validation} dataset which is used during training for evaluating various settings of the the used (hyper)parameters. The last dataset is the \textbf{testing} dataset, which is then used for evaluating the final machine learning model.
 \\
 \\
-\noindent \textbf{Batch:}
+The evaluation of a machine learning model is done by making use of an \textbf{evaluation metric}, which depends on the task of the machine learning model. For pose estimation, the \textbf{Percentage of Correct Keypoints (PCK)} is commonly used. This metric measures the ratio of predicted keypoints that are closer to their corresponding ground-truth keypoints than some threshold. Often \textbf{PCK@0.2} is used, which uses $20\%$ of the torso diameter as its threshold \cite{https://doi.org/10.48550/arxiv.2001.08095}.
 \\
 \\
-\noindent \textbf{Epoch:} bla bla bla
+\noindent \textbf{Dropout:} A machine learning model is said to be \textbf{overfitting} if the loss of the training dataset is decreasing, while the loss of the validation dataset is increasing. One can make use of a group of technies called \textbf{regularization} to avoid the overfitting of the network. One common regularization technique is \textbf{dropout}, where the each parameter of the machine learning model is randomly disabled with probability $p$ during training. By doing so the parameters are being trained on the dataset fewer times, leading to less of a probability of the model overfitting.
 \\
 \\
-\noindent \textbf{Layer Normalization:} bla bla bla
-\\
-\\
-\noindent \textbf{Activation function:} bla bla bla
-\label{subsubsec:activation_func}
+\noindent \textbf{Epoch:} Often, the optimizer needs multiple "rounds" of using the whole training data for reaching its minimum. Each of these rounds is called an \textbf{epoch}. One can pick the number of epochs to iterate through prior to training a model and just stop the training once the optimizer has used all of its epochs. Another methods is to use \textbf{early-stopping}, where one keeps track of the loss of the model on the validation-set for each epoch. Once the validation-loss has not decreased for $n$ consecutive epochs, the training is terminated.
 \\
 \\
 \noindent \textbf{Residual Connection:} bla bla bla
 \\
 \\
-\noindent \textbf{Evaluation Metric:} bla bla bla
-\\
-\\
-\noindent \textbf{Dropout:} bla bla bla
-
-\subsubsection{Optimizer}
-\subsubsection{Loss Function}
-\subsubsection{Layer normalization}
+\noindent \textbf{Layer Normalization:} bla bla bla
 
 \subsection{Feedforward Neural Networks}
 \textbf{Feedforward neural networks} are the most basic type of neural networks. The aim of a feedforward neural network is to approximate some function $f^*$, by defining a mapping $\bm{y} = f(\bm{x}; \bm{\theta})$ and learning the parameters $\bm{\theta}$, that results in the best approximation of $f^*$. These models are called \textbf{feedforward} because there are no \textbf{feedback} connections in which the outputs of the model are fed back into itself. Instead, information flows through the function being evaluated from $\bm{x}$, through the intermediate computations used to define $f$, and finally to the output $\bm{y}$. Feedforward neural networks generally consists of multiple \textbf{layers}, arranged in a chain structure, with each layer being a function of the layer that preceded it \cite{DL_book}. 
 
 \subsubsection{Fully-connected Layers}
-The most simple type of layer found in a feeforward neural network is the \textbf{fully-connected layer}. The fully-connected layer usually consists of some learnable parameter matrix $\bm{W}$ and learnable parameter vector $\bm{b}$, as well as a non-linear \textbf{activation function} $g$ (which will be covered further in Section \ref{subsubsec:activation_func}). In this case, the $i$'th layer is defined as
+The most simple type of layer found in a feeforward neural network is the \textbf{fully-connected layer}. The fully-connected layer usually consists of some learnable parameter matrix and learnable parameter vector, as well as a \textbf{activation function}, which is a non-linear function, that makes it possible for the network to model non-linearity. Two of the most common activation functions are the \textbf{Rectified Linear Unit (ReLU)} and \textbf{Hyperbolic Tangent (Tanh)} activation functions, defined by
+\begin{equation}
+    \text{ReLU}(x) = \sigma(x) = \max\{0, x\} \quad \text{tanh}(x) = \frac{\exp(x) - \exp(-x)}{\exp(x) + \exp(-x)}.
+\end{equation}
+Given the learnable parameter matrix $\bm{W}$, learnable parameter vector $\bm{b}$ and activation function $g$, the $i$'th fully-connected layer is defined as
 \begin{equation}
     \bm{h}^{(i)} =
     \begin{cases}
