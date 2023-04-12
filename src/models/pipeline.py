@@ -66,7 +66,10 @@ def train(model: nn.Module,
           scheduler: type = None,
           early_stopper: _EarlyStopper = None,
           data_transformer: Callable = lambda x: x,
-          scaler: GradScaler = None):
+          scaler: GradScaler = None,
+          train_losses = None,
+          val_losses = None,
+          val_accs = None):
     """
     Function for training a model using a dataloader.
     
@@ -119,10 +122,10 @@ def train(model: nn.Module,
         prior to it being used for computing loss.
     """
     
-    train_losses = []
+    train_losses = [] if train_losses is None else train_losses.tolist()
     
-    val_losses = []
-    val_accs = []
+    val_losses = [] if val_losses is None else val_losses.tolist()
+    val_accs = [] if val_accs is None else val_accs.tolist()
     
     if early_stopper is None:
         early_stopper = _EarlyStopper(patience=patience, min_delta=min_delta)
@@ -134,7 +137,7 @@ def train(model: nn.Module,
     torch.save(eval_dataloader, saving_path + "eval_dataloader.pth")
     torch.save(test_dataloader, saving_path + "test_dataloader.pth")
     
-    for epoch in tqdm(range(min_epoch, max_epoch), desc="Epoch", leave=False, total=max_epoch, disable=disable_tqdm):
+    for epoch in tqdm(range(min_epoch, max_epoch), desc="Epoch", leave=False, disable=disable_tqdm):
         
         # Making dirs for storing the current epoch
         epoch_dir = saving_path + str(epoch + 1) + "/"
@@ -147,8 +150,8 @@ def train(model: nn.Module,
         for x, y, is_pa in tqdm(train_dataloader, desc="Sample", leave=False, total=len(train_dataloader), disable=disable_tqdm):
 
             # Loading data
-            x = data_transformer(x).float()
-            y = data_transformer(y).float()
+            x = data_transformer(x).float().to(device)
+            y = data_transformer(y).float().to(device)
             
             # resetting optimizer
             optimizer.zero_grad()
@@ -167,6 +170,9 @@ def train(model: nn.Module,
             
             # Store train loss
             train_losses[-1] += loss.item()
+            
+            del x
+            del y
             
         # Averaging the training stats
         train_losses[-1] /= len(train_dataloader)
@@ -274,9 +280,15 @@ def evaluate(model: nn.Module,
             PCK = compute_PCK(y, pred)
             if PCK != -1:
                 PCKs.append(PCK)
+                
+                if PCK > 1.0:
+                    print(i, PCK)
             
             # Computing loss of the current iteration
             losses[i] = criterion(pred, y).item()
+            
+            del x
+            del y
     
     # Computing mean PCK and loss
     losses_mean = np.mean(losses) 

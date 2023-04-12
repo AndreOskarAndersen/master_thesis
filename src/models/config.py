@@ -22,14 +22,14 @@ batch_size = 16
 eval_ratio = 0.4
 keypoints_dim = 2
 num_keypoints = 25
-num_workers = 0
+num_workers = 2
 data_params = {
-    "window_size": 5,
-    "batch_size": 16,
-    "eval_ratio": 0.4,
-    "keypoints_dim": 2,
-    "num_keypoints": 25,
-    "num_workers": 2
+    "window_size": window_size,
+    "batch_size": batch_size,
+    "eval_ratio": eval_ratio,
+    "keypoints_dim": keypoints_dim,
+    "num_keypoints": num_keypoints,
+    "num_workers": num_workers
 }
 
 # Baseline parameters
@@ -66,6 +66,48 @@ deciwatch_params = {
 }
 
 deciwatch_setups = [deciwatch_params]
+
+# lstm parameters
+lstm_params = {
+    "num_keypoints": num_keypoints,
+    "keypoints_dim": keypoints_dim,
+    "hidden_size": 128,
+    "num_layers": 4,
+    "dropout": 0.0,
+    "bidirectional": True
+}
+
+lstm_setups = [lstm_params]
+
+# Transformer parameters
+transformer_params = {
+    "d_model": 512,
+    "nhead": 8,
+    "num_layers": 6,
+    "dim_feedforward": 2048,
+    "dropout": 0.1,
+    "keypoints_numel": keypoints_dim * num_keypoints,
+    "batch_size": batch_size,
+    "window_size": window_size
+}
+
+transformer_setups = [transformer_params]
+
+# Deciwatch 2
+deciwatch2_params = {
+    "input_dim": keypoints_dim * num_keypoints, 
+    "sample_interval": 4, 
+    "encoder_hidden_dim": 128, 
+    "decoder_hidden_dim": 128, 
+    "dropout": 0.1, 
+    "nheads": 4, 
+    "dim_feedforward": 256, 
+    "enc_layers": 5, 
+    "dec_layers": 5, 
+    "pre_norm": True
+}
+
+deciwatch2_setups = [deciwatch2_params]
 
 # Paths
 overall_data_dir = "../../data/processed/"

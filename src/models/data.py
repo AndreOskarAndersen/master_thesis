@@ -7,7 +7,7 @@ from torch.utils.data.sampler import SubsetRandomSampler
 from typing import Tuple, List
 
 class _KeypointsDataset(Dataset):
-    def __init__(self, dir_path: str, window_size: int, heatmap_shape: Tuple[int, int, int], device: torch.device):
+    def __init__(self, dir_path: str, window_size: int, heatmap_shape: Tuple[int, int, int]):
         """
         Keypoints dataset
         
@@ -22,9 +22,6 @@ class _KeypointsDataset(Dataset):
             
         heatmap_shape : Tuple[int, int, int]
             Shape of a single heatmap
-            
-        device : torch.device
-            Device to use
         """
         
         # Path to input directory
@@ -40,7 +37,6 @@ class _KeypointsDataset(Dataset):
         self.mapper = self._get_mapper()
         
         self.heatmap_shape = heatmap_shape
-        self.device = device
         
     def _get_mapper(self):
         """
@@ -119,28 +115,23 @@ class _KeypointsDataset(Dataset):
             The i'th sample
         """
         
-        try:
-            sample_names = self.mapper[i]
-            is_PA = self._is_PA(sample_names)
-            
-            input_samples = torch.zeros((self.window_size, *self.heatmap_shape), dtype=float, device=self.device)
-            target_samples = torch.zeros((self.window_size, *self.heatmap_shape), dtype=float, device=self.device)
-            
-            for j, sample_name in enumerate(sample_names):
-                input_samples[j] = torch.load(self.input_dir + sample_name)
-                target_samples[j] = torch.load(self.target_dir + sample_name)
-        except Exception as e:
-            print()
-            print("CRASH", i, sample_names)
-            exit(1)
+
+        sample_names = self.mapper[i]
+        is_PA = self._is_PA(sample_names)
         
+        input_samples = torch.zeros((self.window_size, *self.heatmap_shape), dtype=float)
+        target_samples = torch.zeros((self.window_size, *self.heatmap_shape), dtype=float)
+        
+        for j, sample_name in enumerate(sample_names):
+            input_samples[j] = torch.load(self.input_dir + sample_name)
+            target_samples[j] = torch.load(self.target_dir + sample_name)
+
         return input_samples, target_samples, is_PA
                 
 def get_dataloaders(dir_path: str, 
                     window_size: int, 
                     batch_size: int, 
                     eval_ratio: float, 
-                    device: torch.device, 
                     heatmap_shape: Tuple[int, int, int] = (25, 50, 50), 
                     num_workers: int = 0
                     ):
@@ -161,9 +152,6 @@ def get_dataloaders(dir_path: str,
     eval_ratio : float
         Ratio of data that should be used for evaluating the model.
         
-    device : torch.device
-        Device to use
-        
     heatmap_shape : Tuple[int, int, int]
         Shape of a single heatmap
         
@@ -182,7 +170,7 @@ def get_dataloaders(dir_path: str,
         Test-dataloader
     """
     
-    total_dataset = _KeypointsDataset(dir_path, window_size, heatmap_shape, device)
+    total_dataset = _KeypointsDataset(dir_path, window_size, heatmap_shape)
     
     dataset_len = len(total_dataset)
     indices = list(range(dataset_len))
@@ -210,7 +198,7 @@ if __name__ == "__main__":
     eval_ratio = 0.4
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
-    total_dataset = _KeypointsDataset(dir_path, window_size, (25, 50, 50), device)
+    total_dataset = _KeypointsDataset(dir_path, window_size, (25, 50, 50))
     loader = DataLoader(total_dataset, batch_size=16, num_workers=1)
     for x in tqdm(loader, total=len(loader), leave=False, disable=True):
         pass

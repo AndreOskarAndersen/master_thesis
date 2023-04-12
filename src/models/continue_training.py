@@ -8,6 +8,7 @@ from config import overall_models_dir
 from baseline import Baseline
 from unipose import Unipose
 from deciwatch import DeciWatch
+from lstm import LSTM
 from utils import heatmaps2coordinates
 from pipeline import train
 
@@ -15,13 +16,10 @@ def main():
     pass
 
 if __name__ == "__main__":
-    model_names = ["baseline_1680296597.796767", "unipose_1680296597.3504632", "deciwatch_1680298998.0573385"]
+    model_names = ["unipose_1680879216.6796181"]
     
     model_name = model_names[int(sys.argv[1])]
     model_dir = overall_models_dir + model_name + "/"
-    
-    # Some kind of optimization
-    torch.backends.cudnn.benchmark = True
     
     # Device to use
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -48,7 +46,7 @@ if __name__ == "__main__":
         early_stopper = pickle.load(f)
         
     # Loading model
-    models_dict = {"baseline": Baseline, "unipose": Unipose, "deciwatch": DeciWatch}
+    models_dict = {"baseline": Baseline, "unipose": Unipose, "deciwatch": DeciWatch, "lstm": LSTM}
     model_type = model_name.split("_")[0]
     model = models_dict[model_type](**config["model_params"]).to(device)
     model.load_state_dict(torch.load(epoch_dir + "model.pth"))
@@ -60,7 +58,7 @@ if __name__ == "__main__":
     scheduler = torch.load(epoch_dir + "scheduler.pth")
     
     # loading data transformer
-    data_transforms = {"baseline": lambda x: x, "unipose": lambda x: x, "deciwatch": lambda x: heatmaps2coordinates(x.cpu()).to(device)}
+    data_transforms = {"baseline": lambda x: x, "unipose": lambda x: x, "deciwatch": lambda x: heatmaps2coordinates(x.cpu()).to(device), "lstm": lambda x: heatmaps2coordinates(x.cpu()).to(device)}
     data_transformer = data_transforms[model_name.split("_")[0]]
     
     # loading dataloaders
@@ -78,12 +76,15 @@ if __name__ == "__main__":
         optimizer,
         config["training_params"]["max_epochs"],
         device,
-        1,
-        0,
+        config["training_params"]["early_stopping_patience"],
+        config["training_params"]["min_delta"],
         model_dir,
         config["training_params"]["disable_tqdm"],
         num_epochs,
         scheduler,
         early_stopper,
-        data_transformer
+        data_transformer,
+        train_losses=train_losses,
+        val_losses=val_losses,
+        val_accs=val_accs
     )
