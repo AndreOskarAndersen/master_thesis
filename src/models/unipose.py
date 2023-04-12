@@ -206,24 +206,23 @@ class Unipose(nn.Module):
         rnn_params = [num_keypoints, frame_shape] if rnn_type.lower() == "lstm" else [num_keypoints]
 
         self.rnn_forward = self.valid_rnn_type[rnn_type.lower()](*rnn_params)
-        self.conv_forward_1 = nn.Conv2d(num_keypoints, num_keypoints, kernel_size=3, stride=stride, padding=padding)
+        self.conv_forward_1 = nn.Conv2d(num_keypoints, 128, kernel_size=3, stride=stride, padding=padding)
             
-        self.conv_forward_2 = nn.Conv2d(num_keypoints, num_keypoints, kernel_size=3, stride=stride, padding=padding)
-        self.conv_forward_3 = nn.Conv2d(num_keypoints, num_keypoints, kernel_size=3, stride=stride, padding=padding)
+        self.conv_forward_2 = nn.Conv2d(128, 128, kernel_size=3, stride=stride, padding=padding)
+        self.conv_forward_3 = nn.Conv2d(128, 128, kernel_size=3, stride=stride, padding=padding)
         
-        self.conv_forward_4 = nn.Conv2d(num_keypoints, num_keypoints, kernel_size=1, stride=stride, padding=padding)
-        self.conv_forward_5 = nn.Conv2d(num_keypoints, num_keypoints, kernel_size=1, stride=stride, padding=padding)
+        self.conv_forward_4 = nn.Conv2d(128, 128, kernel_size=1, stride=stride, padding=padding)
+        self.conv_forward_5 = nn.Conv2d(128, num_keypoints, kernel_size=1, stride=stride, padding=padding)
         
         if bidirectional:
             self.rnn_backward = self.valid_rnn_type[rnn_type.lower()](*rnn_params)
-            self.conv_backward_1 = nn.Conv2d(num_keypoints, num_keypoints, kernel_size=3, stride=stride, padding=padding)
+            self.conv_backward_1 = nn.Conv2d(num_keypoints, 128, kernel_size=3, stride=stride, padding=padding)
             
-            self.conv_backward_2 = nn.Conv2d(num_keypoints, num_keypoints, kernel_size=3, stride=stride, padding=padding)
-            self.conv_backward_3 = nn.Conv2d(num_keypoints, num_keypoints, kernel_size=3, stride=stride, padding=padding)
+            self.conv_backward_2 = nn.Conv2d(128, 128, kernel_size=3, stride=stride, padding=padding)
+            self.conv_backward_3 = nn.Conv2d(128, 128, kernel_size=3, stride=stride, padding=padding)
             
-            self.conv_backward_4 = nn.Conv2d(num_keypoints, num_keypoints, kernel_size=1, stride=stride, padding=padding)
-            self.conv_backward_5 = nn.Conv2d(num_keypoints, num_keypoints, kernel_size=1, stride=stride, padding=padding)
-            self.combiner = lambda x: torch.mean(x, dim=1)
+            self.conv_backward_4 = nn.Conv2d(128, 128, kernel_size=1, stride=stride, padding=padding)
+            self.conv_backward_5 = nn.Conv2d(128, num_keypoints, kernel_size=1, stride=stride, padding=padding)
         
         self.relu = nn.ReLU()
         

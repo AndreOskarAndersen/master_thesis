@@ -61,16 +61,16 @@ if __name__ == "__main__":
     
     # Making data
     batch_size = 2
-    num_frames = 100
-    num_keypoints = 16
-    frame_height = 8
-    frame_width = 8
+    num_frames = 5
+    num_keypoints = 25
+    frame_height = 50
+    frame_width = 50
     video_sequence = torch.rand(batch_size, num_frames, num_keypoints, frame_height, frame_width)
     
     # Making model
     kernel_size = 5
     stride = 1
-    baseline = Baseline(num_frames, kernel_size, stride)
+    baseline = Baseline(num_keypoints, kernel_size, stride)
     
     # Predicting
     output = baseline(video_sequence)
