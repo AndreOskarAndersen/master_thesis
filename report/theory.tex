@@ -62,12 +62,6 @@ The evaluation of a machine learning model is done by making use of an \textbf{e
 \\
 \\
 \noindent \textbf{Epoch:} Often, the optimizer needs multiple "rounds" of using the whole training data for reaching its minimum. Each of these rounds is called an \textbf{epoch}. One can pick the number of epochs to iterate through prior to training a model and just stop the training once the optimizer has used all of its epochs. Another methods is to use \textbf{early-stopping}, where one keeps track of the loss of the model on the validation-set for each epoch. Once the validation-loss has not decreased for $n$ consecutive epochs, the training is terminated.
-\\
-\\
-\noindent \textbf{Residual Connection:} bla bla bla
-\\
-\\
-\noindent \textbf{Layer Normalization:} bla bla bla
 
 \subsection{Feedforward Neural Networks}
 \textbf{Feedforward neural networks} are the most basic type of neural networks. The aim of a feedforward neural network is to approximate some function $f^*$, by defining a mapping $\bm{y} = f(\bm{x}; \bm{\theta})$ and learning the parameters $\bm{\theta}$, that results in the best approximation of $f^*$. These models are called \textbf{feedforward} because there are no \textbf{feedback} connections in which the outputs of the model are fed back into itself. Instead, information flows through the function being evaluated from $\bm{x}$, through the intermediate computations used to define $f$, and finally to the output $\bm{y}$. Feedforward neural networks generally consists of multiple \textbf{layers}, arranged in a chain structure, with each layer being a function of the layer that preceded it \cite{DL_book}. 
@@ -154,9 +148,6 @@ Let $\mathsf{X}_1, \mathsf{X}_2, ..., \mathsf{X}_t$ be a sequence of input image
 \end{align}
 For $t = 1$, both $\mathsf{H}_{t - 1}$ and $\mathsf{C}_{t - 1}$ have to be initialized \cite{conv_lstm}.
 
-\subsubsection{Gated Recurrent Unit}
-
-
 \subsection{Transformer}
 \begin{figure}[htbp]
     \centering
@@ -189,7 +180,9 @@ where the scaling of $\bm{Q}\bm{K}^T$ is done to counteract the cases with a lar
 The Transformer follow an encoder-decoder structure, where the encoder maps an input sequence $\bm{x}$ to a sequence of continuous representations $\bm{z}$. The decoder then uses $\bm{z}$ to generate an output sequence $\bm{y}$, one element at a time. At each step the model consumes the previously generated output element as additional input when generating the next output \cite{https://doi.org/10.48550/arxiv.1706.03762}. Figure \ref{fig:transformer_illustration} illustrates the overall architecture of the Transformer.
 \\
 \\
-\noindent \textbf{Encoder:} The encoder consists of $N$ identical layers, where each layer consists of two sub-layers. The first sub-layer is a multi-head \textbf{self-attention} layer, and the second sub-layer is a position-wise fully-connected feedforward network. Around each sub-layer is a \textbf{residual connection}, which is followed by a round of \textbf{layer normalization}. In this self-attention layer the keys, values and queries come from the output of the previous layer in the encoder. Each position in the encoder can attend to all positions in the previous layer of the encoder \cite{https://doi.org/10.48550/arxiv.1706.03762}.
+\noindent \textbf{Encoder:} The encoder consists of $N$ identical layers, where each layer consists of two sub-layers. The first sub-layer is a multi-head \textbf{self-attention} layer, and the second sub-layer is a position-wise fully-connected feedforward network. Around each sub-layer is a \textbf{residual connection}, where the the input of the sub-layer is added to the output of the sub-layer. This residual connection is then followed by a round of \textbf{layer normalization}, where \textbf{MANGLER!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!}
+
+In this self-attention layer the keys, values and queries come from the output of the previous layer in the encoder. Each position in the encoder can attend to all positions in the previous layer of the encoder \cite{https://doi.org/10.48550/arxiv.1706.03762}.
 \\
 \\
 \noindent \textbf{Decoder:} The decoder also consists of $N$ identical layers. In addition to the two sub-layers in each encoder layer, the decoder also consists of a third sub-layer, which performs multi-head attention over the output of the encoder stack. Also here, is residual connections used around each of the sub-layers, followed by layer normalization. To ensure, that the predicitons for position $i$ only depends on the known outputs at positions less than $i$, the self-attention sub-layer in the decoder stack is modified. This self-attention sub-layer, allows each position in the decoder to attend to all positions in the decoder up to and including that position. The self-attention sub-layer is modified by masking out all values in the input of the softmax which correspond to illegal connections \cite{https://doi.org/10.48550/arxiv.1706.03762}.
