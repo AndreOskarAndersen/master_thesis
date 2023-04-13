@@ -89,3 +89,10 @@
     1. Model:
         1. Hvilken loss-function?
         2. Hvilken evaluation metric?
+
+- 13/4:
+    1. Hvorfor har jeg haft problemer med clusteret?
+    2. Miskommunikation imellem mig og ClimbAlong?
+    3. Fejl i preprocessing?
+    4. Fjerner jeg gradient på den rigtige måde?
+    5. Skal jeg beskrive mask RCNN?
