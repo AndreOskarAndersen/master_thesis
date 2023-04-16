@@ -2,39 +2,81 @@
 
 \begin{document}
 \section{Models}
-The following section covers the theory behind the various models that will be introduced in Section \ref{sec:experiments}.
+The following section covers the architectures of the various models that will be used in Section \ref{sec:experiments} when we will be performing our experiments. 
 
-\subsection{Mask R-CNN}
+\subsection{Baseline}
 \begin{figure}[htbp]
     \centering
-    \includegraphics[height=5cm]{./entities/mask_rcnn.PNG}
-    \caption{The Mask R-CNN framework for instance segmentation \cite{https://doi.org/10.48550/arxiv.1703.06870}.}
-    \label{fig:mask_rcnn}
+    \includegraphics[width=0.8\textwidth]{./entities/baseline.pdf}
+    \caption{Illustration of the implemented baseline model.}
+    \label{fig:baseline}
 \end{figure}
-\textbf{NOTE: MANGLER NOK AT SKRIVE NOGET MED, AT INPUT ER ET BILLEDE OG LIGNENDE NOGET OM HVAD OUTPUT ER.} \\
-\noindent When we will be performing the pose estimation in Section \ref{sec:experiments}, our developed methods will be a variation of the \textit{Mask R-CNN}, introduced by He \textit{et al.} in 2018 \cite{https://doi.org/10.48550/arxiv.1703.06870}. The following subsection explains the architecture of the Mask R-CNN and is based on an interpretation of He \textit{et al.} \cite{https://doi.org/10.48550/arxiv.1703.06870} and Zhang \cite{mask_rcnn_explained}.
+
+\noindent The first model we will be using in Section \ref{sec:experiments} is a very simple baseline model based on a 3-dimensional convolution. Figure \ref{fig:baseline} illustrates the architecture of the model.
 \\
 \\
-The Mask R-CNN can generally be split into various components, which we will explain in further details in the following subsections.
-
-\subsubsection{The Backbone}
-The first major component of the Mask R-CNN is the \textit{Backbone}, which is a network used for extracting the features of the input image. Commonly, a pretrained variation of the \textit{residual network} (\textit{ResNet}) is used \cite{https://doi.org/10.48550/arxiv.1512.03385}. The backbone takes an image as input and returns a feature map.
-
-\subsubsection{Region Proposal Network (RPN)}
-The next major component of the Mask R-CNN is the \textit{Region Proposal Network} (\textit{RPN}). The RPN takes the feature map from the backbone as input, processes the feature map and proposes regions that may contain an object (the so-called \textit{Region of Interests} or \textit{RoI}) in the form of a feature map. 
+The model takes a sequence of estimated poses $\hat{\mathcal{P}} = \{\hat{\bm{P}}^t\}_{t = 1} ^T$ as input, where each estimated pose $\hat{\bm{P}}^t \in \mathbb{R}^{K \times h \times w}$ is represented using heatmaps, such that $K$ is the amount of keypoints in each estimated pose, $h$ is the height of each heatmap and $w$ is the width of each heatmap.
 \\
 \\
-The RPN works by first processing the feature map with a convolutional layer that outputs a tensor with $c$ channels, where each spacial vector (also with $c$ channels) is associated with an anchor center. For each of these anchor centers a set of anchor boxes are generated. This convolutional layer is then followed by two $1 \times 1$ convolutional layers that independently processes this tensor. One of these $1 \times 1$ convolutional layers is a binary classifier that predicts whether each anchor box has an object. This is done by mapping each $c$-channel vector to a $k$-channel vector. The other $1 \times 1$ convolutional layer is an object bounding-box regressor, which predicts the offsets between the true object bounding-box and the anchor box. This is done by makking each $c$-channel vector to a $4k$-channel vector. For the overlapping bounding-boxes of the same object, we keep the one with the highest objectness score and discard the rest.
+Once the data has been passed to the model, the processing of the data is very simple. As illustrated in Figure \ref{fig:baseline}, the starts by applying a 3-dimensional convolutional layer to the input data. The convolutional layer consists of $K$ filters, each with a kernel-size of $T \times 5 \times 5$. To ensure the output of the convolutional layer has the same output shape as the input to the convolutional layer, we pad the input with zeros.
+\\
+\\
+Once the convolutional layer has processed the data the ReLU activation-function is applied element-wise to the data, resulting in the final prediction of the model.
 
-\subsubsection{Region of Interest Alignment (RoIAlign)}
-The third major components of the Mask R-CNN is the \textit{Region of Interest Alignment} (\textit{RoIAlign}). This components takes the proposed RoIs from the previous components as input and finds where each RoI is in the feature map. This is done by extracting feature vectors from the output feature map from the RPN and transform them into a fix-sized tensor.
+\subsection{Bidirectional Convolutional LSTM}
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{./entities/bi_conv_lstm.pdf}
+    \caption{Illustration of the implemented bidirectional convolutional LSTM}
+    \label{fig:bi_conv_lstm}
+\end{figure}
 
-\subsubsection{Object Detection Branch}
-\subsubsection{Mask Generation Branch}
-
-
-\subsection{UniPose-LSTM}
+\noindent Our second model is a bidirectional convolutional LSTM, inspired by the Unipose-LSTM byArtacho and Savakis \cite{https://doi.org/10.48550/arxiv.2001.08095}. Figure \ref{fig:bi_conv_lstm} illustrates the architecture of the model.takes a sequence of estimated poses $\hat{\mathcal{P}} = \{\hat{\bm{P}}^t\}_{t = 1} ^T$ as input, where each estimated pose $\hat{\bm{P}}^t \in \mathbb{R}^{K \times h \times w}$ is represented using heatmaps. 
+\\
+\\
+The model starts by branching into two seperate branches, that processes the estimated poses in opposite sequence order. Each branch processes the estimated poses one frame at a time. This is done by first applying a convolutional LSTM to the input frame at time step $t \in \mathbb{R}$, using the preceding output of the branch as the hidden state of the convolutional LSTM. Each convolutional LSTM is followed by five 2-dimensional convolutional layers, each applying $128$ filters, except for the last convolutional layer of each branch, which aplies $K$ filters. The two first convolutional layers use a kernel size of $3 \times 3$, whereas the following two convolutional layers use a kernel size of $1 \times 1$.
+\\
+\\
+The output of the last convolutional layer of each branch splits into two sub-branches.
+The first sub-branch sends the data back into the convolutional LSTM of the same branch, whereas the second sub-branch collects the outputs of the preceding convolutional layer. The collected outputs of the two branches are then summed together element-wise.
+\\
+\\
+All convolutional layers use a stride of one and zero-padding on the input, such that the output of the convolutional layer has the same dimensions as the input to the convolutional layer.
 
 \subsection{DeciWatch}
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{./entities/deciwatch.PNG}
+    \caption{Illustration of the DeciWatch \cite{https://doi.org/10.48550/arxiv.2203.08713}}
+    \label{fig:deciwatch}
+\end{figure}
+\noindent The last model we implement is a transformer-based model named \textit{DeciWatch}, introduced by Zeng \textit{Et al.}, which is illustrated in Figure \ref{fig:deciwatch}. The model works by only processing some of the input-frames. It consists of two parts: the \textit{DenoiseNet} and the \textit{RecoverNet}. The aim of DenoiseNet is to denoise the estimated poses given as input to the model, whereas the aim of RecoverNet is to recover the poses of the missing frames. The following description of the model is based on an interpotation of the official paper behind DeciWatch \cite{https://doi.org/10.48550/arxiv.2203.08713}.
+\\
+\\
+More specifically, the model takes a sequences of estimated poses $\hat{\mathcal{P}} = \{\hat{\bm{P}}^t\}_{t = 1} ^T$ as input, where $\hat{\bm{P}}^t$ are represented by 2-dimensional keypoint position. Due to redundancy in consecutaive frames and continuity of human poses, the model starts by sampling every $n$th frame to select sparse poses $\hat{\bm{P}}^{sampled} _{noisy} \in \mathbb{R}^{\frac{T}{N} \times (2K)}$, where $K$ is the number of keypoints. These sampled poses are then passed to DenoiseNet.
+\\
+\\
+The goal of DenoiseNet is to denoise the sparse poses, that were estimated by a single-frame pose estimator. The denoise process can be formulated as
+\begin{equation}
+    \hat{\bm{F}}_{clean} ^{sampled} = \textbf{TransformerEncoder} \left( \hat{\bm{P}}_{noisy} ^{sampled} \bm{W}_{DE} + \bm{E}_{pos} \right).
+\end{equation}
+That is, $\hat{\bm{P}}_{noisy} ^{sampled}$ is first encoded through a linear projection matrix $\bm{W}_{DE} \in \mathbb{R}^{2K \times C}$ and summed with a positional embedding $\bm{E}_{pos} \in \mathbb{R}^{\frac{T}{N} \times C}$. This is then passed to a transformer-encoder consisting of $M$ multi-head Self-Attention blocks, resulting in the noisy poses being embedded into a clean feature $\hat{\bm{F}}_{clean} ^{sampled} \in \mathbb{R}^{\frac{T}{N} \times C}$, where $C$ is the embedding dimensions. Lastly, another linear projection matrix $W_{DD} \in \mathbb{R}^{C \times 2K}$ is used to obtain the denoised sparse poses
+\begin{equation}
+    \hat{\bm{P}}_{clean} ^{sampled} = \hat{F}_{clean} ^{sampled} W_{DD}.
+\end{equation}
+\\
+\\
+After the sparse poses has been denoised as $\hat{\bm{P}}_{clean} ^{sampled} \in \mathbb{R}^{\frac{T}{N} \times 2K}$, the data is passed to the RecoverNet, whose goal is to recover the absent poses. First, a linear transformation $\bm{W}_{PR} \in \mathbb{R}^{T \times \frac{T}{N}}$ is applied to perform preliminary sequence recovery to get $\hat{\bm{P}}_{clean} ^{preliminary} \in \mathbb{R}^{T \times 2K}$ by
+\begin{equation}
+    \hat{\bm{P}}_{clean} ^{preliminary} = \bm{W}_{PR} \hat{\bm{P}}_{clean} ^{sampled}.
+\end{equation}
+To improve the recovery of the absent poses a transformer-decoder and positional embedding is used together with a 1D convolutional layer to bring tempoeral semantics into pose encoding to encode the neighboring $D$ frames' poses into pose tokens. Thus, RecoverNet, and the final prediction of DeciWatch, can be summarized by
+\begin{equation}
+    \hat{\bm{P}} = \textbf{TransformerDecoder}\left(Conv1d \left( \hat{\bm{P}}_{clean} ^{preliminary} \right) + \bm{E}_pos, \hat{\bm{F}}_{clean} ^{sampled} \right)\bm{W}_{RD} + \hat{\bm{P}}_{clean} ^{preliminary}
+\end{equation}
+where $\bm{W}_{RD} \in \mathbb{R}^{C \times 2K}$ is another linear transformation layer. Further, as illustrated by Figure \ref{fig:deciwatch}, key information is drawn in the the Cross-Attention block by leveraging the denoised features $\hat{\bm{F}}_{clean} ^{sampled}$.
+\\
+\\
+To avoid overfitting, dropout is applied to the input of each sub-layer and sums of the embeddings of the transformer-encoder and transformer-decoder, as well as to the positional encodings.
 
 \end{document}
