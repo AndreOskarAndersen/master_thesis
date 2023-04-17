@@ -16,7 +16,7 @@ def main():
     pass
 
 if __name__ == "__main__":
-    model_names = ["unipose_1680879216.6796181"]
+    model_names = ["deciwatch_1680553717.2709744"]
     
     model_name = model_names[int(sys.argv[1])]
     model_dir = overall_models_dir + model_name + "/"
@@ -48,8 +48,10 @@ if __name__ == "__main__":
     # Loading model
     models_dict = {"baseline": Baseline, "unipose": Unipose, "deciwatch": DeciWatch, "lstm": LSTM}
     model_type = model_name.split("_")[0]
-    model = models_dict[model_type](**config["model_params"]).to(device)
-    model.load_state_dict(torch.load(epoch_dir + "model.pth"))
+    model = models_dict[model_type](**config["model_params"])
+    model.load_state_dict(torch.load(epoch_dir + "model.pth", map_location=torch.device("cpu")))
+    model = model.to(device)
+    print("Model is on gpu?", next(model.parameters()).is_cuda)
 
     # Loading optimizer
     optimizer = torch.load(epoch_dir + "optimizer.pth")

@@ -23,13 +23,15 @@ eval_ratio = 0.4
 keypoints_dim = 2
 num_keypoints = 25
 num_workers = 2
+interval_skip = 1
 data_params = {
     "window_size": window_size,
     "batch_size": batch_size,
     "eval_ratio": eval_ratio,
     "keypoints_dim": keypoints_dim,
     "num_keypoints": num_keypoints,
-    "num_workers": num_workers
+    "num_workers": num_workers,
+    "interval_skip": interval_skip
 }
 
 # Baseline parameters
