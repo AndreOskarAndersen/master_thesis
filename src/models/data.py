@@ -7,7 +7,7 @@ from torch.utils.data.sampler import SubsetRandomSampler
 from typing import Tuple, List
 
 class _KeypointsDataset(Dataset):
-    def __init__(self, dir_path: str, window_size: int, heatmap_shape: Tuple[int, int, int]):
+    def __init__(self, dir_path: str, window_size: int, heatmap_shape: Tuple[int, int, int], interval_skip: int = 0):
         """
         Keypoints dataset
         
@@ -22,6 +22,9 @@ class _KeypointsDataset(Dataset):
             
         heatmap_shape : Tuple[int, int, int]
             Shape of a single heatmap
+            
+        interval_skip : int
+            Number of frames to skip when loading the data
         """
         
         # Path to input directory
@@ -32,6 +35,9 @@ class _KeypointsDataset(Dataset):
         
         # Amount of frames to load at a time
         self.window_size = window_size
+        
+        # Number of frames to skip when loading the data
+        self.interval_skip = interval_skip + 1
         
         # Mapping from index to sample
         self.mapper = self._get_mapper()
@@ -68,12 +74,12 @@ class _KeypointsDataset(Dataset):
                 lower_interval = 0
                 
             # Number of samples for this clip
-            num_samples = len(frames) - self.window_size + 1
+            num_samples = len(frames) - self.interval_skip * self.window_size + self.interval_skip
             
             # Saving each sample in the mapper
             # with its corresponding index
             for sample in range(num_samples):
-                mapper[len(mapper)] = [clip_name + "/" + str(lower_interval + sample + window_ele) + ".pt" for window_ele in range(self.window_size)]
+                mapper[len(mapper)] = [clip_name + "/" + str(lower_interval + sample + window_ele) + ".pt" for window_ele in range(0, self.window_size, self.interval_skip)]
                 
         return mapper         
     
