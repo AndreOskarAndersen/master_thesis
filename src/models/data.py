@@ -139,7 +139,8 @@ def get_dataloaders(dir_path: str,
                     batch_size: int, 
                     eval_ratio: float, 
                     heatmap_shape: Tuple[int, int, int] = (25, 50, 50), 
-                    num_workers: int = 0
+                    num_workers: int = 0,
+                    interval_skip: int = 0
                     ):
     """
     Function for getting train-, validation- and test-dataloader.
@@ -174,9 +175,12 @@ def get_dataloaders(dir_path: str,
         
     test_loader : DataLoader
         Test-dataloader
+        
+    interval_skip : int
+        Number of frames to skip when loading the data
     """
     
-    total_dataset = _KeypointsDataset(dir_path, window_size, heatmap_shape)
+    total_dataset = _KeypointsDataset(dir_path, window_size, heatmap_shape, interval_skip)
     
     dataset_len = len(total_dataset)
     indices = list(range(dataset_len))
