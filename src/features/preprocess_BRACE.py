@@ -165,7 +165,7 @@ def _preprocess_keypoints(video_annotations : Dict[str, Tuple[List[float]]], blu
     
     if keypoints.sum().item() == 0:
         # If the frame does not contain any keypoints
-        return torch.zeros(NUM_KEYPOINTS, TARGET_HEIGHT, TARGET_WIDTH).bool(), torch.zeros(NUM_KEYPOINTS, TARGET_HEIGHT, TARGET_WIDTH).bool()
+        return torch.zeros(NUM_KEYPOINTS, TARGET_HEIGHT, TARGET_WIDTH), torch.zeros(NUM_KEYPOINTS, TARGET_HEIGHT, TARGET_WIDTH), torch.zeros(NUM_KEYPOINTS, TARGET_HEIGHT, TARGET_WIDTH)
     
     # Making bbox a square, by expanding the shortest side
     x_min, y_min, x_max, y_max = bbox

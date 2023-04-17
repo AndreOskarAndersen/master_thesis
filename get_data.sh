@@ -13,10 +13,6 @@ source ./venv/activate
 /home/wpr684/master_thesis/venv/bin/python3 -m pip --no-cache-dir install --upgrade pip
 /home/wpr684/master_thesis/venv/bin/python3 -m pip --no-cache-dir install -r requirements.txt
 
-# Downloading data
-cd ./src/data
-python3 -m make_dataset
-
 # Preparing data
-cd ../features
+cd ./src/features
 python3 -m build_features
