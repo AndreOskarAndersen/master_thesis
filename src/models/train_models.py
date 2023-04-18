@@ -108,6 +108,6 @@ if __name__ == "__main__":
         model_setups = {model_types[int(sys.argv[1])]: model_setups[int(sys.argv[1])]}
     
     # Getting dataloaders
-    dataloaders = get_dataloaders(overall_data_dir, window_size, batch_size, eval_ratio, num_workers=num_workers, interval_skip=interval_skip)
+    dataloaders = get_dataloaders(overall_data_dir, window_size, batch_size, eval_ratio, num_workers=num_workers, interval_skip=interval_skip, input_name=input_name)
     
     main(overall_models_dir, dataloaders, model_setups, device)

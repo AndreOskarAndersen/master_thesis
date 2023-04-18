@@ -24,6 +24,7 @@ keypoints_dim = 2
 num_keypoints = 25
 num_workers = 2
 interval_skip = 1
+input_name = "input"
 data_params = {
     "window_size": window_size,
     "batch_size": batch_size,
@@ -31,7 +32,8 @@ data_params = {
     "keypoints_dim": keypoints_dim,
     "num_keypoints": num_keypoints,
     "num_workers": num_workers,
-    "interval_skip": interval_skip
+    "interval_skip": interval_skip,
+    "input_name": input_name
 }
 
 # Baseline parameters

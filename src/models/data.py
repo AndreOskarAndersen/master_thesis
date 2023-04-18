@@ -7,7 +7,7 @@ from torch.utils.data.sampler import SubsetRandomSampler
 from typing import Tuple, List
 
 class _KeypointsDataset(Dataset):
-    def __init__(self, dir_path: str, window_size: int, heatmap_shape: Tuple[int, int, int], interval_skip: int = 0):
+    def __init__(self, dir_path: str, window_size: int, heatmap_shape: Tuple[int, int, int], interval_skip: int = 0, input_name: str = "input"):
         """
         Keypoints dataset
         
@@ -28,7 +28,7 @@ class _KeypointsDataset(Dataset):
         """
         
         # Path to input directory
-        self.input_dir = dir_path + "input/"
+        self.input_dir = dir_path + input_name + "/"
         
         # Path to target directory
         self.target_dir = dir_path + "target/"
@@ -140,7 +140,8 @@ def get_dataloaders(dir_path: str,
                     eval_ratio: float, 
                     heatmap_shape: Tuple[int, int, int] = (25, 50, 50), 
                     num_workers: int = 0,
-                    interval_skip: int = 0
+                    interval_skip: int = 0,
+                    input_name: str = "input"
                     ):
     """
     Function for getting train-, validation- and test-dataloader.
@@ -180,7 +181,7 @@ def get_dataloaders(dir_path: str,
         Number of frames to skip when loading the data
     """
     
-    total_dataset = _KeypointsDataset(dir_path, window_size, heatmap_shape, interval_skip)
+    total_dataset = _KeypointsDataset(dir_path, window_size, heatmap_shape, interval_skip, input_name)
     
     dataset_len = len(total_dataset)
     indices = list(range(dataset_len))
