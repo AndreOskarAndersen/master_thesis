@@ -8,10 +8,12 @@ The following section covers the most important background theory for the experi
 \textbf{Feedforward neural networks} are the most basic type of neural networks. The aim of a feedforward neural network is to approximate some function $f^*$, by defining a mapping $\bm{y} = f(\bm{x}; \bm{\theta})$ and learning the parameters $\bm{\theta}$, that results in the best approximation of $f^*$. These models are called \textbf{feedforward} because there are no \textbf{feedback} connections in which the outputs of the model are fed back into itself. Instead, information flows through the function being evaluated from $\bm{x}$, through the intermediate computations used to define $f$, and finally to the output $\bm{y}$. Feedforward neural networks generally consists of multiple \textbf{layers}, arranged in a chain structure, with each layer being a function of the layer that preceded it \cite{DL_book}. 
 
 \subsubsection{Fully-connected Layers}
-The most simple type of layer found in a feeforward neural network is the \textbf{fully-connected layer}. The fully-connected layer usually consists of some learnable parameter matrix and learnable parameter vector, as well as a \textbf{activation function}, which is a non-linear function, that makes it possible for the network to model non-linearity. Three of the most common activation functions are the \textbf{Rectified Linear Unit (ReLU)}, \textbf{Sigmoid} and \textbf{Hyperbolic Tangent (Tanh)} activation functions, defined by
-\begin{equation}
-    \text{ReLU}(x) = \max\{0, x\}, \quad \text{Sigmoid}(x) = \sigma(x) = \frac{1}{1 + exp(x)}, \quad \text{tanh}(x) = \frac{\exp(x) - \exp(-x)}{\exp(x) + \exp(-x)}.
-\end{equation}
+The most simple type of layer found in a feeforward neural network is the \textbf{fully-connected layer}. The fully-connected layer usually consists of some learnable parameter matrix and learnable parameter vector, as well as a \textbf{activation function}, which is a non-linear function, that makes it possible for the network to model non-linearity. Three of the most common activation functions are the \textbf{Rectified Linear Unit (ReLU)}, \textbf{Sigmoid} and \textbf{Hyperbolic Tangent (Tanh)} activation functions, defined as
+\begin{align}
+    &\text{ReLU}(x) = \max\{0, x\} \\ 
+    &\text{Sigmoid}(x) = \sigma(x) = \frac{1}{1 + exp(x)} \\ 
+    &\text{tanh}(x) = \frac{\exp(x) - \exp(-x)}{\exp(x) + \exp(-x)}
+\end{align}
 Given the learnable parameter matrix $\bm{W}$, learnable parameter vector $\bm{b}$ and activation function $g$, the $i$'th fully-connected layer is defined as
 \begin{equation}
     \bm{h}^{(i)} =
