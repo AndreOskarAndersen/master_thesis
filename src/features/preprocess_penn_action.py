@@ -136,11 +136,11 @@ def _preprocess_keypoints(label: Dict, blurr_sigma: float):
             j = translate(j)            
             
             # Randomly shifting input keypoints
-            keypoint = np.clip(keypoint + shift, [0, 0], [TARGET_WIDTH - 1, TARGET_HEIGHT - 1])
+            shifted_keypoint = np.clip(keypoint + shift, [0, 0], [TARGET_WIDTH - 1, TARGET_HEIGHT - 1])
             
             # Making heatmap from keypoint
-            input_heatmap = turn_keypoint_to_featuremap(keypoint, (TARGET_HEIGHT, TARGET_WIDTH))
-            input_heatmap_mixed_std = turn_keypoint_to_featuremap(keypoint, (TARGET_HEIGHT, TARGET_WIDTH), blurr_sigma=blurr_sigma)
+            input_heatmap = turn_keypoint_to_featuremap(shifted_keypoint, (TARGET_HEIGHT, TARGET_WIDTH))
+            input_heatmap_mixed_std = turn_keypoint_to_featuremap(shifted_keypoint, (TARGET_HEIGHT, TARGET_WIDTH), blurr_sigma=blurr_sigma)
             output_heatmap = turn_keypoint_to_featuremap(keypoint, (TARGET_HEIGHT, TARGET_WIDTH))
             
             # Inserting data
@@ -161,7 +161,7 @@ def preprocess():
     sigmas = np.random.choice(GAUSSIAN_STDS, size=len(samples))
     
     # Looping through each video
-    for i, video_id in tqdm(enumerate(samples), desc="Processing videos", disable=False, total=len(samples)):
+    for i, video_id in tqdm(enumerate(samples), desc="Processing videos", disable=True, total=len(samples)):
         
         # Removing file type
         video_id = video_id[:-4]
@@ -206,7 +206,9 @@ def preprocess():
             torch.save(input_heatmaps, input_heatmaps_storing_path)
             torch.save(input_heatmaps_mixed_std, input_heatmaps_mixed_std_storing_path)
             torch.save(output_heatmaps, output_heatmaps_storing_path)
-        
+            
+        if i == 20:
+            exit(1)
         
 if __name__ == "__main__":
     preprocess()

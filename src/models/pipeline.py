@@ -218,7 +218,7 @@ def train(model: nn.Module,
             print("====================")
             break
         
-    test_acc, test_loss = evaluate(model, test_dataloader, criterion, device, data_transformer)
+    test_loss, test_acc = evaluate(model, test_dataloader, criterion, device, data_transformer)
     print(f"\n\n {model} stopped training after {epoch + 1} epochs. Testing accuray: {test_acc}, testing loss: {test_loss}\n\n")
 
 def evaluate(model: nn.Module,
