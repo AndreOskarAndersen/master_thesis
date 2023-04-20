@@ -103,7 +103,7 @@ def _preprocess_keypoints(label: Dict, blurr_sigma: float):
     keypoints = np.round(keypoints).astype(int)
     
     # Flipping the keypoints horizontally
-    keypoints[:, :, 1] = TARGET_HEIGHT - 1 - keypoints[:, :, 1]
+    #keypoints[:, :, 1] = TARGET_HEIGHT - 1 - keypoints[:, :, 1]
     
     # Function for translating keypoints for translating
     # Penn action keypoint-index to ClimbAlong keypoint-index
@@ -206,9 +206,6 @@ def preprocess():
             torch.save(input_heatmaps, input_heatmaps_storing_path)
             torch.save(input_heatmaps_mixed_std, input_heatmaps_mixed_std_storing_path)
             torch.save(output_heatmaps, output_heatmaps_storing_path)
-            
-        if i == 20:
-            exit(1)
         
 if __name__ == "__main__":
     preprocess()

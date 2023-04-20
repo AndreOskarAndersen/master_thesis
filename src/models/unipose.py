@@ -284,7 +284,7 @@ class Unipose(nn.Module):
         assert len(p_noisy.shape) == 4, f"p_noisy should have 4 dimensions, yours have {len(p_noisy.shape)}."
         assert direction in ["forward", "backward"], f"direction should be either 'forward' or 'backward'. You have given {direction}"
         
-        if direction=="forward":
+        if direction == "forward":
             # Forward pass
             state = self.rnn_forward(p_noisy, prev_state)
             
@@ -336,7 +336,7 @@ class Unipose(nn.Module):
         res = torch.zeros(video_sequence.shape).to(self.device)
         
         # The range for loading data
-        frame_range = range(video_sequence.shape[1]) if direction=="forward" else reversed(range(video_sequence.shape[1]))
+        frame_range = range(video_sequence.shape[1]) if direction == "forward" else reversed(range(video_sequence.shape[1]))
         
         # Looping through the frames (in either direction)
         for i in frame_range:

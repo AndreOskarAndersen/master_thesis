@@ -4,7 +4,7 @@ import torch.nn as nn
 import pickle
 from torch.utils.data import DataLoader
 from tqdm.auto import tqdm
-from utils import compute_PCK, make_dir, modify_target
+from utils import compute_PCK, make_dir, modify_target, unmodify_target
 from typing import Callable
 from torch.cuda.amp import GradScaler
 
@@ -171,9 +171,6 @@ def train(model: nn.Module,
             # Store train loss
             train_losses[-1] += loss.item()
             
-            del x
-            del y
-            
         # Averaging the training stats
         train_losses[-1] /= len(train_dataloader)
         
@@ -276,20 +273,16 @@ def evaluate(model: nn.Module,
             pred = model(y)
             y = modify_target(pred, y, is_pa, type(model))
             
-            # Computing PCK of the current iteration
-            PCK = compute_PCK(y, pred)
-            if PCK != -1:
-                PCKs.append(PCK)
-                
-                if PCK > 1.0:
-                    print(i, PCK)
-            
             # Computing loss of the current iteration
             losses[i] = criterion(pred, y).item()
             
-            del x
-            del y
-    
+            y = unmodify_target(pred, y, is_pa, type(model))
+
+            # Computing PCK of the current iteration
+            PCK = compute_PCK(y, pred)
+            if PCK != -1:
+                PCKs.append(PCK) 
+
     # Computing mean PCK and loss
     losses_mean = np.mean(losses) 
     PCK_mean = np.mean(PCKs)

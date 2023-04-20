@@ -210,8 +210,8 @@ def _preprocess_keypoints(video_annotations : Dict[str, Tuple[List[float]]], blu
     keypoints = torch.round(keypoints).int()
     
     # Flipping the keypoints horizontally
-    keypoints[:, 1] = TARGET_HEIGHT - 1 - keypoints[:, 1]
-    
+    # keypoints[:, 1] = TARGET_HEIGHT - 1 - keypoints[:, 1]
+
     # Tensor for storing input heatmaps
     processed_input_heatmaps = torch.zeros(NUM_KEYPOINTS, TARGET_HEIGHT, TARGET_WIDTH)
     
