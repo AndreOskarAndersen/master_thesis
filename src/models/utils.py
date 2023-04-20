@@ -77,35 +77,42 @@ def heatmaps2coordinates(featuremaps: Union[np.array, torch.Tensor]):
 
 def compute_PCK(gt_keypoints, pred_keypoints):
     
-    if len(gt_keypoints.shape) != 3:
-        gt_keypoints = heatmaps2coordinates(gt_keypoints)
+    if len(all_gt_keypoints.shape) != 3:
+        all_gt_keypoints = heatmaps2coordinates(all_gt_keypoints)
         
-    if len(pred_keypoints.shape) != 3:
-        pred_keypoints = heatmaps2coordinates(pred_keypoints)
+    if len(all_pred_keypoints.shape) != 3:
+        all_pred_keypoints = heatmaps2coordinates(all_pred_keypoints)
+        
+    bools = []
+        
+    for batch in range(all_pred_keypoints.shape[0]):
+        for frame in range(all_pred_keypoints.shape[1]):
+            gt_keypoints = all_gt_keypoints[batch, frame]
+            pred_keypoints = all_pred_keypoints[batch, frame]
     
-    # Reshaping to 2d-coodinates
-    gt_keypoints = gt_keypoints.reshape((-1, 2))
-    pred_keypoints = pred_keypoints.reshape((-1, 2))
-    
-    # Getting the torso diameter
-    torso_diameter = get_torso_diameter(gt_keypoints)
-    
-    # Removing unannotated rows
-    pred_keypoints = pred_keypoints[gt_keypoints.any(axis=1)]
-    gt_keypoints = gt_keypoints[gt_keypoints.any(axis=1)]
-    
-    if len(gt_keypoints) == 0:
-        return -1
-    
-    # Computing the distance between the groundtruthh keypoints
-    # and the predicted keypoints
-    dist = np.linalg.norm(gt_keypoints - pred_keypoints, axis=1)
-    
-    # Checking whether the distances are shorter than the torso diameter
-    dist = dist <= torso_diameter
-    
+            # Reshaping to 2d-coodinates
+            gt_keypoints = gt_keypoints.reshape((-1, 2))
+            pred_keypoints = pred_keypoints.reshape((-1, 2))
+            
+            # Getting the torso diameter
+            torso_diameter = get_torso_diameter(gt_keypoints)
+            
+            # Removing unannotated rows
+            pred_keypoints = pred_keypoints[gt_keypoints.any(axis=1)]
+            gt_keypoints = gt_keypoints[gt_keypoints.any(axis=1)]
+            
+            # Computing the distance between the groundtruthh keypoints
+            # and the predicted keypoints
+            dist = np.linalg.norm(gt_keypoints - pred_keypoints, axis=1)
+            
+            # Checking whether the distances are shorter than the torso diameter
+            dist = dist <= torso_diameter
+            
+            # Storing results of this batch-frame
+            bools.append(dist)
+        
     # Returning the ratio of correctly predicted keypoints
-    return np.mean(dist)
+    return np.mean(bools)
 
 def modify_target(pred, target, is_pa, model_type):
     if model_type == Baseline or model_type == Unipose:

@@ -161,7 +161,7 @@ def preprocess():
     sigmas = np.random.choice(GAUSSIAN_STDS, size=len(samples))
     
     # Looping through each video
-    for i, video_id in tqdm(enumerate(samples), desc="Processing videos", disable=True, total=len(samples)):
+    for i, video_id in tqdm(enumerate(samples), desc="Processing videos", disable=False, total=len(samples)):
         
         # Removing file type
         video_id = video_id[:-4]
