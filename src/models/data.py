@@ -7,7 +7,7 @@ from torch.utils.data.sampler import SubsetRandomSampler
 from typing import Tuple, List
 
 class _KeypointsDataset(Dataset):
-    def __init__(self, dir_path: str, window_size: int, heatmap_shape: Tuple[int, int, int], interval_skip: int = 0, input_name: str = "input"):
+    def __init__(self, dir_path: str, window_size: int, heatmap_shape: Tuple[int, int, int], interval_skip: int = 0, input_name: str = "input", upper_range: int = 1):
         """
         Keypoints dataset
         
@@ -26,6 +26,9 @@ class _KeypointsDataset(Dataset):
         interval_skip : int
             Number of frames to skip when loading the data
         """
+        
+        # Upper range of the data
+        self.upper_range = upper_range
         
         # Path to input directory
         self.input_dir = dir_path + input_name + "/"
@@ -129,8 +132,8 @@ class _KeypointsDataset(Dataset):
         target_samples = torch.zeros((self.window_size, *self.heatmap_shape), dtype=float)
         
         for j, sample_name in enumerate(sample_names):
-            input_samples[j] = torch.load(self.input_dir + sample_name)
-            target_samples[j] = torch.load(self.target_dir + sample_name)
+            input_samples[j] = torch.load(self.input_dir + sample_name) * self.upper_range
+            target_samples[j] = torch.load(self.target_dir + sample_name) * self.upper_range
 
         return input_samples, target_samples, is_PA
                 
@@ -141,7 +144,8 @@ def get_dataloaders(dir_path: str,
                     heatmap_shape: Tuple[int, int, int] = (25, 50, 50), 
                     num_workers: int = 0,
                     interval_skip: int = 0,
-                    input_name: str = "input"
+                    input_name: str = "input",
+                    upper_range: int = 0
                     ):
     """
     Function for getting train-, validation- and test-dataloader.
@@ -181,7 +185,7 @@ def get_dataloaders(dir_path: str,
         Number of frames to skip when loading the data
     """
     
-    total_dataset = _KeypointsDataset(dir_path, window_size, heatmap_shape, interval_skip, input_name)
+    total_dataset = _KeypointsDataset(dir_path, window_size, heatmap_shape, interval_skip, input_name, upper_range)
     
     dataset_len = len(total_dataset)
     indices = list(range(dataset_len))

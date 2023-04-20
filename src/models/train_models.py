@@ -1,6 +1,5 @@
 import sys
 import torch
-import torch.nn as nn
 import torch.optim as optim
 import json
 from time import time
@@ -8,9 +7,6 @@ from data import get_dataloaders
 from pipeline import train
 from baseline import Baseline
 from deciwatch import DeciWatch
-from lstm import LSTM
-from transformer import Transformer
-from test import DeciWatch as DeciWatch2
 from unipose import Unipose
 from utils import make_dir, heatmaps2coordinates
 from config import *
@@ -33,7 +29,7 @@ def main(overall_models_dir: str, dataloaders, all_setups, device):
     train_dataloader, eval_dataloader, test_dataloader = dataloaders
     
     # Dictionary of model classes
-    models_dict = {"baseline": Baseline, "unipose": Unipose, "deciwatch": DeciWatch, "lstm": LSTM, "transformer": Transformer, "deciwatch2": DeciWatch2}
+    models_dict = {"baseline": Baseline, "unipose": Unipose, "deciwatch": DeciWatch}
     
     # Dictionary of data transformers to apply
     data_transforms = {"baseline": lambda x: x, "unipose": lambda x: x, "deciwatch": lambda x: heatmaps2coordinates(x.cpu()).to(device), "lstm": lambda x: heatmaps2coordinates(x.cpu()).to(device), "transformer": lambda x: heatmaps2coordinates(x.cpu()).to(device), "deciwatch2": lambda x: heatmaps2coordinates(x.cpu()).to(device)}
@@ -88,26 +84,21 @@ if __name__ == "__main__":
     
     unipose_params["device"] = device
     deciwatch_params["device"] = device
-    transformer_params["device"] = device
-    deciwatch2_params["device"] = device
     
     # Collecting model params
-    model_types = ["baseline", "unipose", "deciwatch", "lstm", "deciwatch_2"]
-    model_setups = [baseline_setups, unipose_setups, deciwatch_setups, lstm_setups]
+    model_types = ["baseline", "unipose", "deciwatch"]
+    model_setups = [baseline_setups, unipose_setups, deciwatch_setups]
     
     if len(sys.argv) == 1:
         model_setups = {
             "baseline": baseline_setups,
             "unipose": unipose_setups,
-            "deciwatch": deciwatch_setups,
-            "lstm": lstm_setups,
-            "transformer": transformer_setups,
-            "deciwatch2": deciwatch2_setups
+            "deciwatch": deciwatch_setups
         }
     else:
         model_setups = {model_types[int(sys.argv[1])]: model_setups[int(sys.argv[1])]}
     
     # Getting dataloaders
-    dataloaders = get_dataloaders(overall_data_dir, window_size, batch_size, eval_ratio, num_workers=num_workers, interval_skip=interval_skip, input_name=input_name)
+    dataloaders = get_dataloaders(**data_params)
     
     main(overall_models_dir, dataloaders, model_setups, device)
