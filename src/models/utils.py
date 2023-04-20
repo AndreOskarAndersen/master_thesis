@@ -101,6 +101,9 @@ def compute_PCK(gt_keypoints, pred_keypoints):
             pred_keypoints = pred_keypoints[gt_keypoints.any(axis=1)]
             gt_keypoints = gt_keypoints[gt_keypoints.any(axis=1)]
             
+            if len(gt_keypoints) == 0:
+                continue
+            
             # Computing the distance between the groundtruthh keypoints
             # and the predicted keypoints
             dist = np.linalg.norm(gt_keypoints - pred_keypoints, axis=1)
@@ -112,7 +115,7 @@ def compute_PCK(gt_keypoints, pred_keypoints):
             bools.append(dist)
         
     # Returning the ratio of correctly predicted keypoints
-    return np.mean(bools)
+    return -1 if len(bools) == 0 else np.mean(bools)
 
 def modify_target(pred, target, is_pa, model_type):
     if model_type == Baseline or model_type == Unipose:
