@@ -60,13 +60,12 @@ def main(overall_models_dir: str, training_path, model_name, dataloaders, model,
 if __name__ == "__main__":
     """
     Args:
-    1) Model: {0: baseline, 1: Unipose, 2: DeciWatch}
-    2) Variate input std: {0: False, 1: True}
-    3) Input max-range: {0: 1, 1: 255}
-    4) Reduce fps: {0: False, 1: True} 
+    1) Variate input std: {0: False, 1: True}
+    2) Input max-range: {0: 1, 1: 255}
+    3) Reduce fps: {0: False, 1: True} 
     """
     
-    args = {0: [1, 1, 1, 0], 1: [1, 1, 1, 1], 2: [1, 0, 1, 0]}
+    args = {0: [1, 1, 0], 1: [1, 1, 1], 2: [0, 1, 0]}
     args = args[int(sys.argv[1])]
     
     # Device to use
