@@ -33,8 +33,7 @@ data_params = {
     "window_size": window_size,
     "batch_size": batch_size,
     "eval_ratio": eval_ratio,
-    "num_workers": num_workers,
-    "interval_skip": interval_skip
+    "num_workers": num_workers
 }
 
 # Baseline parameters
