@@ -145,7 +145,7 @@ def get_dataloaders(dir_path: str,
                     num_workers: int = 0,
                     interval_skip: int = 0,
                     input_name: str = "input",
-                    upper_range: int = 0
+                    upper_range: int = 1
                     ):
     """
     Function for getting train-, validation- and test-dataloader.

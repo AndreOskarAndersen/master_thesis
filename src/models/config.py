@@ -29,17 +29,13 @@ keypoints_dim = 2
 num_keypoints = 25
 num_workers = 2
 interval_skip = 1
-input_name = "input"
-upper_range = 1
 data_params = {
     "dir_path": overall_data_dir,
     "window_size": window_size,
     "batch_size": batch_size,
     "eval_ratio": eval_ratio,
     "num_workers": num_workers,
-    "interval_skip": interval_skip,
-    "input_name": input_name,
-    "upper_range": upper_range
+    "interval_skip": interval_skip
 }
 
 # Baseline parameters
@@ -49,8 +45,6 @@ baseline_params = {
     "stride": 1
 } 
 
-baseline_setups = [baseline_params]
-
 # Unipose parameters
 unipose_params = {
     "rnn_type": "lstm",
@@ -58,8 +52,6 @@ unipose_params = {
     "num_keypoints": num_keypoints,
     "frame_shape": (num_keypoints, 50, 50)
 }
-
-unipose_setups = [unipose_params]
 
 # Deciwatch parameters
 deciwatch_params = {
@@ -74,5 +66,3 @@ deciwatch_params = {
     "num_frames": window_size,
     "batch_size": batch_size
 }
-
-deciwatch_setups = [deciwatch_params]

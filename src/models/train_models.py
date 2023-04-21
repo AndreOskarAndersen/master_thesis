@@ -20,7 +20,7 @@ def save_config(model_params, training_path):
     with open(training_path + "config.json", "w") as f:
         json.dump(config, f, indent=4)
 
-def main(overall_models_dir: str, dataloaders, all_setups, device):
+def main(overall_models_dir: str, training_path, model_name, dataloaders, model, device):
 
     # Making folder for storing training data
     make_dir(overall_models_dir)
@@ -28,55 +28,43 @@ def main(overall_models_dir: str, dataloaders, all_setups, device):
     # Extracting dataloaders
     train_dataloader, eval_dataloader, test_dataloader = dataloaders
     
-    # Dictionary of model classes
-    models_dict = {"baseline": Baseline, "unipose": Unipose, "deciwatch": DeciWatch}
-    
     # Dictionary of data transformers to apply
     data_transforms = {"baseline": lambda x: x, "unipose": lambda x: x, "deciwatch": lambda x: heatmaps2coordinates(x.cpu()).to(device), "lstm": lambda x: heatmaps2coordinates(x.cpu()).to(device), "transformer": lambda x: heatmaps2coordinates(x.cpu()).to(device), "deciwatch2": lambda x: heatmaps2coordinates(x.cpu()).to(device)}
+            
+    # Creating various objects
+    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=scheduler_reduce_factor, patience=scheduler_patience)
+    criterion = torch.nn.MSELoss()
     
-    # Looping through each model-type
-    for model_name, model_setups in all_setups.items():
-        
-        # Looping through the setup of the current model-type
-        for model_setup in model_setups:
-        
-            # Initializing model
-            model = models_dict[model_name](**model_setup).to(device)
-            
-            # Creating various objects
-            optimizer = optim.Adam(model.parameters(), lr=learning_rate)
-            scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=scheduler_reduce_factor, patience=scheduler_patience)
-            criterion = torch.nn.MSELoss()
-            
-            # Getting data transformer
-            data_transformer = data_transforms[model_name]
-            
-            # Making folder for training details
-            training_path = overall_models_dir + model_name + "_" + str(time()) + "/"
-            make_dir(training_path)
-            
-            # Saving documentation about training parameters
-            save_config(model_setup, training_path)
-            
-            # Training the model
-            train(
-                model,
-                train_dataloader,
-                eval_dataloader,
-                test_dataloader,
-                criterion,
-                optimizer,
-                max_epochs,
-                device,
-                early_stopping_patience,
-                min_delta,
-                training_path,
-                disable_tqdm,
-                scheduler=scheduler,
-                data_transformer=data_transformer
-            )
+    # Getting data transformer
+    data_transformer = data_transforms[model_name]
+    
+    # Training the model
+    train(
+        model,
+        train_dataloader,
+        eval_dataloader,
+        test_dataloader,
+        criterion,
+        optimizer,
+        max_epochs,
+        device,
+        early_stopping_patience,
+        min_delta,
+        training_path,
+        disable_tqdm,
+        scheduler=scheduler,
+        data_transformer=data_transformer
+    )
 
 if __name__ == "__main__":
+    """
+    Args:
+    1) Model: {0: baseline, 1: Unipose, 2: DeciWatch}
+    2) Variate input std: {0: False, 1: True}
+    3) Input max-range: {0: 1, 1: 255}
+    4) Reduce fps: {0: False, 1: True} 
+    """
     
     # Device to use
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -86,19 +74,27 @@ if __name__ == "__main__":
     deciwatch_params["device"] = device
     
     # Collecting model params
-    model_types = ["baseline", "unipose", "deciwatch"]
-    model_setups = [baseline_setups, unipose_setups, deciwatch_setups]
+    model_types = [Baseline, Unipose, DeciWatch][int(sys.argv[1])]
+    model_params = [baseline_params, unipose_params, deciwatch_params][int(sys.argv[1])]
+    model = model_types(**model_params).to(device)
     
-    if len(sys.argv) == 1:
-        model_setups = {
-            "baseline": baseline_setups,
-            "unipose": unipose_setups,
-            "deciwatch": deciwatch_setups
-        }
-    else:
-        model_setups = {model_types[int(sys.argv[1])]: model_setups[int(sys.argv[1])]}
+    # Getting name of model type
+    models_dict = {Baseline: "baseline", Unipose: "unipose", DeciWatch: "deciwatch"}
+    model_name = models_dict[model]
     
-    # Getting dataloaders
+    # Making folder for training details
+    training_path = overall_models_dir + model_name + "_" + str(time()) + "/"
+    make_dir(training_path)
+    
+    # Configurating data
+    input_max_range = {0: 1, 1: 255}
+    data_params["input_name"] = "input" if int(sys.argv[2]) else "input_std"
+    data_params["upper_range"] = input_max_range[int(sys.argv[3])]
+    data_params["interval_skip"] = int(sys.argv[4])
+    
     dataloaders = get_dataloaders(**data_params)
     
-    main(overall_models_dir, dataloaders, model_setups, device)
+    # Saving documentation about training parameters
+    save_config(model_params, training_path)
+    
+    main(overall_models_dir, training_path, model_name, dataloaders, model, device)
