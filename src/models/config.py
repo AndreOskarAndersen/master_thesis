@@ -28,7 +28,6 @@ eval_ratio = 0.4
 keypoints_dim = 2
 num_keypoints = 25
 num_workers = 2
-interval_skip = 1
 data_params = {
     "dir_path": overall_data_dir,
     "window_size": window_size,

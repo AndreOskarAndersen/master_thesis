@@ -80,7 +80,7 @@ if __name__ == "__main__":
     
     # Getting name of model type
     models_dict = {Baseline: "baseline", Unipose: "unipose", DeciWatch: "deciwatch"}
-    model_name = models_dict[model]
+    model_name = models_dict[type(model)]
     
     # Making folder for training details
     training_path = overall_models_dir + model_name + "_" + str(time()) + "/"
