@@ -80,6 +80,9 @@ def compute_PCK(all_gt_keypoints, all_pred_keypoints):
     assert len(all_gt_keypoints.shape) in [3, 5]
     assert len(all_pred_keypoints.shape) in [3, 5]
     
+    all_gt_keypoints = all_gt_keypoints.detach().cpu().numpy()
+    all_pred_keypoints = all_pred_keypoints.detach().cpu().numpy()
+    
     if len(all_gt_keypoints.shape) != 3:
         all_gt_keypoints = heatmaps2coordinates(all_gt_keypoints)
         
