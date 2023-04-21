@@ -115,9 +115,10 @@ def compute_PCK(all_gt_keypoints, all_pred_keypoints):
             dist = dist <= torso_diameter
             
             # Storing results of this batch-frame
-            bools.append(dist)
+            bools.append(dist.flatten())
         
     # Returning the ratio of correctly predicted keypoints
+    bools = np.concatenate(bools)
     return -1 if len(bools) == 0 else np.mean(bools)
 
 def modify_target(pred, target, is_pa, model_type):
