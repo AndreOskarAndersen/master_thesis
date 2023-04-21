@@ -64,6 +64,22 @@ if __name__ == "__main__":
     2) Variate input std: {0: False, 1: True}
     3) Input max-range: {0: 1, 1: 255}
     4) Reduce fps: {0: False, 1: True} 
+    
+    train_models 0 0 0 0
+    train_models 1 0 0 0
+    train_models 2 0 0 0
+
+    train_models 0 1 0 0
+    train_models 1 1 0 0
+    train_models 2 1 0 0
+
+    train_models 0 1 0 1
+    train_models 1 1 0 1
+    train_models 2 1 0 1
+
+    train_models 1 1 1 0
+    train_models 1 1 1 1
+    train_models 1 0 1 0
     """
     
     # Device to use
