@@ -20,12 +20,13 @@ if __name__ == "__main__":
     torso_diameters = []
     
     with torch.no_grad():
-        for i, (x, y, is_pa) in tqdm(enumerate(eval_dataloader), leave=False, desc="Evaluating", disable=False, total=len(eval_dataloader)):
+        for i, (x, y, is_pa) in tqdm(enumerate(eval_dataloader), leave=False, desc="Computing PCK", disable=False, total=len(eval_dataloader)):
             
             PCK = compute_PCK(y, x)
             if PCK != -1:
                 PCKs.append(PCK) 
-                
+            
+        for i, (x, y, is_pa) in tqdm(enumerate(train_dataloader), leave=False, desc="COmputing Torso diam.", disable=False, total=len(train_dataloader)):
             y = heatmaps2coordinates(y)
             
             for batch in range(y.shape[0]):
