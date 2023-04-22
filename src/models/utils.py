@@ -80,14 +80,15 @@ def compute_PCK(all_gt_keypoints, all_pred_keypoints):
     assert len(all_gt_keypoints.shape) in [3, 5]
     assert len(all_pred_keypoints.shape) in [3, 5]
     
-    all_gt_keypoints = all_gt_keypoints.detach().cpu().numpy()
-    all_pred_keypoints = all_pred_keypoints.detach().cpu().numpy()
-    
     if len(all_gt_keypoints.shape) != 3:
         all_gt_keypoints = heatmaps2coordinates(all_gt_keypoints)
+    else:
+        all_gt_keypoints = all_gt_keypoints.detach().cpu().numpy()
         
     if len(all_pred_keypoints.shape) != 3:
         all_pred_keypoints = heatmaps2coordinates(all_pred_keypoints)
+    else:
+        all_pred_keypoints = all_pred_keypoints.detach().cpu().numpy()
         
     bools = []
         
@@ -115,7 +116,7 @@ def compute_PCK(all_gt_keypoints, all_pred_keypoints):
             dist = np.linalg.norm(gt_keypoints - pred_keypoints, axis=1)
             
             # Checking whether the distances are shorter than the torso diameter
-            dist = dist <= torso_diameter
+            dist = dist <= torso_diameter * 0.2
             
             # Storing results of this batch-frame
             bools.append(dist.flatten())
