@@ -226,7 +226,7 @@ def _preprocess_keypoints(video_annotations : Dict[str, Tuple[List[float]]], blu
     translate = lambda i: CLIMBALONG_KEYPOINTS[BRACE_KEYPOINTS[i]]
 
     # Values for randomly shifting keypoints
-    shifts = np.clip(np.round(np.random.normal(0, 2.5, size=(len(keypoints), 2))).astype(int), -10, 10)
+    shifts = np.round(np.random.normal(0, 2.64, size=(len(keypoints), 2))).astype(int)
     
     # Looping through each keypoint
     for i, keypoint in enumerate(keypoints):        
