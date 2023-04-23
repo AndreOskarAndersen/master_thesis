@@ -190,6 +190,7 @@ One of the most used optimizers is \textbf{ADAM}, which is an optimizer that use
         \EndWhile
     \end{algorithmic}
 \end{algorithm}
+
 \noindent \textbf{Layer Normalization: } One problem when optimizing a neural network is, that the gradients with respect to the weights of one layer depends on the outputs of the neurons of the previous previous layer. If these outputs change in a highly correlated way, the model could experience some undesired "covariate shift", which would make the training take longer. One way to reduce these "covariate shifts" is to make use of \textbf{layer normalization}, where the layer normalization statistics over all the hidden units in the same layer $l$ is computed as the following
 \begin{equation}
     \mu^{(l)} = \frac{1}{H} \sum_{i = 1} ^H \bm{w}_i^{(l)^\top}\bm{h}^{(l - 1)}, \quad \sigma^{(l)} = \sqrt{\frac{1}{H} \sum_{i = 1} ^H \left(\bm{w}_i^{(l)^\top}\bm{h}^{(l - 1)} - \mu^{(l)}\right)^2}
