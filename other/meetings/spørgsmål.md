@@ -96,3 +96,9 @@
     3. Fejl i preprocessing?
     4. Fjerner jeg gradient på den rigtige måde?
     5. Skal jeg beskrive mask RCNN?
+
+- 25/4:
+    1. Jeg har ændres på shifting-std.
+    2. Jeg har rettet PCK
+    3. Er det på tide at jeg finetuner?
+    4. Er der noget jeg skal gøre anderledes når jeg finetuner?
