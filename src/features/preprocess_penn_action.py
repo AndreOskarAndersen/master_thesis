@@ -119,7 +119,7 @@ def _preprocess_keypoints(label: Dict, blurr_sigma: float):
     processed_input_heatmaps_mixed_std = [torch.zeros(NUM_KEYPOINTS, TARGET_HEIGHT, TARGET_WIDTH) for _ in range(keypoints.shape[0])]
     
     # Values for randomly shifting keypoints
-    shifts = np.clip(np.round(np.random.normal(0, 2.5, size=(len(keypoints), 2))).astype(int), -10, 10)
+    shifts = np.round(np.random.normal(0, NOISE_SCALAR * NOISE_STD, size=(len(keypoints), 2))).astype(int)
     
     # Looping through each frame
     for i, frame_keypoints in enumerate(keypoints):
