@@ -37,7 +37,7 @@ def _load_bboxes(keypoints: np.array):
     
     return x_mins, y_mins, x_maxs, y_maxs
     
-def _preprocess_keypoints(label: Dict, blurr_sigma: float):
+def _preprocess_keypoints(label: Dict, blurr_sigma: float, noise_scalar: int):
     """
     Preprocesses keypoints of a single video.
     
@@ -119,7 +119,7 @@ def _preprocess_keypoints(label: Dict, blurr_sigma: float):
     processed_input_heatmaps_mixed_std = [torch.zeros(NUM_KEYPOINTS, TARGET_HEIGHT, TARGET_WIDTH) for _ in range(keypoints.shape[0])]
     
     # Values for randomly shifting keypoints
-    shifts = np.round(np.random.normal(0, NOISE_SCALAR * NOISE_STD, size=(len(keypoints), 2))).astype(int)
+    shifts = np.round(np.random.normal(0, noise_scalar * NOISE_STD, size=(len(keypoints), 2))).astype(int)
     
     # Looping through each frame
     for i, frame_keypoints in enumerate(keypoints):
@@ -150,7 +150,7 @@ def _preprocess_keypoints(label: Dict, blurr_sigma: float):
             
     return processed_input_heatmaps, processed_output_heatmaps, processed_input_heatmaps_mixed_std
             
-def preprocess():
+def preprocess(noise_scalar: int):
     """
     Function for preprocessing all the relevant Penn Action samples.
     """
@@ -187,7 +187,7 @@ def preprocess():
         make_dir(keypoints_output_path)
         
         # Process the keypoints
-        processed_input_heatmaps, processed_output_heatmaps, processed_input_heatmaps_mixed_std = _preprocess_keypoints(label, blurr_sigma=sigmas[i])
+        processed_input_heatmaps, processed_output_heatmaps, processed_input_heatmaps_mixed_std = _preprocess_keypoints(label, blurr_sigma=sigmas[i], noise_scalar=noise_scalar)
         
         # Storing keypoints as individual frames
         for frame_number in range(len(processed_input_heatmaps)):

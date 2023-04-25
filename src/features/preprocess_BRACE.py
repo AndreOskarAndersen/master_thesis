@@ -136,7 +136,7 @@ def _load_keypoints(year: str, video_id: str):
 
     return video_annotations
 
-def _preprocess_keypoints(video_annotations : Dict[str, Tuple[List[float]]], blurr_sigma: float):
+def _preprocess_keypoints(video_annotations : Dict[str, Tuple[List[float]]], blurr_sigma: float, noise_scalar: int):
     """
     Preprocesses keypoints of a single frame.
     
@@ -226,7 +226,7 @@ def _preprocess_keypoints(video_annotations : Dict[str, Tuple[List[float]]], blu
     translate = lambda i: CLIMBALONG_KEYPOINTS[BRACE_KEYPOINTS[i]]
 
     # Values for randomly shifting keypoints
-    shifts = np.round(np.random.normal(0,NOISE_SCALAR * NOISE_STD, size=(len(keypoints), 2))).astype(int)
+    shifts = np.round(np.random.normal(0, noise_scalar * NOISE_STD, size=(len(keypoints), 2))).astype(int)
     
     # Looping through each keypoint
     for i, keypoint in enumerate(keypoints):        
@@ -258,7 +258,7 @@ def _preprocess_keypoints(video_annotations : Dict[str, Tuple[List[float]]], blu
             
     return processed_input_heatmaps, processed_output_heatmaps, processed_input_heatmaps_mixed_std
             
-def preprocess():
+def preprocess(noise_scalar: int):
     """
     Function for preprocessing the videos in the BRACE-dataset.
     """
@@ -301,7 +301,7 @@ def preprocess():
                 input_frame_storing_mixed_std_path = input_clip_storing_mixed_std_path + frame_number + ".pt"
                 
                 # Processing keypoints of the loaded clip
-                processed_input_heatmaps, processed_output_heatmaps, processed_input_heatmaps_mixed_std = _preprocess_keypoints(frame_annotation, blurr_sigma=sigmas[i])
+                processed_input_heatmaps, processed_output_heatmaps, processed_input_heatmaps_mixed_std = _preprocess_keypoints(frame_annotation, blurr_sigma=sigmas[i], noise_scalar=noise_scalar)
                     
                 # Saving keypoints of frame as tensor
                 torch.save(processed_input_heatmaps, input_frame_storing_path)
