@@ -274,9 +274,9 @@ def preprocess(noise_scalar: int):
         year = str(row["year"])
         
         # Path for storing the keypoints of this video
-        input_keypoints_path = OVERALL_DATA_FOLDER + SUBFOLDERS["x"] + video_id
-        output_keypoints_path = OVERALL_DATA_FOLDER + SUBFOLDERS["y"] + video_id
-        input_keypoints_mixed_std_path = OVERALL_DATA_FOLDER + SUBFOLDERS["x_std"] + video_id
+        input_keypoints_path = OVERALL_DATA_FOLDER(noise_scalar) + SUBFOLDERS["x"] + video_id
+        output_keypoints_path = OVERALL_DATA_FOLDER(noise_scalar) + SUBFOLDERS["y"] + video_id
+        input_keypoints_mixed_std_path = OVERALL_DATA_FOLDER(noise_scalar) + SUBFOLDERS["x_std"] + video_id
         
         # Loading keypoints of video
         video_annotations = _load_keypoints(year, video_id)

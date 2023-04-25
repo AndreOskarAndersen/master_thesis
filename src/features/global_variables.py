@@ -7,11 +7,10 @@ DATA_PATH = "../../data/"
 RAW_DATA_FOLDER = DATA_PATH + "raw/" 
 
 # Std of the noise to add
-NOISE_SCALAR = 1
 NOISE_STD = 2.64
 
 # Path to overall folder for the processed data
-OVERALL_DATA_FOLDER = DATA_PATH + f"processed_{NOISE_SCALAR}/"
+OVERALL_DATA_FOLDER = lambda noise_scalar: DATA_PATH + f"processed_{noise_scalar}/"
 
 SUBFOLDERS = {"x": "input/", "y": "target/", "x_std": "input_std/"}
 

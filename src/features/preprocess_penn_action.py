@@ -167,9 +167,9 @@ def preprocess(noise_scalar: int):
         video_id = video_id[:-4]
         
         # Path for storing the keypoints of this video
-        keypoints_input_path = OVERALL_DATA_FOLDER + SUBFOLDERS["x"] + video_id + "/"
-        keypoints_input_mixed_std_path = OVERALL_DATA_FOLDER + SUBFOLDERS["x_std"] + video_id + "/"
-        keypoints_output_path = OVERALL_DATA_FOLDER + SUBFOLDERS["y"] + video_id + "/"
+        keypoints_input_path = OVERALL_DATA_FOLDER(noise_scalar) + SUBFOLDERS["x"] + video_id + "/"
+        keypoints_input_mixed_std_path = OVERALL_DATA_FOLDER(noise_scalar) + SUBFOLDERS["x_std"] + video_id + "/"
+        keypoints_output_path = OVERALL_DATA_FOLDER(noise_scalar) + SUBFOLDERS["y"] + video_id + "/"
         
         # Path for storing meta-info of this sample
         label_path = PENN_ACTION_RAW_KEYPOINTS_PATH + video_id + ".mat"
