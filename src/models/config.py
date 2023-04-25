@@ -1,6 +1,9 @@
+# Data variation
+noise_scalar = 1
+noise_std = 2.64
 
 # Paths
-overall_data_dir = "../../data/processed/"
+overall_data_dir = f"../../data/processed_{noise_scalar}/"
 overall_models_dir = "../../models/"
 
 # Training constants
@@ -63,4 +66,12 @@ deciwatch_params = {
     "num_decoder_layers": 5,
     "num_frames": window_size,
     "batch_size": batch_size
+}
+
+# Unipose2 parameters
+unipose2_params = {
+    "rnn_type": "lstm",
+    "bidirectional": True,
+    "num_keypoints": num_keypoints,
+    "frame_shape": (num_keypoints, 50, 50)
 }

@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-from time import time
 from typing import Union, Tuple, List
 
 class _LSTM_conv(nn.Module):
@@ -149,7 +148,7 @@ class _GRU_conv(nn.Module):
         
         return [h]
     
-class Unipose(nn.Module):
+class Unipose2(nn.Module):
     def __init__(self, 
                  rnn_type: str, 
                  bidirectional: bool,
@@ -192,7 +191,7 @@ class Unipose(nn.Module):
             Either "same" or a positive integer.
         """
         
-        super(Unipose, self).__init__()
+        super(Unipose2, self).__init__()
         
         self.rnn_type = rnn_type
         self.bidirectional = bidirectional
@@ -213,8 +212,8 @@ class Unipose(nn.Module):
         self.conv_forward_2 = nn.Conv2d(128, 128, kernel_size=3, stride=stride, padding=padding)
         self.conv_forward_3 = nn.Conv2d(128, 128, kernel_size=3, stride=stride, padding=padding)
         
-        self.conv_forward_4 = nn.Conv2d(128, 128, kernel_size=1, stride=stride, padding=padding)
-        self.conv_forward_5 = nn.Conv2d(128, num_keypoints, kernel_size=1, stride=stride, padding=padding)
+        self.conv_combiner_1 = nn.Conv2d(256, 128, kernel_size=1, stride=stride, padding=padding)
+        self.conv_combiner_2 = nn.Conv2d(128, num_keypoints, kernel_size=1, stride=stride, padding=padding)
         
         if bidirectional:
             self.rnn_backward = self.valid_rnn_type[rnn_type.lower()](*rnn_params)
@@ -222,9 +221,6 @@ class Unipose(nn.Module):
             
             self.conv_backward_2 = nn.Conv2d(128, 128, kernel_size=3, stride=stride, padding=padding)
             self.conv_backward_3 = nn.Conv2d(128, 128, kernel_size=3, stride=stride, padding=padding)
-            
-            self.conv_backward_4 = nn.Conv2d(128, 128, kernel_size=1, stride=stride, padding=padding)
-            self.conv_backward_5 = nn.Conv2d(128, num_keypoints, kernel_size=1, stride=stride, padding=padding)
         
         self.relu = nn.ReLU()
         self.sigmoid = nn.Sigmoid()
@@ -295,8 +291,6 @@ class Unipose(nn.Module):
             pred = self.relu(self.conv_forward_1(pred))
             pred = self.relu(self.conv_forward_2(pred))
             pred = self.relu(self.conv_forward_3(pred))
-            pred = self.relu(self.conv_forward_4(pred))
-            pred = self.relu(self.conv_forward_5(pred))
         else:
             # Backward pass
             state = self.rnn_backward(p_noisy, prev_state)
@@ -305,8 +299,6 @@ class Unipose(nn.Module):
             pred = self.relu(self.conv_backward_1(pred))
             pred = self.relu(self.conv_backward_2(pred))
             pred = self.relu(self.conv_backward_3(pred))
-            pred = self.relu(self.conv_backward_4(pred))
-            pred = self.relu(self.conv_backward_5(pred))
             
         return pred, state
         
@@ -336,7 +328,7 @@ class Unipose(nn.Module):
         assert direction in ["forward", "backward"], f"direction should be either 'forward' or 'backward'. You have given {direction}"
         
         # Placeholder for storing predictions
-        res = torch.zeros(video_sequence.shape).to(self.device)
+        res = torch.zeros((video_sequence.shape[0], video_sequence.shape[1], 128, video_sequence.shape[3], video_sequence.shape[4])).to(self.device)
         
         # The range for loading data
         frame_range = range(video_sequence.shape[1]) if direction == "forward" else reversed(range(video_sequence.shape[1]))
@@ -355,7 +347,7 @@ class Unipose(nn.Module):
                 
         return res
     
-    def _combiner(self, forward_pass: torch.Tensor, backward_pass: torch.Tensor):
+    def _combiner(self, forward_pass: torch.Tensor, backward_pass: torch.Tensor, video_sequence_shape):
         """
         Combines the forward and backward pass
         
@@ -373,7 +365,24 @@ class Unipose(nn.Module):
             Combination of forward and backward pass   
         """
         
-        res = forward_pass + backward_pass
+        # Placeholder for storing predictions
+        res = torch.zeros(video_sequence_shape).to(self.device)
+        
+        # Number of frames
+        num_frames = forward_pass.shape[1]
+        
+        # Looping through each frame
+        for i in range(num_frames):
+            
+            # Stacking along channelss
+            frame_keypoints = torch.hstack([forward_pass[:, i], backward_pass[:, i]])
+            
+            # Combing the two directions
+            frame_keypoints = self.conv_combiner_1(frame_keypoints)
+            frame_keypoints = self.conv_combiner_2(frame_keypoints)
+            
+            # Storing prediction
+            res[:, i] = frame_keypoints
         
         return res
     
@@ -401,10 +410,11 @@ class Unipose(nn.Module):
         if self.bidirectional:
             forward_pass = self._pass(video_sequence, init_state[0], "forward")
             backward_pass = self._pass(video_sequence, init_state[1], "backward")
-            res = self._combiner(forward_pass, backward_pass)
+            res = self._combiner(forward_pass, backward_pass, video_sequence.shape)
             
         else:
             res = self._pass(video_sequence, init_state[0], "forward")
+            
             
         if self.upper_range == 1:
             res = self.sigmoid(res)
@@ -431,7 +441,7 @@ if __name__ == "__main__":
     bidirectional = True
     upper_range = 1
 
-    lstm = Unipose(rnn_type=rnn_type, 
+    lstm = Unipose2(rnn_type=rnn_type, 
                  bidirectional=bidirectional,
                  num_keypoints=num_keypoints, 
                  device=device,
@@ -439,7 +449,5 @@ if __name__ == "__main__":
                  frame_shape=video_sequence[:, 0].shape).to(device)
     
     # Predicting
-    start_time = time()
     output = lstm(video_sequence)
-    print("Runtime", time() - start_time)
     print(output.shape)
