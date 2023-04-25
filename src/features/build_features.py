@@ -8,10 +8,10 @@ if __name__ == "__main__":
     noise_scalar = int(sys.argv[1])
       
     # Making folders for the processed-data, in case it does not already exist.
-    make_dir(OVERALL_DATA_FOLDER)
+    make_dir(OVERALL_DATA_FOLDER(noise_scalar))
     
     for subfolder in SUBFOLDERS.values():
-        make_dir(OVERALL_DATA_FOLDER + subfolder)
+        make_dir(OVERALL_DATA_FOLDER(noise_scalar) + subfolder)
     
     # Preprocessing BRACE
     preprocess_BRACE.preprocess(noise_scalar)
