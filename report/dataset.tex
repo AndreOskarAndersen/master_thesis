@@ -46,40 +46,66 @@ To perform the pose estimation in Section \ref{sec:experiments}, we need some da
     \centering
     \begin{subfigure}{0.3\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{entities/CA_262.png}
-        \caption{Frame 262}
+        \includegraphics[width=\textwidth]{entities/CA_17.png}
+        \caption{Frame 17}
     \end{subfigure}
     \begin{subfigure}{0.3\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{entities/CA_263.png}
-        \caption{Frame 263}
+        \includegraphics[width=\textwidth]{entities/CA_18.png}
+        \caption{Frame 18}
     \end{subfigure}
     \begin{subfigure}{0.3\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{entities/CA_264.png}
-        \caption{Frame 264}
+        \includegraphics[width=\textwidth]{entities/CA_19.png}
+        \caption{Frame 19}
     \end{subfigure}
     \begin{subfigure}{0.3\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{entities/CA_288.png}
-        \caption{Frame 288}
+        \includegraphics[width=\textwidth]{entities/CA_20.png}
+        \caption{Frame 20}
     \end{subfigure}
     \begin{subfigure}{0.3\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{entities/CA_289.png}
-        \caption{Frame 289}
+        \includegraphics[width=\textwidth]{entities/CA_21.png}
+        \caption{Frame 21}
     \end{subfigure}
-    \begin{subfigure}{0.3\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{entities/CA_290.png}
-        \caption{Frame 290}
-    \end{subfigure}
-
-    \caption{Example of two windows of three consecutive frames of a video from the ClimbAlong dataset}
-    \label{fig:CA_dataset}
+    \caption{Example of five consecutive frames of a video from the ClimbAlong-dataset with the corresponding labels, where the actor holds his position for a while.}
+    \label{fig:CA_dataset_static}
 \end{figure}
 
-As the aim of our models is to perform well on climbers, we will be using some annotated data of climbers. For this, ClimbAlong ApS has developed a dataset that we will be using. The dataset consists of videos of various climbers on bouldering walls, where each video contains just a single climber. Figure \ref{fig:CA_dataset} illustrates two windows of consecutive frames of a single video from the ClimbAlong dataset. As shown in the figure, the videos in the dataset both contains static positions, where the climber holds a position for a while, as well as quick movemeents.
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{0.3\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{entities/CA_31.png}
+        \caption{Frame 31}
+    \end{subfigure}
+    \begin{subfigure}{0.3\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{entities/CA_32.png}
+        \caption{Frame 32}
+    \end{subfigure}
+    \begin{subfigure}{0.3\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{entities/CA_33.png}
+        \caption{Frame 33}
+    \end{subfigure}
+    \begin{subfigure}{0.3\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{entities/CA_34.png}
+        \caption{Frame 34}
+    \end{subfigure}
+    \begin{subfigure}{0.3\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{entities/CA_35.png}
+        \caption{Frame 35}
+    \end{subfigure}
+
+    \caption{Example of five consecutive frames of a video from the ClimbAlong-dataset with the corresponding labels, where the actor performs a quick movement.}
+    \label{fig:CA_dataset_quick}
+\end{figure}
+
+As the aim of our models is to perform well on climbers, we will be using some annotated data of climbers. For this, ClimbAlong ApS has developed a dataset that we will be using. The dataset consists of videos of various climbers on bouldering walls, where each video contains just a single climber. Figure \ref{fig:CA_dataset_static} and \ref{fig:CA_dataset_quick} illustrates two windows of five consecutive frames of a single video from the ClimbAlong dataset. As shown in the figures, the videos in the dataset contains both static positions, where the climber holds a position for a while, as well as quick movemeents.
 \\
 \\
 The ClimbAlong-dataset is split into two subsets. The first subset consists of $31$ fully annotated videos, where each annotation consists of $25$ keypoints. The second subset consists of $110$ fully annotated videos, where each annotation consists of $17$ keypoints. The two subsets have $13$ overlapping videos.
@@ -88,15 +114,77 @@ The ClimbAlong-dataset is split into two subsets. The first subset consists of $
 Each videos is filmed in portrait mode with a resolution of $1080 \times 1920$ and $30$ frames per second. Table \ref{tab:keypoints} gives an overview of which keypoints are annotated in the two subsets. 
 
 \subsection{The BRACE Dataset}
-The second dataset we will be using is the \textit{BRACE} dataset \cite{BRACE}. This dataset consists of $1,352$ video sequences and a total of $334,538$ frames with keypoints annotations of breakdancers. The frames of the video sequences have a resolution of $1920 \times 1080$ \cite{BRACE}.
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{0.5\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{entities/BRACE_2450.png}
+        \caption{Frame 2450}
+    \end{subfigure}
+    \begin{subfigure}{0.5\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{entities/BRACE_2451.png}
+        \caption{Frame 2451}
+    \end{subfigure}
+    \begin{subfigure}{0.5\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{entities/BRACE_2452.png}
+        \caption{Frame 2452}
+    \end{subfigure}
+    \begin{subfigure}{0.5\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{entities/BRACE_2453.png}
+        \caption{Frame 2453}
+    \end{subfigure}
+    \begin{subfigure}{0.5\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{entities/BRACE_2454.png}
+        \caption{Frame 2454}
+    \end{subfigure}
+
+    \caption{Example of five consecutive frames of a video from the BRACE-dataset with the corresponding labels,
+    where the actor holds his position for a while.}
+    \label{fig:BRACE_dataset_static}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{0.5\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{entities/BRACE_1148.png}
+        \caption{Frame 1148}
+    \end{subfigure}
+    \begin{subfigure}{0.5\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{entities/BRACE_1149.png}
+        \caption{Frame 1149}
+    \end{subfigure}
+    \begin{subfigure}{0.5\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{entities/BRACE_1150.png}
+        \caption{Frame 1150}
+    \end{subfigure}
+    \begin{subfigure}{0.5\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{entities/BRACE_1151.png}
+        \caption{Frame 1151}
+    \end{subfigure}
+    \begin{subfigure}{0.5\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{entities/BRACE_1152.png}
+        \caption{Frame 1152}
+    \end{subfigure}
+    \caption{Example of five consecutive frames of a video from the BRACE-dataset with the corresponding labels, where the actor performs a quick movement.}
+    \label{fig:BRACE_dataset_quick}
+\end{figure}
+
+\noindent The second dataset we will be using is the \textit{BRACE} dataset \cite{BRACE}. This dataset consists of $1,352$ video sequences and a total of $334,538$ frames with keypoints annotations of breakdancers. The frames of the video sequences have a resolution of $1920 \times 1080$ \cite{BRACE}.
 \\
 \\
-We chose to use this dataset as breakdancers tend to swap between static and quick poses, as well as containing some acrobatic poses, similarly to the ones in the ClimbAlong dataset, making the poses relevant for our experiments in Section \ref{sec:experiments}.
+We chose to use this dataset as breakdancers tend to swap between static and quick poses, as well as containing some acrobatic poses, similarly to the ones in the ClimbAlong dataset, making the poses relevant for our experiments in Section \ref{sec:experiments}. Figure \ref{fig:BRACE_dataset_static} and \ref{fig:BRACE_dataset_quick} contains two consecutive sequences, each of five frames, that illustrates these two poses.
 \\
 \\
 The frames of the video sequences have been annotated by initially using state-of-the-art human pose estimators to extract automatic poses. This was then followed by manually annotating bad keypoints, corresponding to difficult poses, as well as pose outliers. Finally, the automatic and manual annotations were merged, interpolating the keypoint seequence with Bézier curves. The keypoints is a list of 17-elements, following the COCO-format, as illustrated in Table \ref{tab:keypoints} \cite{BRACE}.
-
-\textbf{HVIS EKSEMPEL}
 
 \subsection{The Penn Action Dataset}
 \begin{table}
