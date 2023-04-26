@@ -96,6 +96,7 @@ if __name__ == "__main__":
     
     # Collecting model params
     unipose_params["device"] = device
+    unipose2_params["device"] = device
     deciwatch_params["device"] = device
     
     unipose_params["upper_range"] = input_max_range[int(sys.argv[3])]
