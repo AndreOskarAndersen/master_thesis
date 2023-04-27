@@ -27,17 +27,39 @@ Once the convolutional layer has processed the data, the ReLU activation-functio
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth]{./entities/bi_conv_lstm.pdf}
-    \caption{Illustration of the implemented bidirectional convolutional LSTM}
+    \caption{Illustration of the implemented bidirectional convolutional LSTM, where the two sequence orders are summed together.}
     \label{fig:bi_conv_lstm}
 \end{figure}
 
-\noindent Our second model is a bidirectional convolutional LSTM, inspired by the Unipose-LSTM byArtacho and Savakis \cite{https://doi.org/10.48550/arxiv.2001.08095}. Figure \ref{fig:bi_conv_lstm} illustrates the architecture of the model. The model takes a sequence of $T \in \mathbb{R}$ estimated poses $\hat{\mathcal{P}} = \{\hat{\bm{P}}^t\}_{t = 1} ^T$ as input, where each estimated pose $\hat{\bm{P}}^t \in \mathbb{R}^{K \times h \times w}$ is represented as a set of heatmaps, where $K \in \mathbb{R}$ is the amount of keypoints, $h \in \mathbb{R}$ is the height of each heatmap and $w \in \mathbb{R}$ is the width of each heatmap. 
+\noindent Our second and third model are based on the LSTM-extension of Unipose-LSTM by Artacho and Savakis \cite{https://doi.org/10.48550/arxiv.2001.08095}. Artacho and Savakis' model was based on a unidirectional convolutional LSTM. However, as we do not require our model to work in real-time, and as we believe a bidirectional convolutional LSTM would be benifical, our models will be based on a bidirectional convolutional LSTM. The major difference between our second and third model is how they combine the information of the two sequence directions.
 \\
 \\
-The model starts by branching into two seperate branches, that processes the estimated poses in opposite sequence order. Each branch processes the estimated poses one frame at a time. This is done by first applying a convolutional LSTM to the input frame at time step $t \in \mathbb{R}$, using the preceding output of the convolutional LSTM as the hidden state. Each convolutional LSTM is followed by five 2-dimensional convolutional layers, each applying $128$ filters, except for the last convolutional layer of each branch, which aplies $K$ filters. The two first convolutional layers use a kernel size of $3 \times 3$, whereas the following two convolutional layers use a kernel size of $1 \times 1$. The outputs of the two branches are then summed together element-wise.
+Both models take a sequence of $T \in \mathbb{R}$ estimated poses $\hat{\mathcal{P}} = \{\hat{\bm{P}}^t\}_{t = 1} ^T$ as input, where each estimated pose $\hat{\bm{P}}^t \in \mathbb{R}^{K \times h \times w}$ is represented as a set of heatmaps, where $K \in \mathbb{R}$ is the amount of keypoints, $h \in \mathbb{R}$ is the height of each heatmap and $w \in \mathbb{R}$ is the width of each heatmap. 
+
+\subsubsection{Summing the Sequence Directions}
+Figure \ref{fig:bi_conv_lstm} illustrates the architecture of the second model. The model starts by branching into two seperate branches, that processes the estimated poses in opposite sequence order. Each branch processes the estimated poses one frame at a time. This is done by first applying a convolutional LSTM to the input frame at time step $t \in \mathbb{R}$, using the preceding output of the convolutional LSTM as the hidden state. Each convolutional LSTM is followed by five 2-dimensional convolutional layers, each applying $128$ filters, except for the last convolutional layer of each branch, which aplies $K$ filters. The first three convolutional layers use a kernel size of $3 \times 3$, whereas the following two convolutional layers use a kernel size of $1 \times 1$. The outputs of the two branches are then summed together element-wise.
 \\
 \\
 All convolutional layers use a stride of one and zero-padding on the input, such that the output of each convolutional layer has the same dimensions as the input to the convolutional layer.
+
+\subsubsection{Concatenating the Seuqnce Directions}
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{./entities/unipose2.pdf}
+    \caption{Illustration of the implemented bidirectional convolutional LSTM, where the two sequence orders are concatenated together and processed by two convolutional layers.}
+    \label{fig:unipose2}
+\end{figure}
+
+Looking at our second model, we see two problems with the architecture behind it: (1) the model does not have any opportunity of priorizing one processing order over the other, as the two branches are just summed together, and (2) by summing the two branches together it can occur, that some of the elements of the two branches are evened out, removing the prediction of the branches. Our third model aims at solving these two issues.
+\\
+\\
+Figure \ref{fig:unipose2} illustrates the architecture of our third model. This model is very similar to the previous model. It also starts of by branching into two seperate branches, that processes the estiamted poses in opposite sequence orders, where each branch processes the estimated poses one frame at a time. Similarly to the previous model, this model also starts of by applying a convolutional LSTM to the input frame, by using the preceding output of the convolutional LSTM as the hidden state. Further, each convolutional lstm is also fillowed by three 2-dimensional convolutional layers, each applying $128$ filters with a kernel size of $3 \times 3$. 
+\\
+\\
+Different from the previous model, this model concatenates the output of each branch to form a $256 \times h \times w$ tensor, which is then processed by two $1 \times 1$ 2-dimensional convolutions, with $128$ and $K$ filters, respectively.
+\\
+\\
+Similarly to the second model, all convolutional layers also use a stride of one and zero-padding on the input, such that the output of each convolutional layer has the same dimensions as the input to the convolutional layer.
 
 \subsection{DeciWatch}
 \begin{figure}[htbp]
