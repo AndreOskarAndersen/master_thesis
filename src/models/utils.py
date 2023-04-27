@@ -5,6 +5,7 @@ import skimage
 from typing import Union, List
 from baseline import Baseline
 from deciwatch import DeciWatch
+from unipose2 import Unipose2
 from unipose import Unipose
 from global_variables import GENERAL_MISSING_INDICIES, PA_MISSING_INDICIES
 
@@ -126,7 +127,7 @@ def compute_PCK(all_gt_keypoints, all_pred_keypoints):
     return -1 if len(bools) == 0 else np.mean(bools)
 
 def modify_target(pred, target, is_pa, model_type):
-    if model_type == Baseline or model_type == Unipose:
+    if model_type in [Baseline, Unipose, Unipose2]:
         target[:, :, GENERAL_MISSING_INDICIES] = pred[:,:, GENERAL_MISSING_INDICIES].detach().clone()
         target[np.ix_(is_pa, np.arange(target.shape[1]), PA_MISSING_INDICIES)] = pred[np.ix_(is_pa, np.arange(target.shape[1]), PA_MISSING_INDICIES)].detach().clone()
     else:
@@ -144,7 +145,7 @@ def modify_target(pred, target, is_pa, model_type):
     return target
 
 def unmodify_target(pred, target, is_pa, model_type):
-    if model_type == Baseline or model_type == Unipose:
+    if model_type in [Baseline, Unipose, Unipose2]:
         target[:, :, GENERAL_MISSING_INDICIES] = torch.zeros_like(pred[:,:, GENERAL_MISSING_INDICIES].detach())
         target[np.ix_(is_pa, np.arange(target.shape[1]), PA_MISSING_INDICIES)] = torch.zeros_like(pred[np.ix_(is_pa, np.arange(target.shape[1]), PA_MISSING_INDICIES)].detach())
     else:
