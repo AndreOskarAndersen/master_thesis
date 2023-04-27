@@ -27,9 +27,6 @@ def main(overall_models_dir: str, training_path, model_name, dataloaders, model,
     
     # Extracting dataloaders
     train_dataloader, eval_dataloader, test_dataloader = dataloaders
-    
-    # Dictionary of data transformers to apply
-    data_transforms = {"baseline": lambda x: x, "unipose": lambda x: x, "deciwatch": lambda x: heatmaps2coordinates(x.cpu()).to(device), "lstm": lambda x: heatmaps2coordinates(x.cpu()).to(device), "transformer": lambda x: heatmaps2coordinates(x.cpu()).to(device), "deciwatch2": lambda x: heatmaps2coordinates(x.cpu()).to(device)}
             
     # Creating various objects
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
@@ -37,7 +34,7 @@ def main(overall_models_dir: str, training_path, model_name, dataloaders, model,
     criterion = torch.nn.MSELoss()
     
     # Getting data transformer
-    data_transformer = data_transforms[model_name]
+    data_transformer = lambda x: x
     
     # Training the model
     train(
