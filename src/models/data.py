@@ -6,7 +6,7 @@ from torch.utils.data import DataLoader, Dataset
 from torch.utils.data.sampler import SubsetRandomSampler
 from typing import Tuple, List
 
-class _KeypointsDataset(Dataset):
+class _PretrainDataset(Dataset):
     def __init__(self, dir_path: str, window_size: int, heatmap_shape: Tuple[int, int, int], interval_skip: int = 0, input_name: str = "input", upper_range: int = 1):
         """
         Keypoints dataset
@@ -136,12 +136,22 @@ class _KeypointsDataset(Dataset):
             target_samples[j] = torch.load(self.target_dir + sample_name) * self.upper_range
 
         return input_samples, target_samples, is_PA
+    
+class _ClimbAlongDataset(Dataset):
+    def __init__(self):
+        pass
+    
+    def __len__(self):
+        pass
+    
+    def __getitem__(self, i):
+        pass
                 
 def get_dataloaders(dir_path: str, 
                     window_size: int, 
                     batch_size: int, 
                     eval_ratio: float, 
-                    heatmap_shape: Tuple[int, int, int] = (25, 50, 50), 
+                    heatmap_shape: Tuple[int, int, int] = (25, 56, 56), 
                     num_workers: int = 0,
                     interval_skip: int = 0,
                     input_name: str = "input",
@@ -185,7 +195,7 @@ def get_dataloaders(dir_path: str,
         Number of frames to skip when loading the data
     """
     
-    total_dataset = _KeypointsDataset(dir_path, window_size, heatmap_shape, interval_skip, input_name, upper_range)
+    total_dataset = _PretrainDataset(dir_path, window_size, heatmap_shape, interval_skip, input_name, upper_range)
     
     dataset_len = len(total_dataset)
     indices = list(range(dataset_len))
@@ -213,7 +223,7 @@ if __name__ == "__main__":
     eval_ratio = 0.4
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
-    total_dataset = _KeypointsDataset(dir_path, window_size, (25, 50, 50))
+    total_dataset = _PretrainDataset(dir_path, window_size, (25, 56, 56))
     loader = DataLoader(total_dataset, batch_size=16, num_workers=1)
     for x in tqdm(loader, total=len(loader), leave=False, disable=True):
         pass
