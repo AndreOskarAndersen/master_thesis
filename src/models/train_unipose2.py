@@ -75,7 +75,6 @@ if __name__ == "__main__":
     unipose_params["upper_range"] = input_max_range[args[2]]
     unipose2_params["upper_range"] = input_max_range[args[2]]
     
-    model_types = Unipose2
     model = Unipose2(**unipose2_params).to(device)
     
     # Getting name of model type

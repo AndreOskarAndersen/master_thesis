@@ -5,7 +5,7 @@ import json
 from time import time
 from data import get_dataloaders
 from pipeline import train
-from deciwatch import DeciWatch
+from baseline import Baseline
 from utils import make_dir, heatmaps2coordinates
 from config import *
 
@@ -34,7 +34,7 @@ def main(overall_models_dir: str, training_path, model_name, dataloaders, model,
     criterion = torch.nn.MSELoss()
     
     # Getting data transformer
-    data_transformer = lambda x: heatmaps2coordinates(x.cpu()).to(device)
+    data_transformer = lambda x: x
     
     # Training the model
     train(
@@ -70,15 +70,15 @@ if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
     # Collecting model params
-    deciwatch_params["device"] = device
+    baseline_params["device"] = device
     
-    deciwatch_params["upper_range"] = input_max_range[args[2]]
-    deciwatch_params["upper_range"] = input_max_range[args[2]]
+    baseline_params["upper_range"] = input_max_range[args[2]]
+    baseline_params["upper_range"] = input_max_range[args[2]]
     
-    model = DeciWatch(**deciwatch_params).to(device)
+    model = Baseline(**baseline_params).to(device)
     
     # Getting name of model type
-    model_name = "deciwatch"
+    model_name = "baseline"
     
     # Making folder for training details
     training_path = overall_models_dir + model_name + "_" + str(time()) + "/"
@@ -87,6 +87,6 @@ if __name__ == "__main__":
     dataloaders = get_dataloaders(**data_params)
     
     # Saving documentation about training parameters
-    save_config(deciwatch_params, training_path)
+    save_config(baseline_params, training_path)
     
     main(overall_models_dir, training_path, model_name, dataloaders, model, device)

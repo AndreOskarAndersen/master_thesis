@@ -51,7 +51,7 @@ unipose_params = {
     "rnn_type": "lstm",
     "bidirectional": True,
     "num_keypoints": num_keypoints,
-    "frame_shape": (num_keypoints, 50, 50)
+    "frame_shape": (num_keypoints, 56, 56)
 }
 
 # Deciwatch parameters
@@ -73,5 +73,5 @@ unipose2_params = {
     "rnn_type": "lstm",
     "bidirectional": True,
     "num_keypoints": num_keypoints,
-    "frame_shape": (num_keypoints, 50, 50)
+    "frame_shape": (num_keypoints, 56, 56)
 }
