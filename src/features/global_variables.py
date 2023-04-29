@@ -15,7 +15,7 @@ OVERALL_DATA_FOLDER = lambda noise_scalar: DATA_PATH + f"processed_{noise_scalar
 SUBFOLDERS = {"x": "input/", "y": "target/", "x_std": "input_std/"}
 
 # Wanted height and width
-TARGET_HEIGHT, TARGET_WIDTH = 50, 50
+TARGET_HEIGHT, TARGET_WIDTH = 56, 56
 
 # Stds to use during gaussian blurr
 GAUSSIAN_STDS = [1, 1.5, 2, 2.5, 3]
@@ -57,3 +57,9 @@ RELEVANT_ACTIONS = {"baseball_pitch", "bench_press", "sit_ups"}
 
 # Description of keypoint.indices
 PENN_ACTION_KEYPOINTS = {0: "nose", 1: "left_shoulder", 2: "right_shoulder", 3: "left_elbow", 4: "right_elbow", 5: "left_wrist", 6: "right_wrist", 7: "left_hip", 8: "right_hip", 9: "left_knee", 10: "right_knee", 11: "left_ankle", 12: "right_ankle"}
+
+# =============== ClimbAlong VARIABLES ===============
+
+# Path for ClimbALong Raw Data
+CLIMB_ALONG_RAW_PATH = RAW_DATA_FOLDER + "annotations.zip"
+CLIMB_ALONG_EXTRACT_PATH = RAW_DATA_FOLDER + "ClimbAlong/"
