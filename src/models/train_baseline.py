@@ -59,7 +59,6 @@ if __name__ == "__main__":
     args = {0: (0, 0, 1), 1: (1, 0, 1), 2: (0, 1, 1)}
     args = args[argv]
     
-    
     # Configurating data
     input_max_range = {0: 1, 1: 255}
     data_params["input_name"] = "input" if args[0] else "input_std"

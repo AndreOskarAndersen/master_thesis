@@ -18,6 +18,13 @@ def make_dir(path):
     except:
         print(f"Folder {path} already exists. Using existing folder.")  
         
+def remove_file(path):
+    
+    try:
+        os.remove(path)
+    except:
+        print(f"File {path} does not exist")
+        
 def turn_keypoint_to_featuremap(keypoint: torch.Tensor, featuremap_shape: torch.Size, blurr_sigma: float = 1):
     """
     Turns a 2D keypoint-coordinate into a feature map with gaussian blur.
