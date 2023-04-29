@@ -69,12 +69,7 @@ if __name__ == "__main__":
     # Device to use
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
-    # Collecting model params
-    baseline_params["device"] = device
-    
-    baseline_params["upper_range"] = input_max_range[args[2]]
-    baseline_params["upper_range"] = input_max_range[args[2]]
-    
+    # Collecting model params    
     model = Baseline(**baseline_params).to(device)
     
     # Getting name of model type
