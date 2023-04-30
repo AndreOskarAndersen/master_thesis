@@ -1,6 +1,6 @@
 # Data variation
 noise_scalar = 1
-noise_std = 2.64
+noise_std = 2.9500524520874025
 
 # Paths
 overall_data_dir = f"../../data/processed_{noise_scalar}/"
