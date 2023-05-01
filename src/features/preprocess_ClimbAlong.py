@@ -47,8 +47,8 @@ def _preprocess_sample(sample_name, input_storing_path, target_storing_path):
         if frame_input_bbox[2] - frame_input_bbox[0] == 0 or frame_input_bbox[3] - frame_input_bbox[1] == 0:
             continue
         
-        xs = np.ceil((frame_target_keypoints[:, 0] - frame_input_bbox[0]) * TARGET_WIDTH/(frame_input_bbox[2] - frame_input_bbox[0])).astype(int)
-        ys = np.ceil((frame_target_keypoints[:, 1] - frame_input_bbox[1]) * TARGET_HEIGHT/(frame_input_bbox[3] - frame_input_bbox[1])).astype(int)
+        xs = np.round((frame_target_keypoints[:, 0] - frame_input_bbox[0]) * TARGET_WIDTH/(frame_input_bbox[2] - frame_input_bbox[0])).astype(int)
+        ys = np.round((frame_target_keypoints[:, 1] - frame_input_bbox[1]) * TARGET_HEIGHT/(frame_input_bbox[3] - frame_input_bbox[1])).astype(int)
         
         frame_target_heatmaps = _make_heatmaps(xs, ys)
         
