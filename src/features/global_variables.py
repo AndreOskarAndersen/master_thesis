@@ -10,6 +10,7 @@ RAW_DATA_FOLDER = DATA_PATH + "raw/"
 NOISE_STD = 2.9500524520874025
 
 # Path to overall folder for the processed data
+OVERALL_PROCESSED_FOLDER = DATA_PATH + "processed/"
 OVERALL_DATA_FOLDER = lambda noise_scalar: DATA_PATH + f"processed_{noise_scalar}/"
 
 SUBFOLDERS = {"x": "input/", "y": "target/", "x_std": "input_std/"}
@@ -22,8 +23,6 @@ GAUSSIAN_STDS = [1, 1.5, 2, 2.5, 3]
 
 # Number of keypoints to use
 NUM_KEYPOINTS = 25
-
-CLIMBALONG_KEYPOINTS = {"nose": 0, "left_ear": 1, "right_ear": 2, "left_shoulder": 3, "right_shoulder": 4, "left_elbow": 5, "right_elbow": 6, "left_wrist": 7, "right_wrist": 8, "left_pinky": 9, "right_pinky": 10, "left_index": 11, "right_index": 12, "left_thumb": 13, "right_thumb": 14, "left_hip": 15, "right_hip": 16, "left_knee": 17, "right_knee": 18, "left_ankle": 19, "right_ankle": 20, "left_heel": 21, "right_heel": 22, "left_foot_index": 23, "right_foot_index": 24}
 
 # =============== BRACE VARIABLES ===============
 
@@ -55,22 +54,20 @@ PENN_ACTION_RAW_KEYPOINTS_PATH = PENN_ACTION_RAW_PATH + "labels/"
 # Set of actions from the Penn Action dataset that are relevant.
 RELEVANT_ACTIONS = {"baseball_pitch", "bench_press", "sit_ups"}
 
-# Description of keypoint.indices
+# Description of keypoint-indicies
 PENN_ACTION_KEYPOINTS = {0: "nose", 1: "left_shoulder", 2: "right_shoulder", 3: "left_elbow", 4: "right_elbow", 5: "left_wrist", 6: "right_wrist", 7: "left_hip", 8: "right_hip", 9: "left_knee", 10: "right_knee", 11: "left_ankle", 12: "right_ankle"}
 
-# =============== ClimbAlong VARIABLES ===============
+# =============== CLIMBALONG VARIABLES ===============
 
-# Path for ClimbALong Raw Data
-CA_DATA_PATH = RAW_DATA_FOLDER + "ClimbAlong/"
+# Description of keypoint-indicies
+CLIMBALONG_KEYPOINTS = {"nose": 0, "left_ear": 1, "right_ear": 2, "left_shoulder": 3, "right_shoulder": 4, "left_elbow": 5, "right_elbow": 6, "left_wrist": 7, "right_wrist": 8, "left_pinky": 9, "right_pinky": 10, "left_index": 11, "right_index": 12, "left_thumb": 13, "right_thumb": 14, "left_hip": 15, "right_hip": 16, "left_knee": 17, "right_knee": 18, "left_ankle": 19, "right_ankle": 20, "left_heel": 21, "right_heel": 22, "left_foot_index": 23, "right_foot_index": 24}
 
-# Path for the input-zip
-CA_INPUT_ZIP_PATH = CA_DATA_PATH + "annotations.zip"
+# Path of ClimbAlong raw data
+CA_RAW_PATH = RAW_DATA_FOLDER + "ClimbAlong/"
 
-# Path of where to extract the input-zip
-CA_INPUT_DIR_PATH = CA_DATA_PATH + "input/"
+CA_RAW_SUBDIRS = {"x": "input/", "y": "target/", "video": "video/"}
 
-# Path for the groundtruth-zip
-CA_GT_ZIP_PATH = CA_DATA_PATH + "Climbalong_Annotated_Database.zip"
+# Path of ClimbAlong processed data
+CA_PROCESSED_PATH = OVERALL_PROCESSED_FOLDER + "ClimbAlong/"
 
-# Path of where to extract the groundtruth-zip
-CA_GT_DIR_PATH = CA_DATA_PATH + "target/"
+CA_PROCESSED_SUBDIRS = {"x": "input/", "y": "target/"}

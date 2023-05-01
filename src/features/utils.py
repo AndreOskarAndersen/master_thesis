@@ -16,7 +16,8 @@ def make_dir(path):
     try:
         os.mkdir(path)
     except:
-        print(f"Folder {path} already exists. Using existing folder.")  
+        #print(f"Folder {path} already exists. Using existing folder.")  
+        pass
         
 def remove_file(path):
     
