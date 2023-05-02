@@ -1,120 +1,82 @@
 import os
-import zipfile
 import numpy as np
 import torch
-from utils import make_dir, remove_file
-from global_variables import *
+from tqdm.auto import tqdm
+from skimage.filters import gaussian
+from utils import make_dir
+from global_variables import CA_PROCESSED_PATH, CA_PROCESSED_SUBDIRS, CA_RAW_PATH, CA_RAW_SUBDIRS, TARGET_HEIGHT, TARGET_WIDTH, NUM_KEYPOINTS
 
-def _remove_zip_files():
-    """
-    Function for deleting files not to be used.
-    """
-    
-    print("Removing ClimbAlong input-zip-file...")
-    remove_file(CA_INPUT_ZIP_PATH)
-    print("ClimbAlong input-zip-file has been removed")
-    
-    print("Removing ClimbAlong groundtruth-zip-file...")
-    remove_file(CA_GT_ZIP_PATH)
-    print("ClimbAlong groundtruth-zip-file has been removed")
+np.set_printoptions(suppress=True)
 
-def _extract_dataset():
+def _make_dirs():
     """
-    Function for extracting the ClimbAlong-dataset.
+    Function for making directories to be used.
     """
     
-    try:
-        print("Extracting Climbalong input-dataset...")
-        with zipfile.ZipFile(CA_INPUT_ZIP_PATH, 'r') as f:
-            f.extractall(CA_INPUT_DIR_PATH)
-        print("Extraction of ClimbALong input-dataset done")   
-    except:
-        print(f"{CA_INPUT_DIR_PATH} does not exist")
+    for subdir in CA_PROCESSED_SUBDIRS.values():
+        make_dir(CA_PROCESSED_PATH + subdir)
         
-    try:
-        print("Extracting Climbalong groundtruth-dataset...")
-        with zipfile.ZipFile(CA_GT_ZIP_PATH, 'r') as f:
-            f.extractall(CA_GT_DIR_PATH)
-        print("Extraction of ClimbALong groundtruth-dataset done")
-    except:
-        print(f"{CA_GT_ZIP_PATH} does not exist")
+def _make_heatmaps(xs, ys):
+    heatmaps = torch.zeros((NUM_KEYPOINTS, TARGET_HEIGHT, TARGET_WIDTH))
     
-def _clean_groundtruth_data():
-    
-    # Extensions to use
-    extensions = {"video": ".mp4", "keypoint": ".npz"}
-    
-    # List of all of the samples
-    sample_names = list(map(lambda x: x.split(".")[0], os.listdir(CA_INPUT_DIR_PATH)))
-    
-    
-def _preprocess_input_heatmaps(heatmaps):
-    """
-    Processes a single input-frame of heatmaps
-    """
-    
-    # All elements below 0 are set to 0
-    heatmaps[heatmaps < 0] = 0
-    
-    # We make sure that each heatmap sums up to 1
-    heatmaps /= np.sum(heatmaps, axis=(1, 2))[:, np.newaxis, np.newaxis]
-    
+    for i, (x, y) in enumerate(zip(xs, ys)):
+        x = np.clip(x, 0, TARGET_WIDTH - 1)
+        y = np.clip(y, 0, TARGET_HEIGHT - 1)
+        
+        heatmap = np.zeros((TARGET_HEIGHT, TARGET_WIDTH))
+        heatmap[y, x] = 1
+        heatmaps[i] = torch.from_numpy(gaussian(heatmap, sigma=1))
+        
     return heatmaps
-
-def _preprocess_input_bboxes(bbox):
-    """
-    Processes the bbox of a single input-frame
-    """
-    x_1 = bbox[0]
-    x_2 = bbox[2]
-    
-    y_1 = bbox[1]
-    y_2 = bbox[2]
-    
-    bbox = np.array([[y_1, x_1], [y_1, x_2], [y_2, x_1], [y_2, x_2]]).reshape((4, 2))
-    bbox = np.round(bbox).astype(int)
-    
-    return bbox
-    
-def _preprocess_data():
-    """
-    Function for processing the ClimbAlong dataset
-    """
-    
-    # List of all of the videos
-    video_names = os.listdir(CA_INPUT_DIR_PATH)
-    
-    for video_name in video_names:
-        input_video = np.load(CA_INPUT_DIR_PATH + video_name)
-        input_video_heatmaps = input_video["heatmaps"]
-        input_video_bboxes = input_video["bboxes"]
-        num_frames = len(input_video_heatmaps)
         
-        for frame in range(num_frames):
-            input_frame_heatmaps = _preprocess_input_heatmaps(input_video_heatmaps[frame])
-            input_frame_bboxes = _preprocess_input_bboxes(input_video_bboxes[frame])
-            break
-        break             
+def _preprocess_sample(sample_name, input_storing_path, target_storing_path):
+    input_raw_path = CA_RAW_PATH + CA_RAW_SUBDIRS["x"] + sample_name + ".npz"
+    target_raw_path = CA_RAW_PATH + CA_RAW_SUBDIRS["y"] + sample_name + ".npz"
+    
+    input_data = np.load(input_raw_path)
+    target_data = np.load(target_raw_path)
+    
+    input_bboxes = input_data["bboxes"]
+    input_heatmaps = input_data["heatmaps"]
+    target_keypoints = target_data["keypoints"]
+    
+    for i, (frame_input_bbox, frame_input_heatmaps, frame_target_keypoints) in enumerate(zip(input_bboxes, input_heatmaps, target_keypoints)):
+        input_frame_storing_path = input_storing_path + str(i) + ".pt"
+        target_frame_storing_path = target_storing_path + str(i) + ".pt"
+        
+        if frame_input_bbox[2] - frame_input_bbox[0] == 0 or frame_input_bbox[3] - frame_input_bbox[1] == 0:
+            continue
+        
+        xs = np.round((frame_target_keypoints[:, 0] - frame_input_bbox[0]) * TARGET_WIDTH/(frame_input_bbox[2] - frame_input_bbox[0])).astype(int)
+        ys = np.round((frame_target_keypoints[:, 1] - frame_input_bbox[1]) * TARGET_HEIGHT/(frame_input_bbox[3] - frame_input_bbox[1])).astype(int)
+        
+        frame_target_heatmaps = _make_heatmaps(xs, ys)
+        
+        torch.save(frame_input_heatmaps, input_frame_storing_path)
+        torch.save(frame_target_heatmaps, target_frame_storing_path)
+        
+def _preprocess_samples():
+    sample_names = list(map(lambda sample_name: sample_name.split(".")[0], os.listdir(CA_RAW_PATH + CA_RAW_SUBDIRS["x"])))
+    
+    for sample_name in tqdm(sample_names, disable=True):
+        input_storing_path = CA_PROCESSED_PATH + CA_PROCESSED_SUBDIRS["x"] + sample_name + "/"
+        target_storing_path = CA_PROCESSED_PATH + CA_PROCESSED_SUBDIRS["y"] + sample_name + "/"
+        
+        make_dir(input_storing_path)
+        make_dir(target_storing_path)
+        
+        _preprocess_sample(sample_name, input_storing_path, target_storing_path)
 
 def preprocess():
-    # Making dir of where to store the extracted data.
-    make_dir(CA_DATA_PATH)
+    """
+    Main entrypoint for preprocessing the ClimbAlong dataset.
+    """
     
-    # Extracting the data
-    _extract_dataset()
+    # Making directories to be used
+    _make_dirs()
     
-    # Removing unnecessary zip-files
-    #_remove_zip_files()
-    
-    # Cleaning up groundtruth dataset
-    #_clean_groundtruth_data()
-    
-    # Preprocessing the keypoints
-    #_preprocess_data()
-    
-    pass
-
+    # Preprocesses the samples
+    _preprocess_samples()
 
 if __name__ == "__main__":
     preprocess()
-    
