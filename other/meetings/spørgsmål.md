@@ -102,3 +102,21 @@
     2. Jeg har rettet PCK
     3. Er det på tide at jeg finetuner?
     4. Er der noget jeg skal gøre anderledes når jeg finetuner?
+
+- 3/5:
+    1. Der har næsten været én lang kø på clusteret, så har ikke fået trænet flere forskellige noise-std
+    2. Jeg blev informeret om heatmaps var i størrelse 50 x 50, men dem jeg har fået er i 56 x 56
+    3. Andrea har kun sendt 25 kpt annoteringer
+    4. Mask RCNN tager ikke højde for aspect ratio som jeg ellers gør.
+    5. Sigmoid som sidste lag lader ikke til at forbedre dataen
+    6. Unipose2 ser ud til at performe lige så godt som Unipose
+    7. Hvordan jeg laver gt-heatmaps til finetuning
+    8. Hvad skal jeg gøre når gt-kp ligger uden for pred-bbox?
+    9. Hvad gør jeg når pred-bbox ikke findes (eks. når personen er halvt ude af billedet)?
+        1. Bruge linear interpolation til at lave bbox?
+        2. Dette sker dog kun til sidst i en video
+    10. Preprocessing af CA_data (heatmap[heatmap < 0] = 0 og heatmap = heatmap/heatmap.sum())
+    11. Hvorfor ikke bruge predicted keypoint til at lave finetuning heatmap?
+    12. Hvad skal jeg tage højde for når jeg fine-tuner?
+    13. Data-split til finetuning? (evt. cross-validation?)
+    14. Hvordan vælger jeg hvilke modeller der skal finetunes?
