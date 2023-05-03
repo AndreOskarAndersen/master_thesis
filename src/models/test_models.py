@@ -12,7 +12,7 @@ from utils import heatmaps2coordinates
 
 if __name__ == "__main__":
     subdir = int(sys.argv[1])
-    subdir = f"../../{subdir}/"
+    subdir = f"../../models/{subdir}/"
     model_names = os.listdir(subdir)
     
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
