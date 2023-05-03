@@ -52,5 +52,5 @@ if __name__ == "__main__":
         # Evaluating model on test data
         model_loss, model_pck = evaluate(model, test_dataloader, torch.nn.MSELoss(), device, data_transformer)
         print("============================================")
-        print(f"Model {model_name}: Loss: {model_loss}, PCK: {model_pck}")
+        print(f"Model {model_name}. Best Epoch: {best_epoch}, Loss: {model_loss}, PCK: {model_pck}")
         print("============================================")
