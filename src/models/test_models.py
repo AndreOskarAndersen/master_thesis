@@ -37,7 +37,7 @@ if __name__ == "__main__":
         models_dict = {"baseline": Baseline, "unipose": Unipose, "deciwatch": DeciWatch, "unipose2": Unipose2}
         model_type = model_name.split("_")[0]
         model = models_dict[model_type](**config["model_params"])
-        model.load_state_dict(torch.load(model_dir + best_epoch + "/model.pth", map_location=torch.device("cpu")))
+        model.load_state_dict(torch.load(model_dir + str(best_epoch) + "/model.pth", map_location=torch.device("cpu")))
         model = model.to(device)
         
         # Loading data transformer
