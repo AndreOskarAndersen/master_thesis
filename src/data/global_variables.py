@@ -35,3 +35,11 @@ PENN_ACTION_SUB_FOLDER = "Penn_Action/"
 PENN_ACTION_DIRS_TO_DELETE = [f"{PENN_ACTION_SUB_FOLDER}frames/", f"{PENN_ACTION_SUB_FOLDER}tools/"]
 
 PENN_ACTION_FILES_TO_DELTE = [f"{PENN_ACTION_EXTRACTED}{PENN_ACTION_SUB_FOLDER}README", PENN_ACTION_DOWNLOAD]
+
+# =============== CLIMBALONG VARIABLES ===============
+
+# Path to the overall ClimbAlong raw-data
+CLIMBALONG_OVERALL_FOLDER = OUTPUT_PATH + "ClimbAlong/"
+
+# Names of the raw ClimbALong-subfolders
+CLIMBALONG_SUB_FOLDERS  = {"x": "input/", "y": "target/", "video": "video/"}

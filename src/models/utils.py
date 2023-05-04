@@ -2,9 +2,8 @@ import os
 import numpy as np
 import torch
 import skimage
-from typing import Union, List
+from typing import Union
 from baseline import Baseline
-from deciwatch import DeciWatch
 from unipose2 import Unipose2
 from unipose import Unipose
 from global_variables import GENERAL_MISSING_INDICIES, PA_MISSING_INDICIES
