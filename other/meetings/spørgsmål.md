@@ -120,3 +120,5 @@
     12. Hvad skal jeg tage højde for når jeg fine-tuner?
     13. Data-split til finetuning? (evt. cross-validation?)
     14. Hvordan vælger jeg hvilke modeller der skal finetunes?
+    15. Flytning af forsvarsdato
+    16. Handler jeg std forkert?
