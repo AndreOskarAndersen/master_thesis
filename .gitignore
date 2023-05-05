@@ -412,3 +412,9 @@ cython_debug/
 
 # Unprocessed data
 data
+
+# Finetuned models
+finetuned_models
+
+# Pretrained models
+pretrained_models
