@@ -4,4 +4,6 @@
 \section{Experiments}
 \label{sec:experiments}
 
+We have decided to freeze the already developed pose-estimator and only train our models independently from the already developed pose-estimator, as we see the following two benefits of doing so: (1) the training of the models will be quicker, as we just need to train our models without the already developed pose-estimator, and (2) we get an greater understanding of the effects of our models when combined with the pose-estimator. Further, as the images of the frames of the BRACE and Penn Action datasets are very different from the ClimbAlong dataset, we would expect the pose estimator to return some very inaccurate pose estimations of these samples, making the training of our models much less effective.
+
 \end{document}
