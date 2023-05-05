@@ -5,8 +5,11 @@ noise_std = 2.9500524520874025
 # Paths
 overall_data_dir = f"../../data/processed_{noise_scalar}/"
 overall_models_dir = "../../models/"
+finetune_dataset_path = "../../data/processed/"
+pretrained_models_path = "../../pretrained_models/"
+finetune_saving_path = "../../finetuned_models/"
 
-# Training constants
+# Pretraining constants
 learning_rate = 1e-3
 max_epochs = 50
 early_stopping_patience = 10
@@ -22,6 +25,26 @@ training_params = {
     "scheduler_reduce_factor": scheduler_reduce_factor,
     "min_delta": min_delta,
     "disable_tqdm": disable_tqdm
+}
+
+# Finetuning constaints
+finetune_lr = 1e-4
+finetune_eval_ratio = 0.4
+finetune_scheduler_reduce_factor = 0.1
+finetune_scheduler_patience = 5
+finetune_max_epochs = 100
+finetune_early_stopping_patience = 10
+finetune_min_delta = 0
+finetune_disable_tqdm = False
+finetune_params = {
+    "learning_rate": finetune_lr,
+    "eval_ratio": finetune_eval_ratio,
+    "scheduler_reduce_factor": finetune_scheduler_reduce_factor,
+    "scheduler_patience": finetune_scheduler_patience,
+    "max_epochs": finetune_max_epochs,
+    "early_stopping_patience": finetune_early_stopping_patience,
+    "min_delta": finetune_min_delta,
+    "disable_tqdm": finetune_disable_tqdm
 }
 
 # Data parameters

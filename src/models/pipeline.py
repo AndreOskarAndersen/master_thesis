@@ -158,7 +158,9 @@ def train(model: nn.Module,
             
             # Predicting
             pred = model(x)
-            y = modify_target(pred, y, is_pa, type(model))
+            
+            if torch.all(is_pa != -1):
+                y = modify_target(pred, y, is_pa, type(model))
             
             # Resetting optimizer
             optimizer.zero_grad()
@@ -273,12 +275,14 @@ def evaluate(model: nn.Module,
             
             # Predicting
             pred = model(y)
-            y = modify_target(pred, y, is_pa, type(model))
+            if torch.all(is_pa != -1):
+                y = modify_target(pred, y, is_pa, type(model))
             
             # Computing loss of the current iteration
             losses[i] = criterion(pred, y).item()
             
-            y = unmodify_target(pred, y, is_pa, type(model))
+            if torch.all(is_pa != -1):
+                y = unmodify_target(pred, y, is_pa, type(model))
 
             # Computing PCK of the current iteration
             PCK = compute_PCK(y, pred)

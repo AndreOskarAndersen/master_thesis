@@ -342,7 +342,7 @@ class _ClimbAlongDataset():
                 input_samples[j] = torch.load(self.input_dir + sample_name) * self.upper_range
                 target_samples[j] = torch.load(self.target_dir + sample_name) * self.upper_range
 
-            return input_samples, target_samples
+            return input_samples, target_samples, -1
         
     def get_datasets(self):
         """
