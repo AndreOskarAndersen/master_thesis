@@ -88,7 +88,10 @@ class _PretrainDataSet(Dataset):
             # Saving each sample in the mapper
             # with its corresponding index
             for sample in range(num_samples):
-                mapper[len(mapper)] = [clip_name + "/" + str(lower_interval + sample + window_ele) + ".pt" for window_ele in range(0, self.window_size, self.interval_skip)]
+                if sample + self.window_size * self.interval_skip > len(frames):
+                    break
+                
+                mapper[len(mapper)] = [clip_name + "/" + str(lower_interval + sample + window_ele * self.interval_skip) + ".pt" for window_ele in range(self.window_size)]
                 
         return mapper         
     
@@ -234,7 +237,6 @@ class _ClimbAlongDataset():
             if non_overlap:
                 new_eval_mapper[len(new_eval_mapper)] = window
                 
-                
         return train_mapper, new_eval_mapper
     
     def _prune_mapper(self, mapper):
@@ -282,7 +284,10 @@ class _ClimbAlongDataset():
             # Saving each sample in the mapper
             # with its corresponding index
             for sample in range(num_samples):
-                mapper[len(mapper)] = [clip_name + "/" + str(lower_interval + sample + window_ele) + ".pt" for window_ele in range(0, self.window_size, self.interval_skip)]
+                if sample + self.window_size * self.interval_skip > len(frames):
+                    break
+                
+                mapper[len(mapper)] = [clip_name + "/" + str(lower_interval + sample + window_ele * self.interval_skip) + ".pt" for window_ele in range(self.window_size)]
         
         # Splits the mapper into training and evaluation
         train_mapper = dict(list(mapper.items())[int(len(mapper) * (1 - self.train_ratio)):])
@@ -291,15 +296,12 @@ class _ClimbAlongDataset():
         # Removes the overlapping frames of the two mappers
         train_mapper, eval_mapper = self._remove_train_eval_overalap(train_mapper, eval_mapper)
         
+        # Prunes the eval_mapper such that it has no overlapping windows
+        eval_mapper = self._prune_mapper(eval_mapper)
+        
         # Splits the evaluation mapper into testing and validation
-        test_mapper = dict(list(eval_mapper.items())[len(eval_mapper)//2:])
-        val_mapper = dict(list(eval_mapper.items())[:len(eval_mapper)//2])
-        
-        # Prunes the testing and validation mappers
-        # such that they have no overlapping windows
-        test_mapper = self._prune_mapper(test_mapper)
-        
-        val_mapper = self._prune_mapper(val_mapper)
+        test_mapper = dict(list(eval_mapper.items())[0::2])
+        val_mapper = dict(list(eval_mapper.items())[1::2])
         
         # Resetitng the indicies of the mappers
         train_mapper = {i: v for i, v in enumerate(train_mapper.values())}
@@ -335,8 +337,8 @@ class _ClimbAlongDataset():
         def __getitem__(self, i: int):
             sample_names = self.mapper[i]
             
-            input_samples = torch.zeros((self.window_size, *self.heatmap_shape), dtype=float)
-            target_samples = torch.zeros((self.window_size, *self.heatmap_shape), dtype=float)
+            input_samples = torch.zeros((len(sample_names), *self.heatmap_shape), dtype=float)
+            target_samples = torch.zeros((len(sample_names), *self.heatmap_shape), dtype=float)
             
             for j, sample_name in enumerate(sample_names):
                 input_samples[j] = torch.load(self.input_dir + sample_name) * self.upper_range
@@ -450,15 +452,11 @@ if __name__ == "__main__":
     window_size = 5
     batch_size = 16
     eval_ratio = 0.4
-    #device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
-    #total_dataset = _PretrainDataSet(dir_path, window_size, (25, 56, 56))
-    #loader = DataLoader(total_dataset, batch_size=1, num_workers=1)
-    #print(len(loader.dataset))
-    #for x in tqdm(loader, total=len(loader), leave=False, disable=False):
-    #    pass
-    
-    train_loader, val_loader, test_loader = get_dataloaders(dir_path, window_size, batch_size, eval_ratio, dataset_type="CA")
-    print(len(train_loader))
-    print(len(val_loader))
-    print(len(test_loader))
+    total_dataset = _ClimbAlongDataset(dir_path, window_size, (25, 56, 56), 1 - eval_ratio, 1, 1)
+    train_dataset, test_dataset, val_dataset = total_dataset.get_datasets()
+    loader = DataLoader(train_dataset, batch_size=16, num_workers=0)
+    for x in tqdm(loader, total=len(loader), leave=False, disable=False):
+        pass
+

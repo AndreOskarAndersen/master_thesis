@@ -13,6 +13,7 @@ from pipeline import train
 from data import get_dataloaders
 from utils import make_dir
 from config import finetune_dataset_path, pretrained_models_path, finetune_saving_path, finetune_params
+from tqdm.auto import tqdm
 
 def main():
     noise_scalar = sys.argv[1]
@@ -23,10 +24,10 @@ def main():
     
     models_dict = {"baseline": Baseline, "unipose": Unipose, "unipose2": Unipose2, "deciwatch": DeciWatch}
     
-    data_transforms = {"baseline": lambda x: x, "unipose": lambda x: x, "unipose": lambda x: x, "deciwatch": lambda x: heatmaps2coordinates(x.cpu()).to(device)}
+    data_transforms = {"baseline": lambda x: x, "unipose": lambda x: x, "unipose2": lambda x: x, "deciwatch": lambda x: heatmaps2coordinates(x.cpu()).to(device)}
     
     # Looping through each model
-    for model_name in model_names:
+    for model_name in tqdm(model_names, desc="Model", leave=False):
         model_type = model_name.split("_")[0]
         model_dir = models_dir + model_name + "/"
         
@@ -40,7 +41,7 @@ def main():
         # Finding the best version of the current model
         best_model_idx = np.argmax(np.load(model_dir + "val_accs.npy"))
         if best_model_idx == 0:
-            best_model_idx = np.argsort(np.max(np.load(model_dir + "val_accs.npy")))[-2]
+            best_model_idx = np.argsort(np.load(model_dir + "val_accs.npy"))[-2]
             
         # Loading the best version of the current model
         model = models_dict[model_type](**model_config["model_params"])
@@ -88,8 +89,6 @@ def main():
             scheduler=scheduler, 
             data_transformer=data_transformer
         )
-        
-        break
         
     
 
