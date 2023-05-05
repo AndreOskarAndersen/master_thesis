@@ -208,4 +208,4 @@ def preprocess(noise_scalar: int):
             torch.save(output_heatmaps, output_heatmaps_storing_path)
         
 if __name__ == "__main__":
-    preprocess()
+    preprocess(1)

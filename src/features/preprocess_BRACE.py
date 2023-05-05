@@ -309,4 +309,4 @@ def preprocess(noise_scalar: int):
                 torch.save(processed_input_heatmaps_mixed_std, input_frame_storing_mixed_std_path)
             
 if __name__ == "__main__":
-    preprocess()
+    preprocess(1)
