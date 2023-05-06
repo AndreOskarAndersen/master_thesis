@@ -101,6 +101,13 @@ def _preprocess_sample(sample_name: str, input_storing_path: str, target_storing
     input_bboxes = input_data["bboxes"]
     input_heatmaps = input_data["heatmaps"]
     target_keypoints = target_data["keypoints"]
+    num_annoated_keypoints = np.any(target_keypoints[0].squeeze() > [0, 0, 0], axis=1).sum()
+    if num_annoated_keypoints < 23:
+        return
+    
+    # Making folders
+    make_dir(input_storing_path)
+    make_dir(target_storing_path)
     
     # Looping through each frame
     for i, (frame_input_bbox, frame_input_heatmaps, frame_target_keypoints) in enumerate(zip(input_bboxes, input_heatmaps, target_keypoints)):
@@ -148,10 +155,6 @@ def _preprocess_samples():
         
         # Folder of where to store the processed output
         target_storing_path = CA_PROCESSED_PATH + CA_PROCESSED_SUBDIRS["y"] + sample_name + "/"
-        
-        # Making folders
-        make_dir(input_storing_path)
-        make_dir(target_storing_path)
         
         # Processing the current sample
         _preprocess_sample(sample_name, input_storing_path, target_storing_path)

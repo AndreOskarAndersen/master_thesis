@@ -25,6 +25,8 @@ if __name__ == "__main__":
         # Finding the best epoch of the model
         val_accs = np.load(model_dir + "val_accs.npy")
         best_epoch = np.argmax(val_accs)
+        if best_epoch == 0:
+            best_epoch = val_accs.argsort()[-2]
         
         # Loading config
         with open(model_dir + "config.json", "r") as f:

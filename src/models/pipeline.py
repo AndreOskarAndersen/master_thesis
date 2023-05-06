@@ -134,11 +134,12 @@ def train(model: nn.Module,
     torch.save(eval_dataloader, saving_path + "eval_dataloader.pth")
     torch.save(test_dataloader, saving_path + "test_dataloader.pth")
     
-    # Evaluating the model prior to training it
-    model.eval()
-    val_loss, val_acc = evaluate(model, eval_dataloader, criterion, device, data_transformer)
-    val_accs.append(val_acc)
-    val_losses.append(val_loss)
+    if len(train_losses) == 0:
+        # Evaluating the model prior to training it
+        model.eval()
+        val_loss, val_acc = evaluate(model, eval_dataloader, criterion, device, data_transformer)
+        val_accs.append(val_acc)
+        val_losses.append(val_loss)
     
     for epoch in tqdm(range(min_epoch, max_epoch), desc="Epoch", leave=False, disable=disable_tqdm):
         

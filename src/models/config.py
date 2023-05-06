@@ -5,7 +5,7 @@ noise_std = 2.9500524520874025
 # Paths
 overall_data_dir = f"../../data/processed_{noise_scalar}/"
 overall_models_dir = "../../models/"
-finetune_dataset_path = "../../data/processed/"
+finetune_dataset_path = "../../data/processed/ClimbAlong/"
 pretrained_models_path = "../../pretrained_models/"
 finetune_saving_path = "../../finetuned_models/"
 
@@ -32,7 +32,7 @@ finetune_lr = 1e-4
 finetune_eval_ratio = 0.4
 finetune_scheduler_reduce_factor = 0.1
 finetune_scheduler_patience = 5
-finetune_max_epochs = 100
+finetune_max_epochs = 50
 finetune_early_stopping_patience = 10
 finetune_min_delta = 0
 finetune_disable_tqdm = False
