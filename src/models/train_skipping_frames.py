@@ -46,9 +46,6 @@ def main():
     data_params["noise_scalar"] = args[-1]
     data_params["dir_path"] = f"../../data/processed_{args[-1]}/"
     
-    print(data_params)
-    exit(1)
-    
     unipose_params["device"] = device
     unipose2_params["device"] = device
     deciwatch_params["device"] = device
