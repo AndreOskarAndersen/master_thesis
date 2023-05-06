@@ -43,7 +43,6 @@ def main():
     data_params["input_name"] = "input" if args[4] else "input_std"
     data_params["interval_skip"] = args[5]
     data_params["upper_range"] = input_max_range[args[6]]
-    data_params["noise_scalar"] = args[-1]
     data_params["dir_path"] = f"../../data/processed_{args[-1]}/"
     
     unipose_params["device"] = device
