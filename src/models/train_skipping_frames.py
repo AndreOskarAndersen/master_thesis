@@ -28,10 +28,14 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
     argv = int(sys.argv[1])
-    args = {0: (Baseline, baseline_params, "baseline", lambda x: x, 0, 1, 1), 
-            1: (DeciWatch, deciwatch_params, "deciwatch", lambda x: heatmaps2coordinates(x.cpu()).to(device), 0, 1, 1), 
-            2: (Unipose, unipose_params, "unipose", lambda x: x, 0, 1, 1), 
-            3: (Unipose2, unipose2_params, "unipose2", lambda x: x, 0, 1, 1)}
+    args = {0: (Baseline, baseline_params, "baseline", lambda x: x, 0, 1, 1, 1), 
+            1: (Baseline, baseline_params, "baseline", lambda x: x, 0, 1, 1, 2), 
+            2: (DeciWatch, deciwatch_params, "deciwatch", lambda x: heatmaps2coordinates(x.cpu()).to(device), 0, 1, 1, 1), 
+            3: (DeciWatch, deciwatch_params, "deciwatch", lambda x: heatmaps2coordinates(x.cpu()).to(device), 0, 1, 1, 2), 
+            4: (Unipose, unipose_params, "unipose", lambda x: x, 0, 1, 1, 1), 
+            5: (Unipose, unipose_params, "unipose", lambda x: x, 0, 1, 1, 2), 
+            6: (Unipose2, unipose2_params, "unipose2", lambda x: x, 0, 1, 1, 1),
+            7: (Unipose2, unipose2_params, "unipose2", lambda x: x, 0, 1, 1, 2)}
     args = args[argv]
     
     # Configurating data
@@ -39,6 +43,11 @@ def main():
     data_params["input_name"] = "input" if args[4] else "input_std"
     data_params["interval_skip"] = args[5]
     data_params["upper_range"] = input_max_range[args[6]]
+    data_params["noise_scalar"] = args[-1]
+    data_params["dir_path"] = f"../../data/processed_{args[-1]}/"
+    
+    print(data_params)
+    exit(1)
     
     unipose_params["device"] = device
     unipose2_params["device"] = device
