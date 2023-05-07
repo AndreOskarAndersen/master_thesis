@@ -15,7 +15,7 @@ The following section covers the architectures of the various models that will b
 \noindent The first model we will be using in Section \ref{sec:experiments} is a very simple baseline model based on a 3-dimensional convolution. Figure \ref{fig:baseline} illustrates the architecture of the model.
 \\
 \\
-The model takes a sequence of $T \in \mathbb{R}$ estimated poses $\hat{\mathcal{P}} = \{\hat{\bm{P}}^t\}_{t = 1} ^T$ as input, where each estimated pose $\hat{\bm{P}}^t \in \mathbb{R}^{K \times h \times w}$ is represented using heatmaps, such that $K \in \mathbb{R}$ is the amount of keypoints in each estimated pose, $h \in \mathbb{R}$ is the height of each heatmap and $w \mathbb{R}$ is the width of each heatmap.
+The model takes a sequence of $T \in \mathbb{R}$ estimated poses $\hat{\mathcal{P}} = \{\hat{\bm{P}}^t\}_{t = 1} ^T$ as input, where each estimated pose $\hat{\bm{P}}^t \in \mathbb{R}^{K \times h \times w}$ is represented using heatmaps, such that $K \in \mathbb{R}$ is the amount of keypoints in each estimated pose, $h \in \mathbb{R}$ is the height of each heatmap and $w \in \mathbb{R}$ is the width of each heatmap.
 \\
 \\
 Once the data has been passed to the model, the processing of the data is very simple. As illustrated in Figure \ref{fig:baseline}, the model starts by applying a 3-dimensional convolutional layer to the input data. The convolutional layer consists of $K$ filters, each with a kernel-size of $T \times 5 \times 5$. To ensure the input and output of the convolutional layer has the same shape, we pad the input with zeros.
