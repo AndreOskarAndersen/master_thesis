@@ -2,7 +2,7 @@
 
 \begin{document}
 \section{Dataset}
-To perform the pose estimation in Section \ref{sec:experiments}, we need some data on which to train, validate and test our models. The following section describes the datasets that will be used, as well as the preprocessing of these datasets.
+To perform the pose estimation in Section \ref{sec:experiments}, we need some data on which to train, validate and test our models. The following section describes the datasets that will be used.
 
 \begin{table}[htbp]
     \begin{tabular}{|l|c|c|c|c|}
@@ -108,7 +108,7 @@ To perform the pose estimation in Section \ref{sec:experiments}, we need some da
 As the aim of our models is to perform well on climbers, we will be using some annotated data of climbers. For this, ClimbAlong ApS has developed a dataset that we will be using. The dataset consists of videos of various climbers on bouldering walls, where each video contains just a single climber. Figure \ref{fig:CA_dataset_static} and \ref{fig:CA_dataset_quick} illustrates two windows of five consecutive frames of a single video from the ClimbAlong dataset. As shown in the figures, the videos in the dataset contains both static positions, where the climber holds a position for a while, as well as quick movements.
 \\
 \\
-The dataset consists of $30$ fully annotated videos and a total of $10,310$ fully annotated frames, where each annotation consists of $25$ keypoints. Table \ref{tab:keypoints} gives an overview of which keypoints are annotated in the dataset. Each videos is filmed in portrait mode with a resolution of $1080 \times 1920$ and $30$ frames per second.
+The dataset consists of $29$ fully annotated videos and a total of $9,535$ fully annotated frames, where each annotation consists of $25$ keypoints. Table \ref{tab:keypoints} gives an overview of which keypoints are annotated in the dataset. Each videos is filmed in portrait mode with a resolution of $1080 \times 1920$ and $30$ frames per second.
 
 \subsection{The BRACE Dataset}
 \begin{figure}[htbp]
@@ -236,27 +236,5 @@ Unlike the BRACE dataset, most of the poses in the Penn Action dataset are not v
 \\
 \\
 In total, we use $307$ video sequences from the Penn Action dataset, consisting of a total of $26,036$ frames. Figure \ref{fig:PA_dataset} illustrates five consecutive frames with its groundtruth annotations for one of these video sequences.
-
-\subsection{Preprocessing of the Data}
-In the following subsections we describe our preprocessing of the various datasets.
-
-\subsubsection{BRACE and Penn Action}
-As our models take a sequence of estimated poses as input, we will not be using the images of the frames, hence why we discard the images of all frames from BRACE and Penn Action, such that we only keep the annotated poses.
-\\
-\\
-We start by extracting the bounding-box of the annotated pose in each frame by using the annotated keypoints. Further, we expand each side by $10\%$, such that no keypoint lies on any of the boundaries of the bounding-box. To ensure that the aspect ratio of the pose is kept later on, we transform the bounding-box into a square by extending the shorter sides, such that they have the same length as the longer sides. Next, we discard everything outside the bounding-box and rescale the bounding-box to have a sidelength of $56$, such that it has the same size as the output of the already developed pose-estimator.
-\\
-\\
-Next, we transform each frame into twenty five heatmaps. This is done by creating twenty five $56 \times 56$ zero-matrices for each frame, such that each zero-matrix represents a single keypoint of a single frame. Further, for each keypoint we insert a fixed value $c \in \mathbb{R}$ at the position of the keypoint in its corresponding zero-matrix and apply a Gaussian filter with mean $\mu = 0$ and standard deviation $\sigma = 1$ to smear out each heatmap. For missing keypoints, we do not place the value $c$ in the corresponding heatmap, making the heatmap consist of only zeros. Further, as Penn Action is the only dataset with the position of the head annotated, as well as the only dataset missing a annotation for the nose, we treat the head-annotation of Penn Action as if it was a nose-annotation, as the position of the two annotation would be very close to each other.
-\\
-\\
-The heatmaps that we produce by following the above description will be used as the groundtruth output of our models. However, as we will be pretraining our models detached from the already developed pose-estimator, we will also need some data as input. We acquire this data by adding some noise to the data, such that they become similar to the output of the already developed pose-estimator, essentially simulating the output of the already developed pose-estimator. The noise is introduced by randomly shifting each keypoint of each sample and by smearing our each keypoint of each sample by using a Gaussian filter, where the standard deviation is randomly chosen. For the shift-value, we use $x \cdot k$, where $k > 0$ is some fixed positive number and $x$ is equal to $20\%$ of the mean torso-diameter. We clip the position of the shifted keypoints between $0$ and $55$, such that they cannot be outside of their corresponding heatmaps. For the random standard deviation we sample uniformly at random from the set $\{1, 1.5, 2, 2.5, 3\}$.
-
-\subsubsection{ClimbAlong}
-For the ClimbAlong dataset we perform only minor preprocessing. First, the preprocessing of each video is done by having the already developed pose-estimator process the video, such that we have the output heatmaps of the pose-estimator, containing all of the pose-estimations of each video. Next, we preprocess the heatmaps by setting all negative values to $0$ and normalizing each heatmap, such that each heatmap sums up to the fixed value $c \in \mathbb{R}$ that we used when preprocessing the BRACE and Penn Action datasets, essentially making the heatmaps more similar to the preprocessed heatmaps of BRACE and Penn Action. These heatmaps will then be used as the input for our models.
-\\
-\\
-For the groundtruth heatmaps we create twenty five heatmaps of each frame, similarly to how we did it for the BRACE and Penn Action datasets, however, in this case we use the predicted bounding-box of the pose-estimator as our bounding-box. In cases where the groundtruth keypoint is placed outside of the bounding-box, we place the groundtruth at the border of the bounding-box.
-
 
 \end{document}
