@@ -50,7 +50,7 @@ All convolutional layers use a stride of one and zero-padding on the input, such
     \label{fig:unipose2}
 \end{figure}
 
-\noindent Looking at our second model, we see two problems with the architecture behind it: (1) the model does not have any opportunity of priorizing one processing order over the other, as the two branches are just summed together, and (2) by summing the two branches together it can occur, that some of the elements of the two branches are evened out, removing the prediction of the branches. Our third model aims at solving these two issues.
+\noindent Looking at our second model, we see one major problem with the architecture behind it: the model does not have any opportunity of priorizing one processing order over the other, as the two branches are just summed together. Our third model aims at solving this problem.
 \\
 \\
 Figure \ref{fig:unipose2} illustrates the architecture of our third model. This model is very similar to the previous model. It also starts of by branching into two seperate branches, that processes the estiamted poses in opposite sequence orders, where each branch processes the estimated poses one frame at a time. Similarly to the previous model, this model also starts of by applying a convolutional LSTM to the input frame, by using the preceding output of the convolutional LSTM as the hidden state. Further, each convolutional lstm is also fillowed by three 2-dimensional convolutional layers, each applying $128$ filters with a kernel size of $3 \times 3$. 
@@ -94,5 +94,7 @@ where $\bm{W}_{RD} \in \mathbb{R}^{C \times 2K}$ is another linear transformatio
 \\
 \\
 To avoid overfitting, dropout is applied to the input of each sub-layer and sums of the embeddings of the transformer-encoder and transformer-decoder, as well as to the positional encodings.
+
+\textbf{SKRIV OM HYPERPARAMETER-VALG VED DECIWATCH!!!!!!!!!!!!!!!!}
 
 \end{document}

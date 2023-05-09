@@ -11,6 +11,20 @@
     \item Vanishing gradient for unipose - den fungerer bedre på range [0, 255] end på range [0, 1]
     \item Configuration details (se Camilla's)
     \item Future work
+        \item Transformer uden skipping af frames 
+        \item Dataaugmentation til CA
+        \item Træn uden PA
+        \item Vision transformer
+    \item Handling af data uden for pred bbox ved CA-data
+    \item Hvorfor performer mine modeller så meget dårligere på pretraining end på finetuning?
+    \begin{itemize}
+        \item Vi kombinerer to meget forskellige datasæt
+        \item PA frame rates kan ødelægge det
+        \item Pretrain kan være sværre, fordi vi tiløjer (for meget) støj
+        \item Mask RCNN kommer allerede med ret gode resultater, så vi skal kun justerer end smule
+    \end{itemize}
+    \item Skulle have brugt en længere patience til early-stopping
+    \item Hvor meget hjalp det faktisk at pretraine?
 \end{itemize}
 
 \end{document}
