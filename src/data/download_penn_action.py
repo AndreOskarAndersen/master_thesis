@@ -14,8 +14,8 @@ def _remove_unnecessary_files():
         os.remove(OUTPUT_PATH + file)
     
     # Deleting folders that do not contain keypoints
-    for folder in PENN_ACTION_DIRS_TO_DELETE:
-        shutil.rmtree(OUTPUT_PATH + PENN_ACTION_EXTRACTED + folder)
+    #for folder in PENN_ACTION_DIRS_TO_DELETE:
+    #    shutil.rmtree(OUTPUT_PATH + PENN_ACTION_EXTRACTED + folder)
 
 def _download_dataset():
     """
@@ -47,3 +47,6 @@ def main():
     _download_dataset()
     _extract_dataset()
     
+    
+if __name__ == "__main__":
+    main()
