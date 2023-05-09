@@ -6,6 +6,146 @@ from torch.utils.data import DataLoader, Dataset
 from torch.utils.data.sampler import SubsetRandomSampler
 from typing import Tuple, List
 
+class _PretrainDataset(Dataset):
+    def __init__(self, dir_path: str, window_size: int, heatmap_shape: Tuple[int, int, int], interval_skip: int = 0, input_name: str = "input", upper_range: int = 1):
+        """
+        Pretrain dataset
+        
+        Parameters
+        ----------
+        dir_path : str
+            Path to the data-directory.
+            Should end with a "/"
+            
+        window_size : int
+            Amount of frames to load at a time
+            
+        heatmap_shape : Tuple[int, int, int]
+            Shape of a single heatmap
+            
+        interval_skip : int
+            Number of frames to skip when loading the data
+            
+        upper_range: int
+            Upper range of the data
+        """
+        
+        # Upper range of the data
+        self.upper_range = upper_range
+        
+        # Path to input directory
+        self.input_dir = dir_path + input_name + "/"
+        
+        # Path to target directory
+        self.target_dir = dir_path + "target/"
+        
+        # Amount of frames to load at a time
+        self.window_size = window_size
+        
+        # Number of frames to skip when loading the data
+        self.interval_skip = interval_skip + 1
+        
+        # Mapping from index to sample
+        self.mapper = self._get_mapper()
+        
+        self.heatmap_shape = heatmap_shape
+        
+    def _get_mapper(self):
+        """
+        Function for loading dataset.
+        
+        Returns
+        -------
+        mapper : dict
+            Dictionary that maps from an index to the corresponding samples
+        """
+        
+        # Dict that maps from index to samples
+        mapper = {}
+        
+        # Name of all clips
+        clips = os.listdir(self.input_dir)
+        
+        # Looping through each clip
+        for clip_name in tqdm(clips, desc="Loading dataset", leave=False):
+            
+            if clip_name == ".DS_Store":
+                continue
+            
+            # Names of the frames of the current clip
+            frames = os.listdir(self.input_dir + clip_name)
+            
+            # If the clip is a BRACE_clip, extract the lower interval
+            # If not, we use 0 as the lower interval
+            if "_" in clip_name and len(clip_name.split("_")) > 2 and clip_name.split("_")[0] != "VID":
+                lower_interval = int(clip_name.split("_")[-2])
+            else:
+                lower_interval = 0
+                
+            # Number of samples for this clip
+            num_samples = len(frames) - self.interval_skip * self.window_size + self.interval_skip
+            
+            # Saving each sample in the mapper
+            # with its corresponding index
+            for sample in range(num_samples):
+                if sample + self.window_size * self.interval_skip > len(frames):
+                    break
+                
+                mapper[len(mapper)] = [clip_name + "/" + str(lower_interval + sample + window_ele * self.interval_skip) + ".pt" for window_ele in range(self.window_size)]
+                
+        return mapper         
+    
+    def _is_PA(self, sample_names: List[str]):
+        """
+        Method for returning whether the current sample is from Penn-action
+        
+        Parameters
+        ----------
+        sample_names : List[str]
+            List of sample names
+            
+        Returns
+        -------
+            True, if the current sample is from Penn-action, else False.
+        """
+        
+        return sample_names[0][4] == "/"      
+    
+    def __len__(self):
+        """
+        Returns the total number of samples
+        """
+        
+        return len(self.mapper)
+
+    def __getitem__(self, i: int):
+        """
+        Returns the i'th sample of the dataset
+        
+        Parameters
+        ----------
+        i : int
+            Index of the sample to return
+            
+        Returns
+        -------
+        items : torch.Tensor
+            The i'th sample
+        """
+        
+
+        sample_names = self.mapper[i]
+        is_PA = self._is_PA(sample_names)
+        
+        input_samples = torch.zeros((self.window_size, *self.heatmap_shape), dtype=float)
+        target_samples = torch.zeros((self.window_size, *self.heatmap_shape), dtype=float)
+        
+        for j, sample_name in enumerate(sample_names):
+            input_samples[j] = torch.load(self.input_dir + sample_name) * self.upper_range
+            target_samples[j] = torch.load(self.target_dir + sample_name) * self.upper_range
+
+        return input_samples, target_samples, is_PA
+    
 class _PretrainDataSet(Dataset):
     def __init__(self, dir_path: str, window_size: int, heatmap_shape: Tuple[int, int, int], interval_skip: int = 0, input_name: str = "input", upper_range: int = 1):
         """
