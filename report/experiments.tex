@@ -43,6 +43,10 @@ We further test the denoise capability of the models by running each setup twice
 \\
 \textbf{Training Configuration} For optimizing the parameters of the models, we use the ADAM optimizer with a batch size of $16$, an initial learning rate of $10^{-3}$ and the MSE loss-function. During training, we keep track of the lowest reached validation loss of an epoch. If this lowest validation loss has not been beaten for five consecutive epochs, we reduce the learning rate by a factor of $0.1$. Further, if the lowest validation loss has not been beaten for ten consecutive epochs, we terminate the training of the corresponding model. In case this never happens, we terminate the training of the corresponding model once it has been trained for fifty epochs.
 
+\begin{itemize}
+    \item WEIHT INITIALIZATION
+\end{itemize}
+
 \subsubsection{Results}
 
 \subsection{Finetuning}
