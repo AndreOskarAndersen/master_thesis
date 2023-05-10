@@ -75,7 +75,7 @@ def heatmaps2coordinates(featuremaps: Union[np.array, torch.Tensor]):
 
     return keypoints
 
-def compute_PCK(all_gt_keypoints, all_pred_keypoints):
+def compute_PCK(all_gt_keypoints, all_pred_keypoints, norm):
     
     assert len(all_gt_keypoints.shape) in [3, 5]
     assert len(all_pred_keypoints.shape) in [3, 5]
@@ -116,7 +116,7 @@ def compute_PCK(all_gt_keypoints, all_pred_keypoints):
             dist = np.linalg.norm(gt_keypoints - pred_keypoints, axis=1)
             
             # Checking whether the distances are shorter than the torso diameter
-            dist = dist <= torso_diameter * 0.2
+            dist = dist <= torso_diameter * norm
             
             # Storing results of this batch-frame
             bools.append(dist.flatten())

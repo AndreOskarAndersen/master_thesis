@@ -4,7 +4,7 @@ import torch.nn as nn
 import pickle
 from torch.utils.data import DataLoader
 from tqdm.auto import tqdm
-from utils import compute_PCK, make_dir, modify_target, unmodify_target
+from utils import compute_PCK, make_dir, modify_target, unmodify_target, compute_PCK_kpts
 from typing import Callable
 from torch.cuda.amp import GradScaler
 
@@ -227,6 +227,7 @@ def evaluate(model: nn.Module,
              dataloader: DataLoader,  
              criterion: type, 
              device: torch.device, 
+             norm: float = 0.2,
              data_transformer: Callable = lambda x: x):
     """
     Evaluates a model on a dataloader using a criterion and PCK
@@ -244,6 +245,9 @@ def evaluate(model: nn.Module,
         
     device : torch.device
         Device to use for processing
+        
+    norm : float    
+        Normalizing-value for PCK
         
     data_transformer : Callable
         Any transformation to apply to the input data
@@ -286,7 +290,7 @@ def evaluate(model: nn.Module,
                 y = unmodify_target(pred, y, is_pa, type(model))
 
             # Computing PCK of the current iteration
-            PCK = compute_PCK(y, pred)
+            PCK = compute_PCK(y, pred, norm)
             if PCK != -1:
                 PCKs.append(PCK) 
 
@@ -295,3 +299,73 @@ def evaluate(model: nn.Module,
     PCK_mean = np.mean(PCKs)
     
     return losses_mean, PCK_mean
+
+def evaluate_kpts(model: nn.Module,
+             dataloader: DataLoader,  
+             device: torch.device, 
+             norm: float = 0.2,
+             data_transformer: Callable = lambda x: x):
+    """
+    Evaluates a model on a dataloader using a criterion and PCK
+    
+    Parameters
+    ----------
+    model : nn.Module
+        Model to evaluate
+    
+    dataloader: DataLoader
+        Dataloader to evaluate the model on
+        
+    criterion : type
+        Loss-function to use for evaluation
+        
+    device : torch.device
+        Device to use for processing
+        
+    norm : float    
+        Normalizing-value for PCK
+        
+    data_transformer : Callable
+        Any transformation to apply to the input data
+        prior to it being inputted to the model, as well as
+        any transformation to apply to the target data
+        prior to it being used for computing loss.
+    
+    Returns
+    -------
+    losses_mean : float
+        Average loss of the model on the dataloder
+    
+    PCK_mean : float
+        Average PCK of the model on the dataloader
+    """
+    
+    model.eval()
+    
+    # Pre-allocating memory for storing info
+    losses = [0.0 for _ in range(len(dataloader))]
+    PCKs = []
+    
+    # Looping through dataloader
+    with torch.no_grad():
+        for i, (x, y, is_pa) in tqdm(enumerate(dataloader), leave=False, desc="Evaluating", disable=False, total=len(dataloader)):
+                        
+            # Storing data on device
+            x = data_transformer(x).float().to(device)
+            y = data_transformer(y).float().to(device)
+            
+            # Predicting
+            pred = model(y)
+            if torch.all(is_pa != -1):
+                y = modify_target(pred, y, is_pa, type(model))
+                y = unmodify_target(pred, y, is_pa, type(model))
+
+            # Computing PCK of the current iteration
+            PCK = compute_PCK_kpts(y, pred, norm)
+            if PCK != -1:
+                PCKs.append(PCK) 
+
+    # Computing mean PCK and loss
+    PCK_mean = np.mean(PCKs, axis=0)
+    
+    return PCK_mean
