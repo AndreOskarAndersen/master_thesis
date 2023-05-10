@@ -36,11 +36,17 @@ if __name__ == "__main__":
             config["model_params"]["device"] = device
             
         # Loading model
-        models_dict = {"baseline": Baseline, "unipose": Unipose, "deciwatch": DeciWatch, "unipose2": Unipose2}
-        model_type = model_name.split("_")[0]
-        model = models_dict[model_type](**config["model_params"])
-        model.load_state_dict(torch.load(model_dir + str(best_epoch) + "/model.pth", map_location=torch.device("cpu")))
-        model = model.to(device)
+        try:
+            models_dict = {"baseline": Baseline, "unipose": Unipose, "deciwatch": DeciWatch, "unipose2": Unipose2}
+            model_type = model_name.split("_")[0]
+            model = models_dict[model_type](**config["model_params"])
+            model.load_state_dict(torch.load(model_dir + str(best_epoch) + "/model.pth", map_location=torch.device("cpu")))
+            model = model.to(device)
+        except Exception as e:
+            print(config["model_params"])
+            print(model_type)
+            print(model_name)
+            print(e)
         
         # Loading data transformer
         data_transforms = {"baseline": lambda x: x, "unipose": lambda x: x, "unipose2": lambda x: x, "deciwatch": lambda x: heatmaps2coordinates(x.cpu()).to(device)}
@@ -56,3 +62,4 @@ if __name__ == "__main__":
         print("============================================")
         print(f"Model {model_name}. Best Epoch: {best_epoch}, Loss: {model_loss}, PCK: {model_pck}")
         print("============================================")
+
