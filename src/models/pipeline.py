@@ -343,12 +343,11 @@ def evaluate_kpts(model: nn.Module,
     model.eval()
     
     # Pre-allocating memory for storing info
-    losses = [0.0 for _ in range(len(dataloader))]
     PCKs = []
     
     # Looping through dataloader
     with torch.no_grad():
-        for i, (x, y, is_pa) in tqdm(enumerate(dataloader), leave=False, desc="Evaluating", disable=False, total=len(dataloader)):
+        for x, y, _ in tqdm(dataloader, leave=False, desc="Evaluating", disable=False, total=len(dataloader)):
                         
             # Storing data on device
             x = data_transformer(x).float().to(device)
@@ -356,14 +355,10 @@ def evaluate_kpts(model: nn.Module,
             
             # Predicting
             pred = model(y)
-            if torch.all(is_pa != -1):
-                y = modify_target(pred, y, is_pa, type(model))
-                y = unmodify_target(pred, y, is_pa, type(model))
 
             # Computing PCK of the current iteration
             PCK = compute_PCK_kpts(y, pred, norm)
-            if PCK != -1:
-                PCKs.append(PCK) 
+            PCKs.append(PCK) 
 
     # Computing mean PCK and loss
     PCK_mean = np.mean(PCKs, axis=0)

@@ -20,7 +20,7 @@ if __name__ == "__main__":
     
     norms = [0.05, 0.1, 0.2]
     
-    for model_name in model_names:
+    for model_name in tqdm(model_names, desc="Model", leave=False):
         
         # Overall path of the model
         model_dir = subdir + model_name + "/"
@@ -58,11 +58,7 @@ if __name__ == "__main__":
             
             # Evaluating model on test data
             model_loss, model_pck = evaluate(model, test_dataloader, torch.nn.MSELoss(), device, norm, data_transformer)
-            
-            try:
-                model_pck_kpts = evaluate_kpts(model, test_dataloader, device, norm, data_transformer)
-            except:
-                model_pck_kpts = -1
+            model_pck_kpts = evaluate_kpts(model, test_dataloader, device, norm, data_transformer)
             
             print("============================================")
             print(f"Model {model_name}. Best Epoch: {best_epoch}, Loss: {model_loss}, PCK@{norm}: {model_pck}")

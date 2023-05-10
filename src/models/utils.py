@@ -173,10 +173,10 @@ def compute_PCK_kpts(all_gt_keypoints, all_pred_keypoints, norm):
         is_correct = is_correct[gt_keypoints.reshape((-1, 2)).any(axis=1)]
         
         # Computing PCK of this keypoint
-        PCK = np.mean(is_correct)
+        PCK = np.mean(is_correct) if len(is_correct) != 0 else -np.inf
                 
         # Saving PCK of this keypoint
-        PCKs[keypoint] = np.mean(PCK)
+        PCKs[keypoint] = PCK
         
     return PCKs
 
