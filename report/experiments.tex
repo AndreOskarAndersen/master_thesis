@@ -5,7 +5,7 @@
 The following section describes the training of our models. This includes the the various experiments we perform, the data preprocessing of the data, the configuration details we use, as well as the obtained results.
 
 \subsection{Approach}
-As the expect our models to require more data than what is in the ClimbAlong dataset to reach their optimal performace, we have decided to pretrain our models on the BRACE and Penn Action datasets, followed by finetuning them on the ClimbAlong dataset. By doing so we expect our models to yield better results than if we were only using the ClimbAlong dataset, as the pretraining-data will be used for adjusting the randomly initialized weights, whereas the finetuning-data will just be used for specializing the model in performancing well on the ClimbAlong dataset.
+As we expect our models to require more data than what is in the ClimbAlong dataset to reach their optimal performace, we have decided to pretrain our models on the BRACE and Penn Action datasets, followed by finetuning them on the ClimbAlong dataset. By doing so we expect our models to yield better results than if we were only using the ClimbAlong dataset, as the pretraining-data will be used for adjusting the randomly initialized weights, whereas the finetuning-data will just be used for specializing the model in performancing well on the ClimbAlong dataset.
 
 \subsection{Pretraining}
 In the pretraining stage we will not be using the already developed pose-estimator, but instead only use our temporal-inclusive models by adding noise to the data such that it simulates the output of the already developed pose-estimator on the ClimbAlong dataset. We do this, as the images of pretraining-data is very different from the ClimbAlong data, making us believe that the already developed pose-estiamtor will yield some very inaccurate results, as well as some predictions that will be very different from the predictions of the model on the ClimbAlong dataset.
@@ -23,10 +23,11 @@ Next, we transform each frame into twenty five heatmaps. This is done by creatin
 The heatmaps that we produce by following the above description will be used as the groundtruth data. However, as we will be pretraining our models detached from the already developed pose-estimator, we will also need some data as input. We acquire this data by adding some noise to the data, such that they become similar to the output of the already developed pose-estimator, essentially simulating the output of the already developed pose-estimator. The noise is introduced by randomly shifting each keypoint of each sample and by smearing our each keypoint of each sample by using a Gaussian filter with mean $\mu_{in} = 1$ and some standard deviation $\sigma_{in} \in \mathbb{R}_{>0}$. For the shift-value we use $x \cdot k$, where the \textbf{shifting-scalar} $k \in \mathbb{R}_{>0}$ is some fixed positive number and $x \in \mathbb{R}$, is equal to $20\%$ of the mean torso-diameter. We clip the position of the shifted keypoints between $0$ and $55$, such that they cannot be outside of their corresponding heatmaps. 
 
 \subsubsection{Training Details}
-\textbf{Data Configuration} For the data we use a window-size of $k = 5$ frames, as Artacho \textit{et al.} found this to be the optimal number of frames to use \cite{https://doi.org/10.48550/arxiv.2001.08095}, making our dataset consist of $345,120$ windows. Further, we randomly split our dataset into a training, validation and test set, consisting of $60\%$, $20\%$ and $20\%$ of the data, respectively, without any overlapping or repeating windows among eachother. We insert the fixed value $c = 255$ in each heatmap at the position of the corresponding keypoint. 
+\label{subsubsec:training_details}
+\textbf{Data Configuration} For the data we use a window-size of $k = 5$ frames, as Artacho \textit{et al.} found this to be the optimal number of frames to use \cite{https://doi.org/10.48550/arxiv.2001.08095}, making our dataset consist of $345,120$ windows. Further, we randomly split our dataset into a training, validation and test set, consisting of $60\%$, $20\%$ and $20\%$ of the data, respectively, without any overlapping or repeating windows among eachother. We insert the fixed value $c = 255$ in each heatmap at the position of the corresponding keypoint. Lastly, to help the models learn the patterns of the data, we shuffle the three subsets, such that the order of which the data is given to the models does not influence the learning.
 \\
 \\
-As the datasets for the pretraining stage are missing some keypoints of the ClimbAlong dataset, we have to cancel out the training of these missing keypoints, as this would otherwise result in the models learning to never predict the presence of the keypoints. There are multiple ways to do this. We handled it during training by setting the groundtruth heatmaps of the missing keypoints equal to the corresponding predicted heatmaps, making the loss of these missing heatmaps be zero and thus the weights of the model of these heatmaps would not be adjusted. 
+As the datasets for the pretraining stage are missing some keypoints of the ClimbAlong dataset, we have to cancel out the training of these missing keypoints, as this would otherwise result in the models learning to never predict the presence of these keypoints. There are multiple ways to do this. We handled it during training by setting the groundtruth heatmaps of the missing keypoints equal to the corresponding predicted heatmaps, making the loss of these missing heatmaps be zero and thus the weights of the model of these heatmaps would not be adjusted. 
 \\
 \\
 \textbf{Setups} For each of the four models we use three different setups. In the first setup we uniformly at random sample the standard deviation used by the Gaussian filter at the input data $\sigma_{in}$, from the set $\{1, 1.5, 2, 2.5, 3\}$. We do this, as the output heatmaps of the already developed pose-estimator does not use a fixed standard deviation, making the data a better representation of the pose-estimator output. 
@@ -35,19 +36,79 @@ As the datasets for the pretraining stage are missing some keypoints of the Clim
 As we find it interesting how big of a difference the randomness of the first setup makes, we fix this standard deviation in our second setup, such that we have $\sigma_{in} = 1$, thus, essentially, the models only have to learn to translate the input heatmaps.
 \\
 \\
-Finally, with $30$ frames per second and a window-size of $k = 5$, we suspect that the models might be given too little context to actually be able to effectively smooth out the input data. We could fix this by increasing the window-size, however, we instead chose to make the models work at a lower frame rate, as the increased window-size would also increase the memory usage. Thus, for our last setup we still use a window-size of $5$, however, with half the frame rate. 
+Finally, with $30$ frames per second and a window-size of $k = 5$, we suspect that the models might be given too little context to actually be able to effectively smooth out the input data. We could fix this by increasing the window-size, however, we instead chose to make the models work at a lower frame rate, as the increased window-size would also increase the memory usage. Thus, for our last setup we still use a window-size of $5$, however, with half the frame rate. For this setup we also sample $\sigma_{in}$, from the set $\{1, 1.5, 2, 2.5, 3\}$.
 \\
 \\
 We further test the denoise capability of the models by running each setup twice for each model. In the first run we use a shifting-scalar of $k = 1$, whereas for the second run we increase this value to $k = 2$, making the data a lot more noisy.
 \\
+\textbf{Training Configuration} For optimizing the weights of the models, we use the ADAM optimizer with a batch size of $16$, an initial learning rate of $10^{-3}$ and the MSE loss-function. During training we keep track of the lowest reached validation loss of an epoch. If this lowest validation loss has not been beaten for five consecutive epochs, we reduce the learning rate by a factor of $0.1$. Further, if the lowest validation loss has not been beaten for ten consecutive epochs, we terminate the training of the corresponding model. In case this never happens, we terminate the training of the corresponding model once it has been trained for fifty epochs.
 \\
-\textbf{Training Configuration} For optimizing the parameters of the models, we use the ADAM optimizer with a batch size of $16$, an initial learning rate of $10^{-3}$ and the MSE loss-function. During training, we keep track of the lowest reached validation loss of an epoch. If this lowest validation loss has not been beaten for five consecutive epochs, we reduce the learning rate by a factor of $0.1$. Further, if the lowest validation loss has not been beaten for ten consecutive epochs, we terminate the training of the corresponding model. In case this never happens, we terminate the training of the corresponding model once it has been trained for fifty epochs.
-
-\begin{itemize}
-    \item WEIHT INITIALIZATION
-\end{itemize}
+\\
+To reduce the likelihood of vanishing or exploding gradients, we initialize the weights of all models by sampling from the Glorot uniform distribution, defined by
+\begin{equation}
+    \mathcal{U} \left(- \frac{\sqrt{6}}{\sqrt{n_j + n_{j + 1}}}, \frac{\sqrt{6}}{\sqrt{n_j + n_{j + 1}}} \right),
+\end{equation}
+where $n_j$ is the size of the previous layer and $n_{j + 1}$ is the size of the layer which is having its weights initialized \cite{glorot2010understanding}.
 
 \subsubsection{Results}
+\begin{figure}[htbp]
+    \centering
+     \begin{subfigure}[b]{\textwidth}
+         \centering
+         \includegraphics[width=0.32\textwidth]{./entities/pretrain_res/baseline/train_losses.png}
+         \includegraphics[width=0.32\textwidth]{./entities/pretrain_res/baseline/val_losses.png}
+         \includegraphics[width=0.32\textwidth]{./entities/pretrain_res/baseline/val_accs.png}
+         \caption{Pretraining results of the 3-dimensional convolutional layer.}
+     \end{subfigure}
+    \hfill
+
+    \begin{subfigure}[b]{\textwidth}
+        \centering
+        \includegraphics[width=0.32\textwidth]{./entities/pretrain_res/deciwatch/train_losses.png}
+        \includegraphics[width=0.32\textwidth]{./entities/pretrain_res/deciwatch/val_losses.png}
+        \includegraphics[width=0.32\textwidth]{./entities/pretrain_res/deciwatch/val_accs.png}
+        \caption{Pretraining results of DeciWatch.}
+    \end{subfigure}
+   \hfill
+
+   \begin{subfigure}[b]{\textwidth}
+    \centering
+    \includegraphics[width=0.32\textwidth]{./entities/pretrain_res/unipose/train_losses.png}
+    \includegraphics[width=0.32\textwidth]{./entities/pretrain_res/unipose/val_losses.png}
+    \includegraphics[width=0.32\textwidth]{./entities/pretrain_res/unipose/val_accs.png}
+    \caption{Pretraining results of the bidirectional convolutional LSTM with summing.}
+    \end{subfigure}
+    \hfill
+
+    \begin{subfigure}[b]{\textwidth}
+        \centering
+        \includegraphics[width=0.32\textwidth]{./entities/pretrain_res/unipose2/train_losses.png}
+        \includegraphics[width=0.32\textwidth]{./entities/pretrain_res/unipose2/val_losses.png}
+        \includegraphics[width=0.32\textwidth]{./entities/pretrain_res/unipose2/val_accs.png}
+        \caption{Pretraining results of the bidirectional convolutional LSTM with concatenation.}
+    \end{subfigure}
+    \hfill
+    
+    \caption{Evolution of the training loss, validation loss and validation PCK@0.2 accuracy of the 24 models during training, as well as the validation PCK@0.2 accuracy of the identity function of the two datasets. The dots indicates a reduction of learning-rate. First row: 3-dimensional convolutional layer. Second row: DeciWatch. Third row: Bidirectional Convolutional LSTM with summing. Fourth row: Bidirectional Convolutional LSTM with concatenation.}
+    \label{fig:pretrainin_res}
+\end{figure}
+
+We have in Figure \ref{fig:pretrainin_res} visualized the evolution of the training loss, validation loss and validation PCK@0.2 accuracy for our 24 models. Each model is delt two numbers seperated by a dot such that it follows a $x.y$-format (for instance, '$2.3$'), indicating what type of experiment and setup it was experimented on. $x$ indicates the what shifting-scalar was used when shifting the input keypoints, and $y$ indicates which of the three setups from Section \ref{subsubsec:training_details} the experiment belongs to. Each plot has at least one dot, which indicates the reduction of learning-rate due to five consecutive epochs without beating the minimum validation loss.
+\\
+\\
+From the figure we can see, that generally the reduction of the learning rate has a pretty substantial effect on the training loss, as this loss is immediately decreased after a reduction of the learning rate. However, the same cannot be said about the validation loss and accuracy, as these do not immediately decrease after the learning rate has been reduced. Most of the times, the training even terminates before a second reduction of the learning rate takes place, indicating the missing effect of the learning rate reduction on the validation loss and accuracy.
+\\
+\\
+One could look at Figure \ref{fig:pretrainin_res} and argue, that the training of the models generally plateus as soon as after the first epoch, as the evolution of the validation loss and accuracy seems rather flat after the first epoch. However, if we look at when the learning rate reduction happens, we see that more than the five required epochs have passed before the learning rate reduction is taking place, indicating that the learning has not plateued. The evolution of the validation loss and accuracy just seem flat, because the performance difference between the first epoch and the models with their initial weights is so great, that we can have difficuly seeing the performance differences of the following epochs. 
+
+\begin{itemize}
+    \item Seperation of performance
+    \item Der er stortset ingen forskel imellem de to convolutional lstms
+    \item Conv3d er generelt den der klarer sig bedst, hvorimod deciwatch er den der klarer sig dårligst.
+    \item Conv3d er den bedste til denoise
+    \item DeciWatch klarer sig dårligt på mindre fps
+    \item Allerede efter første epoch sker der ikke så meget forbedring
+\end{itemize}
 
 \subsection{Finetuning}
 In the finetuning stage we will be using the already developed pose-estiamtor to train our temporal-inclusive models. However, we will be freezing the pose-estimator, such that the weights of the model will not change during the training and we will thus only train our temporal-inclusive models. We do this for the following three reasons: (1) the training of the models will be quicker, as we just need to train the tempoeral-inclusive models and not the already developed pose-estimator, (2) we get an greater understanding of the effects of our models when combined with the pose-estimator, as we can clearly see how big of a difference it makes by adding our tempoeral-inclusive models, and (3) we lower the probability of overfitting, as we have less tuneable parameters.

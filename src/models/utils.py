@@ -125,6 +125,61 @@ def compute_PCK(all_gt_keypoints, all_pred_keypoints):
     bools = np.concatenate(bools)
     return -1 if len(bools) == 0 else np.mean(bools)
 
+def compute_PCK_kpts(all_gt_keypoints, all_pred_keypoints, norm):
+    assert len(all_gt_keypoints.shape) in [3, 5]
+    assert len(all_pred_keypoints.shape) in [3, 5]
+    
+    if len(all_gt_keypoints.shape) != 3:
+        all_gt_keypoints = heatmaps2coordinates(all_gt_keypoints)
+    else:
+        all_gt_keypoints = all_gt_keypoints.detach().cpu().numpy()
+        
+    if len(all_pred_keypoints.shape) != 3:
+        all_pred_keypoints = heatmaps2coordinates(all_pred_keypoints)
+    else:
+        all_pred_keypoints = all_pred_keypoints.detach().cpu().numpy()
+        
+    # Rehapeing to to 2D
+    batch_size, num_frames, _ = all_gt_keypoints.shape
+    all_gt_keypoints = all_gt_keypoints.reshape((batch_size, num_frames, -1, 2))
+    all_pred_keypoints = all_pred_keypoints.reshape((batch_size, num_frames, -1, 2))
+    num_keypoints = all_gt_keypoints.shape[2]
+    
+    # Computing torso diameter of each frame
+    torso_lens = np.zeros((batch_size, num_frames))
+    for idx_batch in range(batch_size):
+        for idx_frame in range(num_frames):
+            frame = all_gt_keypoints[idx_batch, idx_frame]
+            torso_len = get_torso_diameter(frame)
+            torso_lens[idx_batch, idx_frame] = torso_len
+    
+    # Pre-allocating memory
+    PCKs = np.zeros(num_keypoints)
+    
+    # Looping through each keypoint
+    for keypoint in range(num_keypoints):
+        
+        # Loading coordinates of this keypoint
+        gt_keypoints = all_gt_keypoints[:, :, keypoint]
+        pred_keypoints = all_pred_keypoints[:, :, keypoint]
+        
+        # Computing dist between pred and gt
+        dists = np.linalg.norm(gt_keypoints - pred_keypoints, axis=2)
+                
+        # Indicating whether each frame of this keypoint is correct
+        is_correct = (dists < torso_lens * norm).flatten()
+        
+        # Removing missing keypoints
+        is_correct = is_correct[gt_keypoints.reshape((-1, 2)).any(axis=1)]
+        
+        # Computing PCK of this keypoint
+        PCK = np.mean(is_correct)
+                
+        # Saving PCK of this keypoint
+        PCKs[keypoint] = np.mean(PCK)
+        
+    return PCKs
+
 def modify_target(pred, target, is_pa, model_type):
     if model_type in [Baseline, Unipose, Unipose2]:
         target[:, :, GENERAL_MISSING_INDICIES] = pred[:,:, GENERAL_MISSING_INDICIES].detach().clone()

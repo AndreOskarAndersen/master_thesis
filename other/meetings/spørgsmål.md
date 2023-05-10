@@ -122,3 +122,12 @@
     14. Hvordan vælger jeg hvilke modeller der skal finetunes?
     15. Flytning af forsvarsdato
     16. Handler jeg std forkert?
+
+- 10/5:
+    1. Data augmentation når jeg finetuner?
+    2. Introducerer jeg noget bias når jeg laver val/test-split?
+    3. Skal jeg også gå i detaljer med Mask RCNN?
+    4. PCK for de forskellige dataset?
+    5. Det ligner lidt, at pretraining måske ikke har hjulpet så meget?
+    6. Handler jeg std forkert?
+    7. Flytning af forsvarsdato?
