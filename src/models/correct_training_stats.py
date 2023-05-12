@@ -16,7 +16,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 models_dict = {"baseline": Baseline, "unipose": Unipose, "unipose2": Unipose2, "deciwatch": DeciWatch}
 data_transforms = {"baseline": lambda x: x, "unipose": lambda x: x, "unipose2": lambda x: x, "deciwatch": lambda x: heatmaps2coordinates(x.cpu()).to(device)}
-paths = [finetune_saving_path, pretrained_models_path]
+paths = [pretrained_models_path, finetune_saving_path]
 
 arg = int(sys.argv[1])
 path = paths[arg]
@@ -32,7 +32,7 @@ for dir in tqdm(dirs, desc="dir", leave=False):
         model_path = models_path + model_name + "/"
         epochs = sorted(list(map(lambda x: int(x), next(os.walk(model_path))[1])))
         
-        training_losses = [np.load(model_path + "train_losses.npy")[0]] 
+        training_losses = [np.load(model_path + "train_losses.npy")[0]] if arg == 1 else []
         
         with open(pretrained_models_path + dir + "/" + model_name + "/config.json", "r") as f:
             config = json.load(f)
