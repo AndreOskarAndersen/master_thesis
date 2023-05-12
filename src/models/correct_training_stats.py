@@ -23,10 +23,7 @@ path = paths[arg]
 
 dirs = os.listdir(path)
 
-for dir in tqdm(dirs, desc="dir", leave=False):
-    if dir == "1":
-        continue
-    
+for dir in tqdm(dirs, desc="dir", leave=False):    
     models_path = path + dir + "/"
     models = os.listdir(models_path)
     
