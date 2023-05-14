@@ -30,13 +30,13 @@ The heatmaps that we produce by following the above description will be used as 
 As the datasets for the pretraining stage are missing some keypoints of the ClimbAlong dataset, we have to cancel out the training of these missing keypoints, as this would otherwise result in the models learning to never predict the presence of these keypoints. There are multiple ways to do this. We handled it during training by setting the groundtruth heatmaps of the missing keypoints equal to the corresponding predicted heatmaps, making the loss of these missing heatmaps be zero and thus the weights of the model of these heatmaps would not be adjusted. 
 \\
 \\
-\textbf{Setups} For each of the four models we use three different setups. In the first setup we uniformly at random sample the standard deviation used by the Gaussian filter at the input data $\sigma_{in}$, from the set $\{1, 1.5, 2, 2.5, 3\}$. We do this, as the output heatmaps of the already developed pose-estimator does not use a fixed standard deviation, making the data a better representation of the pose-estimator output. 
+\textbf{Setups} For each of the four models we use three different setups. In the first setup we uniformly at random sample the standard deviation used by the Gaussian filter at the input data $\sigma_{in}$ from the set $\{1, 1.5, 2, 2.5, 3\}$. We do this, as the output heatmaps of the already developed pose-estimator does not use a fixed standard deviation, making the data a better representation of the pose-estimator output. 
 \\
 \\
 As we find it interesting how big of a difference the randomness of the first setup makes, we fix this standard deviation in our second setup, such that we have $\sigma_{in} = 1$, thus, essentially, the models only have to learn to translate the input heatmaps.
 \\
 \\
-Finally, with $30$ frames per second and a window-size of $k = 5$, we suspect that the models might be given too little context to actually be able to effectively smooth out the input data. We could fix this by increasing the window-size, however, we instead chose to make the models work at a lower frame rate, as the increased window-size would also increase the memory usage. Thus, for our last setup we still use a window-size of $5$, however, with half the frame rate. For this setup we also sample $\sigma_{in}$, from the set $\{1, 1.5, 2, 2.5, 3\}$.
+Finally, with $30$ frames per second and a window-size of $k = 5$, we suspect that the models might be given too little context to actually be able to effectively smooth out the input data. We could fix this by increasing the window-size, however, we instead chose to make the models work at a lower frame rate, as the increased window-size would also increase the memory usage. Thus, for our last setup we still use a window-size of $5$, however, with half the frame rate. For this setup we also sample $\sigma_{in}$ from the set $\{1, 1.5, 2, 2.5, 3\}$.
 \\
 \\
 We further test the denoise capability of the models by running each setup twice for each model. In the first run we use a shifting-scalar of $k = 1$, whereas for the second run we increase this value to $k = 2$, making the data a lot more noisy.
@@ -50,7 +50,7 @@ To reduce the likelihood of vanishing or exploding gradients, we initialize the 
 \end{equation}
 where $n_j$ is the size of the previous layer and $n_{j + 1}$ is the size of the layer which is having its weights initialized \cite{glorot2010understanding}.
 
-\subsubsection{Results}
+\subsubsection{Training and Validation Results}
 \begin{figure}[htbp]
     \centering
      \begin{subfigure}[b]{\textwidth}
@@ -93,22 +93,40 @@ where $n_j$ is the size of the previous layer and $n_{j + 1}$ is the size of the
     \label{fig:pretrainin_res}
 \end{figure}
 
-We have in Figure \ref{fig:pretrainin_res} visualized the evolution of the training loss, validation loss and validation PCK@0.2 accuracy for our 24 models. Each model is delt two numbers seperated by a dot such that it follows a $x.y$-format (for instance, '$2.3$'), indicating what type of experiment and setup it was experimented on. $x$ indicates the what shifting-scalar was used when shifting the input keypoints, and $y$ indicates which of the three setups from Section \ref{subsubsec:training_details} the experiment belongs to. Each plot has at least one dot, which indicates the reduction of learning-rate due to five consecutive epochs without beating the minimum validation loss.
+We have in Figure \ref{fig:pretrainin_res} visualized the evolution of the training loss, validation loss and validation PCK@0.2 accuracy for our 24 models. Each model is delt two numbers seperated by a dot such that it follows a $x.y$-format (for instance, '$2.3$'), indicating what type of experiment and setup it was experimented on. $x$ indicates what shifting-scalar was used when shifting the input keypoints, and $y$ indicates which of the three setups from Section \ref{subsubsec:training_details} the experiment belongs to. Each plot has at least one dot, which indicates the reduction of the learning-rate due to five consecutive epochs without beating the minimum validation loss.
 \\
 \\
-From the figure we can see, that generally the reduction of the learning rate has a pretty substantial effect on the training loss, as this loss is immediately decreased after a reduction of the learning rate. However, the same cannot be said about the validation loss and accuracy, as these do not immediately decrease after the learning rate has been reduced. Most of the times, the training even terminates before a second reduction of the learning rate takes place, indicating the missing effect of the learning rate reduction on the validation loss and accuracy.
+By comparing the validation accuracies of the various models against the identity function we see, that all of the models do learn to somewhat denoise the input data. The simple 3-dimensional convolutional layer seems to be the architecure that generally delivers the greatest results, whereas DeciWatch is generally the architecure that delivers the worst results. Further, the two architectures that are based on bidirectional convolutional LSTMs have close to no difference in their performance, indicating that our raised concern about one of the architectures not being able to prioritize one LSTM-branch over the other is not as great as we hypothesized it to be.
+\\
+\\
+From the figure we can see, that generally the reduction of the learning rate has a pretty substantial effect on the training loss, as the training loss is immediately decreased after a reduction of the learning rate. However, the same cannot be said about the validation loss and accuracy, as these do not immediately decrease after the learning rate has been reduced. Most of the times, the training even terminates before a second reduction of the learning rate takes place, indicating the missing effect of the learning rate reduction on the validation loss and accuracy.
 \\
 \\
 One could look at Figure \ref{fig:pretrainin_res} and argue, that the training of the models generally plateus as soon as after the first epoch, as the evolution of the validation loss and accuracy seems rather flat after the first epoch. However, if we look at when the learning rate reduction happens, we see that more than the five required epochs have passed before the learning rate reduction is taking place, indicating that the learning has not plateued. The evolution of the validation loss and accuracy just seem flat, because the performance difference between the first epoch and the models with their initial weights is so great, that we can have difficuly seeing the performance differences of the following epochs. 
+\\
+\\
+Further, we can clearly see the effects of the shifting-scalar on the training of the models, as all of the models perorms better on the dataset with a low shifting-scalar, than on their corresponding counterpart with a higher shifting-sclar. DeciWatch $1.3$ and DeciWatch $2.3$ do however seems to be struggling quite a bit, as the validation accuracies of these models are much lower than the other DeciWatch models with the same noise-scalar. However, we have to keep in mind here, that DeciWatch already only considers every fifth frame. This, combined with the fact that setup $3$ is only consideren every other frame, makes these two models only consider every tenth frame, which of course makes the prediction very difficult, as these models then have to recover a lot of frames.
 
-\begin{itemize}
-    \item Seperation of performance
-    \item Der er stortset ingen forskel imellem de to convolutional lstms
-    \item Conv3d er generelt den der klarer sig bedst, hvorimod deciwatch er den der klarer sig dårligst.
-    \item Conv3d er den bedste til denoise
-    \item DeciWatch klarer sig dårligt på mindre fps
-    \item Allerede efter første epoch sker der ikke så meget forbedring
-\end{itemize}
+\subsubsection{Testing Results}
+\begin{table}[htbp]
+    \begin{tabular}{c||llllllllllllll}
+    \textbf{Models}                                                            & \rot{\textbf{Nose}} & \rot{\textbf{Ears}} & \rot{\textbf{Shoulders}} & \rot{\textbf{Elbows}} & \rot{\textbf{Wrists}} & \rot{\textbf{Pinkies}} & \rot{\textbf{Index fingers}} & \rot{\textbf{Thumbs}} & \rot{\textbf{Hips}} & \rot{\textbf{Knees}} & \rot{\textbf{Ankles}} & \rot{\textbf{Heels}} & \rot{\textbf{Feet}} & \rot{\textbf{Total}} \\ \hline
+    \textbf{\begin{tabular}[c]{@{}c@{}}Conv3D\\ 1.1\end{tabular}}              &               &               &                    &                 &                 &                  &                        &                 &               &                &                 &                &               &                \\
+    \textbf{\begin{tabular}[c]{@{}c@{}}Conv3D\\ 1.2\end{tabular}}              &               &               &                    &                 &                 &                  &                        &                 &               &                &                 &                &               & .97          \\
+    \textbf{\begin{tabular}[c]{@{}c@{}}Conv3D\\ 1.3\end{tabular}}              &               &               &                    &                 &                 &                  &                        &                 &               &                &                 &                &               & .94          \\
+    \textbf{\begin{tabular}[c]{@{}c@{}}DeciWatch\\ 1.1\end{tabular}}           &               &               &                    &                 &                 &                  &                        &                 &               &                &                 &                &               &                \\
+    \textbf{\begin{tabular}[c]{@{}c@{}}DeciWatch\\ 1.2\end{tabular}}           &               &               &                    &                 &                 &                  &                        &                 &               &                &                 &                &               &                \\
+    \textbf{\begin{tabular}[c]{@{}c@{}}DeciWatch\\ 1.3\end{tabular}}           &               &               &                    &                 &                 &                  &                        &                 &               &                &                 &                &               &                \\
+    \textbf{\begin{tabular}[c]{@{}c@{}}bi-ConvLSTM\\ sum 1.1\end{tabular}}     &               &               &                    &                 &                 &                  &                        &                 &               &                &                 &                &               &                \\
+    \textbf{\begin{tabular}[c]{@{}c@{}}bi-ConvLSTM\\ sum 1.2\end{tabular}}     &               &               &                    &                 &                 &                  &                        &                 &               &                &                 &                &               &                \\
+    \textbf{\begin{tabular}[c]{@{}c@{}}bi-ConvLSTM\\ sum 1.3\end{tabular}}     &               &               &                    &                 &                 &                  &                        &                 &               &                &                 &                &               &                \\
+    \textbf{\begin{tabular}[c]{@{}c@{}}bi-ConvLSTM\\ concat. 1.1\end{tabular}} &               &               &                    &                 &                 &                  &                        &                 &               &                &                 &                &               & .94          \\
+    \textbf{\begin{tabular}[c]{@{}c@{}}bi-ConvLSTM\\ concat. 1.2\end{tabular}} &               &               &                    &                 &                 &                  &                        &                 &               &                &                 &                &               &                \\
+    \textbf{\begin{tabular}[c]{@{}c@{}}bi-ConvLSTM\\ concat. 1.3\end{tabular}} & .00         & .00         & .00              & .00           & .00           & .00            & .00                  & .00           & .00         & .00          & .00           & .00          & .00         &                \\ \hline
+    \end{tabular}
+    \caption{Testing results of the pretraining.}
+    \label{tab:pretrain_res}
+\end{table}
 
 \subsection{Finetuning}
 In the finetuning stage we will be using the already developed pose-estiamtor to train our temporal-inclusive models. However, we will be freezing the pose-estimator, such that the weights of the model will not change during the training and we will thus only train our temporal-inclusive models. We do this for the following three reasons: (1) the training of the models will be quicker, as we just need to train the tempoeral-inclusive models and not the already developed pose-estimator, (2) we get an greater understanding of the effects of our models when combined with the pose-estimator, as we can clearly see how big of a difference it makes by adding our tempoeral-inclusive models, and (3) we lower the probability of overfitting, as we have less tuneable parameters.
@@ -129,6 +147,9 @@ For the groundtruth heatmaps we create twenty five heatmaps of each frame, simil
 \textbf{Training Configuration} The optimization parameters are very similar to the ones from the pretraining stage. We again use the ADAM optimzer with a batch size of $16$ and the MSE loss-function. During training, we again keep track of the lowest reached validation loss of an epoch and use learning-rate reduction and early-stopping in a similar manner to how we did in the pretraining stage. However, unlike the pretraining stage, we here use a smaller iniitial learning rate of $10^{-4}$, as the weights only need to be fineadjusted, making us believe that greater learning rate would skew the weights too much.
 
 \subsubsection{Results}
+\begin{itemize}
+    \item Vi skal kun bruge én epoch - nok pga. pretræning
+\end{itemize}
 
 \subsection*{Technical Details}
 
