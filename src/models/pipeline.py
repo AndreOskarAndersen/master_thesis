@@ -134,13 +134,6 @@ def train(model: nn.Module,
     torch.save(eval_dataloader, saving_path + "eval_dataloader.pth")
     torch.save(test_dataloader, saving_path + "test_dataloader.pth")
     
-    if len(train_losses) == 0:
-        # Evaluating the model prior to training it
-        model.eval()
-        val_loss, val_acc = evaluate(model, eval_dataloader, criterion, device, data_transformer)
-        val_accs.append(val_acc)
-        val_losses.append(val_loss)
-    
     for epoch in tqdm(range(min_epoch, max_epoch), desc="Epoch", leave=False, disable=disable_tqdm):
         
         # Making dirs for storing the current epoch
@@ -149,7 +142,6 @@ def train(model: nn.Module,
         
         # Preparing the training of the model
         model.train()
-        train_losses.append(0.0)
         
         for x, y, is_pa in tqdm(train_dataloader, desc="Sample", leave=False, total=len(train_dataloader), disable=disable_tqdm):
 
@@ -169,18 +161,16 @@ def train(model: nn.Module,
             # Computes loss
             loss = criterion(pred, y)
             
-            # Store train loss
-            train_losses[-1] += loss.item()
-            
             # Backpropegation
             loss.backward()
             optimizer.step()
             
-        # Averaging the training stats
-        train_losses[-1] /= len(train_dataloader)
+        # Getting training losses
+        train_loss, _ = evaluate(model, train_dataloader, criterion, device, data_transformer=data_transformer)
+        train_losses.append(train_loss)
         
         # Validating the model
-        val_loss, val_acc = evaluate(model, eval_dataloader, criterion, device, data_transformer)
+        val_loss, val_acc = evaluate(model, eval_dataloader, criterion, device, data_transformer=data_transformer)
         val_accs.append(val_acc)
         val_losses.append(val_loss)
         
@@ -220,7 +210,7 @@ def train(model: nn.Module,
             print("====================")
             break
         
-    test_loss, test_acc = evaluate(model, test_dataloader, criterion, device, data_transformer)
+    test_loss, test_acc = evaluate(model, test_dataloader, criterion, device, data_transformer=data_transformer)
     print(f"\n\n {model} stopped training after {epoch + 1} epochs. Testing accuray: {test_acc}, testing loss: {test_loss}\n\n")
 
 def evaluate(model: nn.Module,
