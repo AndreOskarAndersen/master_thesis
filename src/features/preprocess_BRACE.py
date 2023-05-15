@@ -171,25 +171,14 @@ def _preprocess_keypoints(video_annotations : Dict[str, Tuple[List[float]]], blu
     x_min, y_min, x_max, y_max = bbox
     width = x_max - x_min
     height = y_max - y_min
-    diff = np.abs(height - width)
-    expand_factor = diff/2
-    
-    if width < height:
-        x_min -= expand_factor
-        x_max += expand_factor
-    else:
-        y_min -= expand_factor
-        y_max += expand_factor
-    
-    width = x_max - x_min
-    height = y_max - y_min
         
     # Expanding sides by 10%
-    expand_factor = 0.1 * width * 0.5
-    x_min -= expand_factor 
-    x_max += expand_factor 
-    y_min -= expand_factor 
-    y_max += expand_factor 
+    expand_factor_width = 0.1 * width * 0.5
+    expand_factor_height = 0.1 * height * 0.5
+    x_min -= expand_factor_width 
+    x_max += expand_factor_width
+    y_min -= expand_factor_height
+    y_max += expand_factor_height
 
     # Shifts keypoints, corresponding to such that the upper left koordinate
     # of the bbox has coordinates (0, 0)
@@ -208,9 +197,6 @@ def _preprocess_keypoints(video_annotations : Dict[str, Tuple[List[float]]], blu
     
     # Rounding to nearest integer
     keypoints = torch.round(keypoints).int()
-    
-    # Flipping the keypoints horizontally
-    # keypoints[:, 1] = TARGET_HEIGHT - 1 - keypoints[:, 1]
 
     # Tensor for storing input heatmaps
     processed_input_heatmaps = torch.zeros(NUM_KEYPOINTS, TARGET_HEIGHT, TARGET_WIDTH)

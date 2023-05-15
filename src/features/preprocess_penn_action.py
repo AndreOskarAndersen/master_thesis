@@ -7,14 +7,18 @@ from tqdm.auto import tqdm
 from utils import make_dir, turn_keypoint_to_featuremap
 from global_variables import *
 
-def _load_bboxes(keypoints: np.array):
+def _load_bboxes(xs: np.array, ys: np.array, visibilities: np.array):
     """
     Extracts the tightest possible bounding-box from a set of keypoints.
     
     Parameters
     ----------
-    keypoints : np.array
-        3D array of the frames and keypoints.
+    xs : np.array
+        2D array of the x-coordinaes of the frames and keypoints.
+        2D array of the y-coordinaes of the frames and keypoints.
+        
+    visibilities : np.array
+        2D array of visibility flags.
         
     Returns
         x_mins : np.array
@@ -30,10 +34,34 @@ def _load_bboxes(keypoints: np.array):
             Maximum y-coordinates of the keypoints of each frame
     """
     
-    x_mins = np.min(keypoints[:, :, 0], axis=1).astype(float)
-    y_mins = np.min(keypoints[:, :, 1], axis=1).astype(float)
-    x_maxs = np.max(keypoints[:, :, 0], axis=1).astype(float)
-    y_maxs = np.max(keypoints[:, :, 1], axis=1).astype(float)
+    x_mins = np.zeros(xs.shape[0], dtype=float)
+    x_maxs = np.zeros(xs.shape[0], dtype=float)
+    y_mins = np.zeros(ys.shape[0], dtype=float)
+    y_maxs = np.zeros(ys.shape[0], dtype=float)
+    
+    for frame in range(xs.shape[0]):
+        frame_xs = xs[frame].astype(float)
+        frame_ys = ys[frame].astype(float)
+        frame_visibilities = visibilities[frame].astype(bool)
+        
+        visible_xs = frame_xs[frame_visibilities]
+        visible_ys = frame_ys[frame_visibilities]
+        
+        if len(visible_xs) > 0:
+            x_min = np.min(visible_xs)
+            x_max = np.max(visible_xs)
+            y_min = np.min(visible_ys)
+            y_max = np.max(visible_ys)
+        else:
+            x_min = -np.inf
+            x_max = -np.inf
+            y_min = -np.inf
+            y_max = -np.inf
+        
+        x_mins[frame] = x_min
+        x_maxs[frame] = x_max
+        y_mins[frame] = y_min
+        y_maxs[frame] = y_max
     
     return x_mins, y_mins, x_maxs, y_maxs
     
@@ -58,31 +86,23 @@ def _preprocess_keypoints(label: Dict, blurr_sigma: float, noise_scalar: int):
     """
     
     keypoints = np.dstack((label["x"], label["y"])).astype(float)
+    xs = label["x"]
+    ys = label["y"]
+    visibilities = label["visibility"]
     
     # Extracting cornors of bboxes
-    x_mins, y_mins, x_maxs, y_maxs = _load_bboxes(keypoints)
+    x_mins, y_mins, x_maxs, y_maxs = _load_bboxes(xs, ys, visibilities)
     
     # Making bboxes a square, by expanding the shortest side
-    widths = x_maxs - x_mins
-    heights = y_maxs - y_mins
-    diffs = np.abs(heights - widths)
-    expand_factors = diffs/2
+    width = x_maxs - x_mins
+    height = y_maxs - y_mins
     
-    x_mins[widths < heights] -= expand_factors[widths < heights]
-    x_maxs[widths < heights] += expand_factors[widths < heights]
-    
-    y_mins[widths > heights] -= expand_factors[widths > heights]
-    y_maxs[widths > heights] += expand_factors[widths > heights]
-    
-    widths = x_maxs - x_mins
-    heights = y_maxs - y_mins
-    
-    # Expanding sides by 10%
-    expand_factors = 0.1 * widths * 0.5
-    x_mins -= expand_factors 
-    x_maxs += expand_factors 
-    y_mins -= expand_factors 
-    y_maxs += expand_factors 
+    expand_factor_width = 0.1 * width * 0.5
+    expand_factor_height = 0.1 * height * 0.5
+    x_mins -= expand_factor_width 
+    x_maxs += expand_factor_width
+    y_mins -= expand_factor_height
+    y_maxs += expand_factor_height 
     
     # Shifts keypoints, corresponding to such that the upper left koordinate
     # of the bbox has coordinates (0, 0)
@@ -101,9 +121,6 @@ def _preprocess_keypoints(label: Dict, blurr_sigma: float, noise_scalar: int):
     
     # Rounding to nearest integer
     keypoints = np.round(keypoints).astype(int)
-    
-    # Flipping the keypoints horizontally
-    #keypoints[:, :, 1] = TARGET_HEIGHT - 1 - keypoints[:, :, 1]
     
     # Function for translating keypoints for translating
     # Penn action keypoint-index to ClimbAlong keypoint-index
