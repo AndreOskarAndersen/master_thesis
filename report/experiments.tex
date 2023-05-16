@@ -41,6 +41,7 @@ Finally, with $30$ frames per second and a window-size of $k = 5$, we suspect th
 \\
 We further test the denoise capability of the models by running each setup twice for each model. In the first run we use a shifting-scalar of $k = 1$, whereas for the second run we increase this value to $k = 2$, making the data a lot more noisy.
 \\
+\\
 \textbf{Training Configuration} For optimizing the weights of the models, we use the ADAM optimizer with a batch size of $16$, an initial learning rate of $10^{-3}$ and the MSE loss-function. During training we keep track of the lowest reached validation loss of an epoch. If this lowest validation loss has not been beaten for five consecutive epochs, we reduce the learning rate by a factor of $0.1$. Further, if the lowest validation loss has not been beaten for ten consecutive epochs, we terminate the training of the corresponding model. In case this never happens, we terminate the training of the corresponding model once it has been trained for fifty epochs.
 \\
 \\
@@ -109,63 +110,74 @@ Further, we can clearly see the effects of the shifting-scalar on the training o
 
 \subsubsection{Testing Results}
 \begin{table}[htbp]
-    \begin{tabular}{c||lll}
+    \begin{tabular}{c||lll|lll|lll}
         \hline
-        Model & PCK@0.05 & PCK@0.1 & PCK@0.2 \\
+        & \multicolumn{3}{c}{PCK@0.05} & \multicolumn{3}{c}{PCK@0.1} & \multicolumn{3}{c}{PCK@0.2} \\
         \hline
-        \begin{tabular}[c]{@{}c@{}}Conv3D\\ 1.1\end{tabular} & 5.44 & 30.1 & 94.4 \\
-        \begin{tabular}[c]{@{}c@{}}Conv3D\\ 1.2\end{tabular} & 33.7 & 60.7 & \textbf{97.0} \\
-        \begin{tabular}[c]{@{}c@{}}Conv3D\\ 1.3\end{tabular} & 4.61 & 24.1 & 94.0 \\
-        \begin{tabular}[c]{@{}c@{}}DeciWatch\\ 1.1\end{tabular} & \textbf{54.1} & \textbf{68.7} & 84.0 \\
-        \begin{tabular}[c]{@{}c@{}}DeciWatch\\ 1.2\end{tabular} & \textbf{54.1} & \textbf{68.7} & 84.0 \\
-        \begin{tabular}[c]{@{}c@{}}DeciWatch\\ 1.3\end{tabular} & 46.4 & 54.8 & 68.9 \\
-        \begin{tabular}[c]{@{}c@{}}bi-ConvLSTM\\ sum. 1.1\end{tabular} & 20.9 & 64.0 & 93.8 \\ 
-        \begin{tabular}[c]{@{}c@{}}bi-ConvLSTM\\ sum. 1.2\end{tabular} & 21.4 & 61.7 & 93.1 \\
-        \begin{tabular}[c]{@{}c@{}}bi-ConvLSTM\\ sum. 1.3\end{tabular} & 23.5 & 65.8 & 94.6 \\
-        \begin{tabular}[c]{@{}c@{}}bi-ConvLSTM\\ concat. 1.1\end{tabular} & 21.3 & 62.3 & 94.1\\
-        \begin{tabular}[c]{@{}c@{}}bi-ConvLSTM\\ concat. 1.2\end{tabular} & 20.7 & 61.1 & 92.7 \\
-        \begin{tabular}[c]{@{}c@{}}bi-ConvLSTM\\ concat. 1.3\end{tabular} & 20.9 & 61.5 & 93.6 \\
+        & 1.1 & 1.2 & 1.3 & 1.1 & 1.2 & 1.3 & 1.1 & 1.2 & 1.3 \\
         \hline
-        \begin{tabular}[c]{@{}c@{}}Conv3D\\ 2.1\end{tabular} & 0.80 & 13.7 & 89.2 \\
-        \begin{tabular}[c]{@{}c@{}}Conv3D\\ 2.2\end{tabular} & 2.00 & 18.6 & 89.7 \\
-        \begin{tabular}[c]{@{}c@{}}Conv3D\\ 2.3\end{tabular} & 0.18 & 9.6 & \textbf{90.1} \\
-        \begin{tabular}[c]{@{}c@{}}DeciWatch\\ 2.1\end{tabular} & 8.18 & 28.7 & 65.1 \\
-        \begin{tabular}[c]{@{}c@{}}DeciWatch\\ 2.2\end{tabular} & 8.81 & 27.1 & 63.6 \\
-        \begin{tabular}[c]{@{}c@{}}DeciWatch\\ 2.3\end{tabular} & 5.13 & 18.2 & 48.6 \\
-        \begin{tabular}[c]{@{}c@{}}bi-ConvLSTM\\ sum. 2.1\end{tabular} & 8.05 & 30.4 & 69.9 \\ 
-        \begin{tabular}[c]{@{}c@{}}bi-ConvLSTM\\ sum. 2.2\end{tabular} & \textbf{9.42} & \textbf{31.5} & 68.1 \\
-        \begin{tabular}[c]{@{}c@{}}bi-ConvLSTM\\ sum. 2.3\end{tabular} & 7.78 & 29.4 & 68.2 \\
-        \begin{tabular}[c]{@{}c@{}}bi-ConvLSTM\\ concat. 2.1\end{tabular} & 6.91 & 29.4 & 71.94 \\
-        \begin{tabular}[c]{@{}c@{}}bi-ConvLSTM\\ concat. 2.2\end{tabular} & 8.72 & 31.3 & 68.83 \\
-        \begin{tabular}[c]{@{}c@{}}bi-ConvLSTM\\ concat. 2.3\end{tabular} & 7.77 & 29.0 & 69.1 \\
+        Identity function & & & & & & & & & \\
+        Conv3D & 5.44 & 33.7 & 4.61 & 30.1 & 60.7 & 24.1 & \textbf{94.4} & \textbf{97.0} & 94.0 \\
+        DeciWatch & \textbf{54.1} & \textbf{54.1} & \textbf{46.4} & \textbf{68.7} & \textbf{68.7} & 54.8 & 84.0 & 84.0 & 68.9 \\
+        bi-ConvLSTM - sum. & 20.9 & 21.4 & 23.5 & 64.0 & 61.7 & \textbf{65.8} & 93.8 & 93.1 & \textbf{94.6} \\
+        bi-ConvLSTM - concat. & 21.3 & 20.7 & 20.9 & 62.3 & 61.1 & 61.5 & 94.1 & 92.7 & 93.6 \\
         \hline
     \end{tabular}
-    \label{tab:pretrain_test_accs}
-    \caption{Testing accuracies of the various developed models.}
+    \label{tab:pretrain_test_accs_1}
+    \caption{Testing accuracies of the various developed models for shifting-scalar $k = 1$.}
+\end{table}
+
+\begin{table}[htbp]
+    \begin{tabular}{c||lll|lll|lll}
+        \hline
+        & \multicolumn{3}{c}{PCK@0.05} & \multicolumn{3}{c}{PCK@0.1} & \multicolumn{3}{c}{PCK@0.2} \\
+        \hline
+        & 2.1 & 2.2 & 2.3 & 2.1 & 2.2 & 2.3 & 2.1 & 2.2 & 2.3 \\
+        \hline
+        Identity function & & & & & & & & & \\
+        Conv3D & 0.80 & 2.00 & 0.18 & 13.7 & 18.6 & 9.6 & \textbf{89.2} & \textbf{89.7} & \textbf{90.1} \\
+        DeciWatch & \textbf{8.18} & 8.81 & 5.13 & 28.7 & 27.1 & 18.2 & 65.1 & 63.6 & 48.6 \\
+        bi-ConvLSTM - sum. & 8.05 & \textbf{9.42} & \textbf{7.78} & \textbf{30.4} & \textbf{31.5} & \textbf{29.4} & 69.9 & 68.1 & 68.2 \\
+        bi-ConvLSTM - concat. & 6.91 & 8.72 & 7.77 & 29.4 & 31.3 & 29.0 & 71.9 & 68.8 & 69.1 \\
+        \hline
+    \end{tabular}
+    \label{tab:pretrain_test_accs_2}
+    \caption{Testing accuracies of the various developed models for shifting-scalar $k = 2$.}
 \end{table}
 
 \begin{table}[htbp]
     \begin{tabular}{c||cccccccc}
         \hline
-        Model & \begin{tabular}[c]{@{}l@{}}Best\\ Epoch\end{tabular} & Ear & Shoulder & Elbow & Wrist & Hip & Knee & Ankle \\ \hline
+        Model & \begin{tabular}[c]{@{}l@{}}Best\\ Epoch\end{tabular} & Ear & Shoulder & Elbow & Wrist & Hip & Knee & Ankle \\ 
+        \hline
         \begin{tabular}[c]{@{}c@{}}Conv3D\\ 1.1\end{tabular} & 8 & 94.3 & 94.6 & 94.2 & 93.9 & 95.8 & 94.6 & 93.6 \\
-        \begin{tabular}[c]{@{}c@{}}Conv3D\\ 1.2\end{tabular} & 15 & 95.0 & 97.5 & 98.7 & 96.6 & 98.3 & 98.6 & 95.1 \\
+        \begin{tabular}[c]{@{}c@{}}Conv3D\\ 1.2\end{tabular} & 15 & 95.0 & \textbf{97.5} & \textbf{98.7} & \textbf{96.6} & \textbf{98.3} & \textbf{98.6} & \textbf{95.1} \\
         \begin{tabular}[c]{@{}c@{}}Conv3D\\ 1.3\end{tabular} & 12 & 94.1 & 93.7 & 95.1 & 92.9 & 97.0 & 93.4 & 92.4 \\
         \begin{tabular}[c]{@{}c@{}}DeciWatch\\ 1.1\end{tabular} & 3 & 87.2 & 88.1 & 84.1 & 78.6 & 86.9 & 82.7 & 79.0 \\
         \begin{tabular}[c]{@{}c@{}}DeciWatch\\ 1.2\end{tabular} & 11 & 87.2 & 88.1 & 84.1 & 78.6 & 86.9 & 82.8 & 79.0 \\
         \begin{tabular}[c]{@{}c@{}}DeciWatch\\ 1.3\end{tabular} & 22 & 73.3 & 74.9 & 67.4 & 61.0 & 72.3 & 67.8 & 63.2 \\
         \begin{tabular}[c]{@{}c@{}}bi-ConvLSTM\\ sum. 1.1\end{tabular} & 1 & 95.4 & 94.4 & 92.8 & 91.9 & 92.4 & 92.7 & 92.2 \\
         \begin{tabular}[c]{@{}c@{}}bi-ConvLSTM\\ sum. 1.2\end{tabular} & 1 & 94.9 & 93.4 & 94.4 & 93.2 & 93.5 & 92.7 & 94.3 \\
-        \begin{tabular}[c]{@{}c@{}}bi-ConvLSTM\\ sum. 1.3\end{tabular} & 1 & 95.5 & 92.2 & 96.6 & 96.6 & 92.5 & 93.6 & 95.5 \\
+        \begin{tabular}[c]{@{}c@{}}bi-ConvLSTM\\ sum. 1.3\end{tabular} & 1 & 95.5 & 92.2 & 96.6 & \textbf{96.6} & 92.5 & 93.6 & 95.5 \\
         \begin{tabular}[c]{@{}c@{}}bi-ConvLSTM\\ concat. 1.1\end{tabular} & 1 & 95.3 & 95.1 & 94.1 & 94.2 & 93.9 & 94.4 & 92.8 \\
         \begin{tabular}[c]{@{}c@{}}bi-ConvLSTM\\ concat. 1.2\end{tabular} & 1 & 95.7 & 93.3 & 94.6 & 91.4 & 90.8 & 91.5 & 91.2 \\
-        \begin{tabular}[c]{@{}c@{}}bi-ConvLSTM\\ concat. 1.3\end{tabular} & 2 & 95.9 & 91.8 & 93.7 & 95.4 & 91.5 & 94.1 & 94.0 \\
+        \begin{tabular}[c]{@{}c@{}}bi-ConvLSTM\\ concat. 1.3\end{tabular} & 2 & \textbf{95.9} & 91.8 & 93.7 & 95.4 & 91.5 & 94.1 & 94.0 \\
         \hline
         Total &  & 92.0 & 91.4 & 90.8 & 88.7 & 91.0 & 89.9 & 88.5 \\ 
         \hline
+    \end{tabular}
+    \label{tab:pretrain_kpts_test_accs_1}
+    \caption{Keypoint-specific testing PCK@0.2-accuracies of the various models for shiting-scalar $k = 1$.}
+\end{table}
+
+\begin{table}[htbp]
+    \begin{tabular}{c||cccccccc}
+        \hline
+        Model & \begin{tabular}[c]{@{}l@{}}Best\\ Epoch\end{tabular} & Ear & Shoulder & Elbow & Wrist & Hip & Knee & Ankle \\ 
+        \hline
         \begin{tabular}[c]{@{}c@{}}Conv3D\\ 1.1\end{tabular} & 17 & 85.1 & 89.5 & 91.0 & 92.0 & 86.0 & 89.9 & 91.9 \\
-        \begin{tabular}[c]{@{}c@{}}Conv3D\\ 1.2\end{tabular} & 15 & 85.9 & 89.7 & 91.3 & 92.2 & 88.5 & 90.8 & 91.0 \\
-        \begin{tabular}[c]{@{}c@{}}Conv3D\\ 1.3\end{tabular} & 26 & 85.2 & 90.9 & 91.6 & 91.9 & 88.7 & 91.4 & 92.0 \\
+        \begin{tabular}[c]{@{}c@{}}Conv3D\\ 1.2\end{tabular} & 15 & \textbf{85.9} & 89.7 & 91.3 & \textbf{92.2} & 88.5 & 90.8 & 91.0 \\
+        \begin{tabular}[c]{@{}c@{}}Conv3D\\ 1.3\end{tabular} & 26 & 85.2 & \textbf{90.9} & \textbf{91.6} & 91.9 & \textbf{88.7} & \textbf{91.4} & \textbf{92.0} \\
         \begin{tabular}[c]{@{}c@{}}DeciWatch\\ 1.1\end{tabular} & 11 & 77.1 & 72.6 & 61.0 & 57.9 & 70.4 & 56.7 & 58.4 \\
         \begin{tabular}[c]{@{}c@{}}DeciWatch\\ 1.2\end{tabular} & 5 & 76.1 & 71.2 & 59.6 & 59.7 & 68.8 & 58.3 & 54.0 \\
         \begin{tabular}[c]{@{}c@{}}DeciWatch\\ 1.3\end{tabular} & 2 & 54.8 & 42.0 & 41.9 & 45.3 & 52.9 & 40.3 & 53.6 \\
@@ -174,11 +186,13 @@ Further, we can clearly see the effects of the shifting-scalar on the training o
         \begin{tabular}[c]{@{}c@{}}bi-ConvLSTM\\ sum. 1.3\end{tabular} & 1 & 83.8 & 64.9 & 63.5 & 67.3 & 63.7 & 65.2 & 68.5 \\
         \begin{tabular}[c]{@{}c@{}}bi-ConvLSTM\\ concat. 1.1\end{tabular} & 1 & 83.9 & 67.1 & 66.2 & 75.0 & 68.9 & 67.6 & 71.7 \\
         \begin{tabular}[c]{@{}c@{}}bi-ConvLSTM\\ concat. 1.2\end{tabular} & 1 & 81.7 & 67.8 & 66.1 & 62.7 & 64.7 & 65.3 & 72.0 \\
-        \begin{tabular}[c]{@{}c@{}}bi-ConvLSTM\\ concat. 1.3\end{tabular} & 11 & 81.8 & 65.2 & 65.9 & 66.2 & 63.7 & 67.8 & 68.7 \\ \hline
-        Total &  & 79.7 & 72.2 & 69.2 & 70.5 & 70.2 & 69.5 & 71.0 \\ \hline
+        \begin{tabular}[c]{@{}c@{}}bi-ConvLSTM\\ concat. 1.3\end{tabular} & 11 & 81.8 & 65.2 & 65.9 & 66.2 & 63.7 & 67.8 & 68.7 \\ 
+        \hline
+        Total &  & 79.7 & 72.2 & 69.2 & 70.5 & 70.2 & 69.5 & 71.0 \\ 
+        \hline
     \end{tabular}
-    \label{tab:pretrain_kpts_test_accs}
-    \caption{Keypoint-specific testing PCK@0.2-accuracies of the various models.}
+    \label{tab:pretrain_kpts_test_accs_2}
+    \caption{Keypoint-specific testing PCK@0.2-accuracies of the various models for shiting-scalar $k = 2$.}
 \end{table}
 
 \subsection{Finetuning}
