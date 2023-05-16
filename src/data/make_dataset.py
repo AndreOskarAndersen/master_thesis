@@ -1,7 +1,6 @@
 import os
 import download_BRACE
 import download_penn_action
-import download_ClimbAlong
 from global_variables import *
 
 def _make_dir(path):
@@ -52,9 +51,6 @@ def main():
     
     # Downloading the Penn Action data
     download_penn_action.main()
-    
-    # Downloading the ClimbAlong data
-    download_ClimbAlong.main()
 
 if __name__ == "__main__":
     main()
