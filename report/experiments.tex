@@ -39,7 +39,7 @@ As we find it interesting how big of a difference the randomness of the first se
 Finally, with $30$ frames per second and a window-size of $k = 5$, we suspect that the models might be given too little context to actually be able to effectively smooth out the input data. We could fix this by increasing the window-size, however, we instead chose to make the models work at a lower frame rate, as the increased window-size would also increase the memory usage. Thus, for our last setup we still use a window-size of $5$, however, with half the frame rate. For this setup we also sample $\sigma_{in}$ from the set $\{1, 1.5, 2, 2.5, 3\}$.
 \\
 \\
-We further test the denoise capability of the models by running each setup twice for each model. In the first run we use a shifting-scalar of $k = 1$, whereas for the second run we increase this value to $k = 2$, making the data a lot more noisy.
+As we find it difficult to set the optimal value of the shifting-scalar $k$, such that the data becomes as close as possible to the finetuning data, we run each setup twice for each model. In the first run we use a shifting-scalar of $k = 1$, whereas for the second run we increase this value to $k = 2$, making the data a lot more noisy.
 \\
 \\
 \textbf{Training Configuration} For optimizing the weights of the models, we use the ADAM optimizer with a batch size of $16$, an initial learning rate of $10^{-3}$ and the MSE loss-function. During training we keep track of the lowest reached validation loss of an epoch. If this lowest validation loss has not been beaten for five consecutive epochs, we reduce the learning rate by a factor of $0.1$. Further, if the lowest validation loss has not been beaten for ten consecutive epochs, we terminate the training of the corresponding model. In case this never happens, we terminate the training of the corresponding model once it has been trained for fifty epochs.
@@ -109,6 +109,29 @@ One could look at Figure \ref{fig:pretrainin_res} and argue, that the training o
 Further, we can clearly see the effects of the shifting-scalar on the training of the models, as all of the models perorms better on the dataset with a low shifting-scalar, than on their corresponding counterpart with a higher shifting-sclar. DeciWatch $1.3$ and DeciWatch $2.3$ do however seems to be struggling quite a bit, as the validation accuracies of these models are much lower than the other DeciWatch models with the same noise-scalar. However, we have to keep in mind here, that DeciWatch already only considers every fifth frame. This, combined with the fact that setup $3$ is only consideren every other frame, makes these two models only consider every tenth frame, which of course makes the prediction very difficult, as these models then have to recover a lot of frames.
 
 \subsubsection{Testing Results}
+We have in Table \ref{tab:pretrain_test_accs_1} and Table \ref{tab:pretrain_test_accs_2} illustrated the test results of the various models on the testsets for PCK$@0.05$, PCK$@0.1$, PCK$@0.2$.
+\\
+\\
+For shifting-scalar $k = 1$ we see, that DeciWatch is the architecure that yields the best results for PCK$@0.05$ and PCK$@0.1$. However, for PCK$@0.2$ DeciWatch actually tends to be the worst performing model, which means that DeciWatch is sometimes very accurate with its predictions, whereas it at other times yields some very inaccuracte predictions.
+\\
+\\
+On the other hand, the simple 3-dimensional convolutional layer seems to be the architecture that generally performs the worst for PCK$@0.05$ and PCK$@0.1$ and actually the architecture that performs the best for PCK$@0.2$. Thus, the 3-dimensiona convolutional layer is very good at inferencing a rough estimate of the position of the keypoints, however, the exact position of these predictions are generally incorrect.
+\\
+\\
+Generally, the bidirectional convolutional LSTMs yield some decent results, as the predicitons of these models are never close to the worst-performing model for any of the three used accuracy metrics. Similarly to the validation results, the test results do not indicate any major performance differences between the two different types of bidirectional convolutional LSTMs. Likewise, as similarly to the validation results, the test results indicate a major effect of a low frame rate on DeciWatch. 
+\\
+\\
+If we take a closer look at the four types of architectures we see, that the 3-dimensional convolutional layer generally performs much better on the second setup that it does on the two other setups. As the models of the first and third setup have to learn both translation and scaling, where for the second setup the model only has to learn translation, we can clearly see how big of an impact scaling the data has for this simple model. As for comparison, the performances of the other architectures have generally a lot smaller variance, indicating these models being less impacted by the setup. This is especially visible for DeciWatch, which has no performance differences between the two first setups. However, this is due the architecture working on keypoint-coordinates instead of heatmaps, making it scaling invariant and thus making it, such that there are no differences between the two first setups.
+\\
+\\
+The testing results of shifting-scalar $k = 2$ generally follows the same pattern with some minor differences. In this case, the bidirectioanl convolutional LSTM with summing is actually the model that yields the best results for PCK$@0.05$ and PCK$@0.1$ instead DeciWatch, as it was in the case for $k = 1$. However, DeciWatch does still yied some results that are pretty close to the ones by the convolutional LSTM with summing.
+\\
+\\
+Unsurprisingly, all of the models performed worse as the added noise was double. Nonetheless, the 3-dimensional convolutional layer is still the architecture that yields the best results when considering PCK$@0.2$. However, unlike the previous case, this architecure now completely outperforms the three alternative architectures, when considering PCK$@0.2$, but is on the other hand completely outperformed by the other models when considering PCK$0.05$. This indicates, that the architecture can still yield decent rough estimations of the keypoints when a lot of noise is added, however, it does also indicate, that the exact position of these keypoints are very much effected by the level of noise.
+\\
+\\
+Which architecture is the best at denoising the data depends on one's needs. If one just need a rough estimate of the position of the keypoints, then the 3-dimensional convolutional layer would be the optimal choice, as this model has the highest PCK$0.2$-values. However, if one need the model which yields the most exact predictions, then one of the bidirectional convolutional LSTMs would be the optimal choice.
+
 \begin{table}[htbp]
     \begin{tabular}{c||lll|lll|lll}
         \hline
