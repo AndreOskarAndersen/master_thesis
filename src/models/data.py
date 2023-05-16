@@ -332,7 +332,10 @@ class _ClimbAlongDataset():
         self.interval_skip = interval_skip + 1
         
         # Mapping from index to sample
-        self.train_mapper, self.test_mapper, self.val_mapper = self._get_mapper()
+        if self.train_ratio > 0:
+            self.train_mapper, self.test_mapper, self.val_mapper = self._get_mapper()
+        else:
+            self.val_mapper = self._get_mapper()
         
         self.heatmap_shape = heatmap_shape
         
@@ -430,25 +433,30 @@ class _ClimbAlongDataset():
                 mapper[len(mapper)] = [clip_name + "/" + str(lower_interval + sample + window_ele * self.interval_skip) + ".pt" for window_ele in range(self.window_size)]
         
         # Splits the mapper into training and evaluation
-        train_mapper = dict(list(mapper.items())[int(len(mapper) * (1 - self.train_ratio)):])
-        eval_mapper = dict(list(mapper.items())[:int(len(mapper) * (1 - self.train_ratio))])
-        
-        # Removes the overlapping frames of the two mappers
-        train_mapper, eval_mapper = self._remove_train_eval_overalap(train_mapper, eval_mapper)
-        
-        # Prunes the eval_mapper such that it has no overlapping windows
-        eval_mapper = self._prune_mapper(eval_mapper)
-        
-        # Splits the evaluation mapper into testing and validation
-        test_mapper = dict(list(eval_mapper.items())[0::2])
-        val_mapper = dict(list(eval_mapper.items())[1::2])
-        
-        # Resetitng the indicies of the mappers
-        train_mapper = {i: v for i, v in enumerate(train_mapper.values())}
-        test_mapper = {i: v for i, v in enumerate(test_mapper.values())}
-        val_mapper = {i: v for i, v in enumerate(val_mapper.values())}
-        
-        return train_mapper, test_mapper, val_mapper
+        if self.train_ratio > 0:
+            train_mapper = dict(list(mapper.items())[int(len(mapper) * (1 - self.train_ratio)):])
+            eval_mapper = dict(list(mapper.items())[:int(len(mapper) * (1 - self.train_ratio))])
+            
+            # Removes the overlapping frames of the two mappers
+            train_mapper, eval_mapper = self._remove_train_eval_overalap(train_mapper, eval_mapper)
+            
+            # Prunes the eval_mapper such that it has no overlapping windows
+            eval_mapper = self._prune_mapper(eval_mapper)
+            
+            # Splits the evaluation mapper into testing and validation
+            test_mapper = dict(list(eval_mapper.items())[0::2])
+            val_mapper = dict(list(eval_mapper.items())[1::2])
+            
+            # Resetitng the indicies of the mappers
+            train_mapper = {i: v for i, v in enumerate(train_mapper.values())}
+            test_mapper = {i: v for i, v in enumerate(test_mapper.values())}
+            val_mapper = {i: v for i, v in enumerate(val_mapper.values())}
+            
+            return train_mapper, test_mapper, val_mapper
+        else:
+            val_mapper = self._prune_mapper(mapper)
+            val_mapper = {i: v for i, v in enumerate(val_mapper.values())}
+            return val_mapper
     
     class _CA_subdataset(Dataset):
         def __init__(self, mapper, window_size: int, upper_range: int, heatmap_shape: Tuple[int, int, int], input_dir: str, target_dir: str):
@@ -491,11 +499,14 @@ class _ClimbAlongDataset():
         Function for getting the three datasets.
         """
         
-        train_dataset = self._CA_subdataset(self.train_mapper, self.window_size, self.upper_range, self.heatmap_shape, self.input_dir, self.target_dir)
-        test_dataset = self._CA_subdataset(self.test_mapper, self.window_size, self.upper_range, self.heatmap_shape, self.input_dir, self.target_dir)
-        val_dataset = self._CA_subdataset(self.val_mapper, self.window_size, self.upper_range, self.heatmap_shape, self.input_dir, self.target_dir)
-        
-        return train_dataset, test_dataset, val_dataset
+        if self.train_ratio > 0:
+            train_dataset = self._CA_subdataset(self.train_mapper, self.window_size, self.upper_range, self.heatmap_shape, self.input_dir, self.target_dir)
+            test_dataset = self._CA_subdataset(self.test_mapper, self.window_size, self.upper_range, self.heatmap_shape, self.input_dir, self.target_dir)
+            val_dataset = self._CA_subdataset(self.val_mapper, self.window_size, self.upper_range, self.heatmap_shape, self.input_dir, self.target_dir)
+            
+            return train_dataset, test_dataset, val_dataset
+        else:
+            return self._CA_subdataset(self.val_mapper, self.window_size, self.upper_range, self.heatmap_shape, self.input_dir, self.target_dir)
                 
 def get_dataloaders(dir_path: str, 
                     window_size: int, 
@@ -569,19 +580,29 @@ def get_dataloaders(dir_path: str,
         val_loader = DataLoader(total_dataset, batch_size=batch_size, sampler=val_sampler, num_workers=num_workers)
         test_loader = DataLoader(total_dataset, batch_size=batch_size, sampler=test_sampler, num_workers=num_workers)
         
+        data_loaders = (train_loader, val_loader, test_loader)
+        
     else:
         
-        # Loading the datasets
-        total_dataset = _ClimbAlongDataset(dir_path, window_size, heatmap_shape, 1 - eval_ratio, interval_skip, upper_range)
-        train_dataset, test_dataset, val_dataset = total_dataset.get_datasets()
-        
-        # Creating dataloaders
-        train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers)
-        val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers)
-        test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers)
+        if eval_ratio != 1:
+            # Loading the datasets
+            total_dataset = _ClimbAlongDataset(dir_path, window_size, heatmap_shape, 1 - eval_ratio, interval_skip, upper_range)
+            train_dataset, test_dataset, val_dataset = total_dataset.get_datasets()
+            
+            # Creating dataloaders
+            train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers)
+            val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers)
+            test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers)
+            
+            data_loaders = (train_loader, val_loader, test_loader)
+        else:
+            total_dataset = _ClimbAlongDataset(dir_path, window_size, heatmap_shape, 1 - eval_ratio, interval_skip, upper_range)
+            val_dataset = total_dataset.get_datasets()
+            val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers)
+            data_loaders = val_loader
         
     
-    return train_loader, val_loader, test_loader
+    return data_loaders
    
 if __name__ == "__main__":
     """

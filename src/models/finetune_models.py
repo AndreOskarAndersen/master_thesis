@@ -28,6 +28,11 @@ def main():
     
     # Looping through each model
     for model_name in tqdm(model_names, desc="Model", leave=False):
+        
+        # Making folder for training details
+        training_path = finetune_saving_path + noise_scalar + "/" + model_name + "/"
+        make_dir(training_path)
+        
         model_type = model_name.split("_")[0]
         model_dir = models_dir + model_name + "/"
         
@@ -63,12 +68,8 @@ def main():
             dataset_type="CA"
         )
         
-        # Making folder for trianing details
-        training_path = finetune_saving_path + model_name + "/"
-        make_dir(training_path)
-        
         # Creating various objects
-        optimizer = optim.Adam(model.parameters(), lr=finetune_params["learning_rate"])
+        optimizer = optim.Adam(model.parameters(), lr=finetune_params["learning_rate"] * 0.01)
         scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=finetune_params["scheduler_reduce_factor"], patience=finetune_params["scheduler_patience"])
         criterion = torch.nn.MSELoss()
         
