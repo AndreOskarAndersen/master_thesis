@@ -9,8 +9,8 @@ from unipose2 import Unipose2
 from utils import make_dir, heatmaps2coordinates
 from config import *
 
-def save_config(model_params, training_path):
-    data_params["noise_scalar"] = noise_scalar
+def save_config(model_params, training_path, scalar):
+    data_params["noise_scalar"] = scalar
     data_params["noise_std"] = noise_std
     config = {"training_params": training_params, "data_params": data_params, "model_params": model_params}
     
@@ -56,7 +56,7 @@ def main(overall_models_dir: str, training_path, model_name, dataloaders, model,
 
 if __name__ == "__main__":
     argv = int(sys.argv[1])
-    args = {0: (0, 0, 1), 1: (1, 0, 1), 2: (0, 1, 1)}
+    args = {0: (0, 0, 1), 1: (1, 0, 1), 2: (0, 1, 1), 3: (0, 0, 2), 4: (1, 0, 2), 5: (0, 1, 2)}
     args = args[argv]
     
     
@@ -64,16 +64,15 @@ if __name__ == "__main__":
     input_max_range = {0: 1, 1: 255}
     data_params["input_name"] = "input" if args[0] else "input_std"
     data_params["interval_skip"] = args[1]
-    data_params["upper_range"] = input_max_range[args[2]]
+    data_params["upper_range"] = 255
+    data_params["dir_path"] = f"../../data/processed_{args[-1]}/"
     
     # Device to use
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
     # Collecting model params
     unipose2_params["device"] = device
-    
-    unipose_params["upper_range"] = input_max_range[args[2]]
-    unipose2_params["upper_range"] = input_max_range[args[2]]
+    unipose2_params["upper_range"] = 255
     
     model = Unipose2(**unipose2_params).to(device)
     
@@ -87,6 +86,6 @@ if __name__ == "__main__":
     dataloaders = get_dataloaders(**data_params)
     
     # Saving documentation about training parameters
-    save_config(unipose2_params, training_path)
+    save_config(unipose2_params, training_path, args[2])
     
     main(overall_models_dir, training_path, model_name, dataloaders, model, device)

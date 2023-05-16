@@ -16,4 +16,4 @@ source ./venv/activate
 
 # Preparing data
 cd ./src/features
-python3 -m build_features ${SLURM_ARRAY_TASK_ID}
+python3 -m preprocess_penn_action ${SLURM_ARRAY_TASK_ID}

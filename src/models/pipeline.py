@@ -142,6 +142,7 @@ def train(model: nn.Module,
         
         # Preparing the training of the model
         model.train()
+        train_losses.append(0.0)
         
         for x, y, is_pa in tqdm(train_dataloader, desc="Sample", leave=False, total=len(train_dataloader), disable=disable_tqdm):
 
@@ -160,14 +161,15 @@ def train(model: nn.Module,
             
             # Computes loss
             loss = criterion(pred, y)
+
+            train_losses[-1] += loss.item()
             
             # Backpropegation
             loss.backward()
             optimizer.step()
             
         # Getting training losses
-        train_loss, _ = evaluate(model, train_dataloader, criterion, device, data_transformer=data_transformer)
-        train_losses.append(train_loss)
+        train_losses[-1] /= len(train_dataloader)
         
         # Validating the model
         val_loss, val_acc = evaluate(model, eval_dataloader, criterion, device, data_transformer=data_transformer)
@@ -218,7 +220,8 @@ def evaluate(model: nn.Module,
              criterion: type, 
              device: torch.device, 
              norm: float = 0.2,
-             data_transformer: Callable = lambda x: x):
+             data_transformer: Callable = lambda x: x,
+             compute_pck = True):
     """
     Evaluates a model on a dataloader using a criterion and PCK
     
@@ -280,13 +283,14 @@ def evaluate(model: nn.Module,
                 y = unmodify_target(pred, y, is_pa, type(model))
 
             # Computing PCK of the current iteration
-            PCK = compute_PCK(y, pred, norm)
-            if PCK != -1:
-                PCKs.append(PCK) 
+            if compute_pck:
+                PCK = compute_PCK(y, pred, norm)
+                if PCK != -1:
+                    PCKs.append(PCK) 
 
     # Computing mean PCK and loss
     losses_mean = np.mean(losses) 
-    PCK_mean = np.mean(PCKs)
+    PCK_mean = np.mean(PCKs) if compute_pck else []
     
     return losses_mean, PCK_mean
 

@@ -10,18 +10,21 @@ from unipose import Unipose
 from unipose2 import Unipose2
 from pipeline import evaluate
 from utils import heatmaps2coordinates
-from config import finetune_saving_path, pretrained_models_path
+from config import finetune_saving_path, overall_models_dir, pretrained_models_path
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print("device", device)
 
 models_dict = {"baseline": Baseline, "unipose": Unipose, "unipose2": Unipose2, "deciwatch": DeciWatch}
 data_transforms = {"baseline": lambda x: x, "unipose": lambda x: x, "unipose2": lambda x: x, "deciwatch": lambda x: heatmaps2coordinates(x.cpu()).to(device)}
-paths = [pretrained_models_path, finetune_saving_path]
+paths = [overall_models_dir, finetune_saving_path]
 
 arg = int(sys.argv[1])
 path = paths[arg]
 
 dirs = os.listdir(path)
+dirs = list(filter(lambda x: len(x) == 1, dirs))
+dirs = dirs[int(sys.argv[2])]
 
 for dir in tqdm(dirs, desc="dir", leave=False):    
     models_path = path + dir + "/"
@@ -34,7 +37,7 @@ for dir in tqdm(dirs, desc="dir", leave=False):
         
         training_losses = [np.load(model_path + "train_losses.npy")[0]] if arg == 1 else []
         
-        with open(pretrained_models_path + dir + "/" + model_name + "/config.json", "r") as f:
+        with open(overall_models_dir + dir + "/" + model_name + "/config.json", "r") as f:
             config = json.load(f)
             
         if "device" in config["model_params"] and config["model_params"]["device"] == "cuda":
@@ -44,7 +47,7 @@ for dir in tqdm(dirs, desc="dir", leave=False):
         model = models_dict[model_type](**config["model_params"])
         data_transformer = data_transforms[model_type]
         
-        for epoch in tqdm(epochs, desc="epoch", leave=False):
+        for epoch in tqdm(epochs, desc=f"epoch - {model_name}", leave=False):
             epoch_path = model_path + str(epoch) + "/"
             model.load_state_dict(torch.load(epoch_path + "model.pth", map_location=torch.device("cpu")))
             model = model.to(device)

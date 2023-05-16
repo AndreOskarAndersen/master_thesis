@@ -24,6 +24,9 @@ def make_dir(path):
         print(f"Folder {path} already exists. Using existing folder.") 
         
 def get_torso_diameter(keypoints):
+    if np.all(keypoints[3] == [0, 0]) or np.all(keypoints[15] == [0, 0]) or np.all(keypoints[4] == [0, 0]) or np.all(keypoints[16] == [0, 0]):
+        return None
+
     left_torso_diameter = np.linalg.norm(keypoints[3] - keypoints[15])
     right_torso_diameter = np.linalg.norm(keypoints[4] - keypoints[16])
     torso_diameter = np.mean([left_torso_diameter, right_torso_diameter])
@@ -103,7 +106,9 @@ def compute_PCK(all_gt_keypoints, all_pred_keypoints, norm):
             
             # Getting the torso diameter
             torso_diameter = get_torso_diameter(gt_keypoints)
-            
+            if torso_diameter is None:
+                continue
+
             # Removing unannotated rows
             pred_keypoints = pred_keypoints[gt_keypoints.any(axis=1)]
             gt_keypoints = gt_keypoints[gt_keypoints.any(axis=1)]

@@ -28,14 +28,10 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
     argv = int(sys.argv[1])
-    args = {0: (Baseline, baseline_params, "baseline", lambda x: x, 0, 1, 1, 1), 
-            1: (Baseline, baseline_params, "baseline", lambda x: x, 0, 1, 1, 2), 
-            2: (DeciWatch, deciwatch_params, "deciwatch", lambda x: heatmaps2coordinates(x.cpu()).to(device), 0, 1, 1, 1), 
-            3: (DeciWatch, deciwatch_params, "deciwatch", lambda x: heatmaps2coordinates(x.cpu()).to(device), 0, 1, 1, 2), 
-            4: (Unipose, unipose_params, "unipose", lambda x: x, 0, 1, 1, 1), 
-            5: (Unipose, unipose_params, "unipose", lambda x: x, 0, 1, 1, 2), 
-            6: (Unipose2, unipose2_params, "unipose2", lambda x: x, 0, 1, 1, 1),
-            7: (Unipose2, unipose2_params, "unipose2", lambda x: x, 0, 1, 1, 2)}
+    args = {0: (Baseline, baseline_params, "baseline", lambda x: x, 0, 1, 1), 
+            1: (DeciWatch, deciwatch_params, "deciwatch", lambda x: heatmaps2coordinates(x.cpu()).to(device), 0, 1, 1), 
+            2: (Unipose, unipose_params, "unipose", lambda x: x, 0, 1, 1), 
+            3: (Unipose2, unipose2_params, "unipose2", lambda x: x, 0, 1, 1)}
     args = args[argv]
     
     # Configurating data

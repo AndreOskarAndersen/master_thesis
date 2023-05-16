@@ -94,9 +94,13 @@ def _preprocess_keypoints(label: Dict, blurr_sigma: float, noise_scalar: int):
     x_mins, y_mins, x_maxs, y_maxs = _load_bboxes(xs, ys, visibilities)
     
     # Making bboxes a square, by expanding the shortest side
-    width = x_maxs - x_mins
-    height = y_maxs - y_mins
-    
+    try:
+        width = x_maxs - x_mins
+        height = y_maxs - y_mins
+    except:
+        width = 0
+        height = 0    
+
     expand_factor_width = 0.1 * width * 0.5
     expand_factor_height = 0.1 * height * 0.5
     x_mins -= expand_factor_width 
@@ -225,4 +229,7 @@ def preprocess(noise_scalar: int):
             torch.save(output_heatmaps, output_heatmaps_storing_path)
         
 if __name__ == "__main__":
-    preprocess(1)
+    import sys
+    arg = int(sys.argv[1])
+
+    preprocess(arg)

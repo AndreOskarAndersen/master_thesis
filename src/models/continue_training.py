@@ -8,7 +8,6 @@ from config import overall_models_dir
 from baseline import Baseline
 from unipose import Unipose
 from deciwatch import DeciWatch
-from lstm import LSTM
 from utils import heatmaps2coordinates
 from pipeline import train
 
@@ -16,7 +15,7 @@ def main():
     pass
 
 if __name__ == "__main__":
-    model_names = ["deciwatch_1680553717.2709744"]
+    model_names = ["deciwatch_1682847379.6069925", "baseline_1682847379.6139205"]
     
     model_name = model_names[int(sys.argv[1])]
     model_dir = overall_models_dir + model_name + "/"
@@ -46,7 +45,7 @@ if __name__ == "__main__":
         early_stopper = pickle.load(f)
         
     # Loading model
-    models_dict = {"baseline": Baseline, "unipose": Unipose, "deciwatch": DeciWatch, "lstm": LSTM}
+    models_dict = {"baseline": Baseline, "unipose": Unipose, "deciwatch": DeciWatch}
     model_type = model_name.split("_")[0]
     model = models_dict[model_type](**config["model_params"])
     model.load_state_dict(torch.load(epoch_dir + "model.pth", map_location=torch.device("cpu")))
