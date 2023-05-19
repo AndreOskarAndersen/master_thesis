@@ -4,9 +4,10 @@ import numpy as np
 import json
 import torch
 import torch.nn as nn
-from config import overall_models_dir
+from config import overall_models_dir, baseline_params, unipose_params, unipose2_params, deciwatch_params
 from baseline import Baseline
 from unipose import Unipose
+from unipose2 import Unipose2
 from deciwatch import DeciWatch
 from utils import heatmaps2coordinates
 from pipeline import evaluate
@@ -28,18 +29,17 @@ if __name__ == "__main__":
         train_losses = np.load(model_dir + "train_losses.npy")
         val_losses = np.load(model_dir + "val_losses.npy")
         val_accs = np.load(model_dir + "val_accs.npy")
-        
-        # Loading config
-        with open(model_dir + "config.json", "r") as f:
-            config = json.load(f)
-            
-        if "device" in config["model_params"] and config["model_params"]["device"] == "cuda":
-            config["model_params"]["device"] = device
             
         # Loading model
-        models_dict = {"baseline": Baseline, "unipose": Unipose, "deciwatch": DeciWatch}
+        deciwatch_params["device"] = device
+        unipose_params["device"] = device
+        unipose_params["upper_range"] = 255
+        unipose2_params["device"] = device
+        unipose2_params["upper_range"] = 255
+        params = {"baseline": baseline_params, "unipose": unipose_params, "unipose2": unipose2_params, "deciwatch": deciwatch_params}
+        models_dict = {"baseline": Baseline, "unipose": Unipose, "deciwatch": DeciWatch, "unipose2": Unipose2}
         model_type = model_name.split("_")[0]
-        model = models_dict[model_type](**config["model_params"])
+        model = models_dict[model_type](**params[model_type])
         model = model.to(device)
         
         # loading data transformer
