@@ -29,21 +29,33 @@ def test_pretrain_models():
     with torch.no_grad():
         for i, (x, y, is_pa) in tqdm(enumerate(eval_dataloader), leave=False, desc="Computing PCK", disable=False, total=len(eval_dataloader)):
             
-            PCK = compute_PCK(y, x)
+            PCK = compute_PCK(y, x, norm=0.2)
             if PCK != -1:
                 eval_PCKs.append(PCK)
                 
-    test_PCKs = []
+    test_PCKs_05 = []
+    test_PCKs_10 = []
+    test_PCKs_20 = []
     
     with torch.no_grad():
         for i, (x, y, is_pa) in tqdm(enumerate(test_dataloader), leave=False, desc="Computing PCK", disable=False, total=len(test_dataloader)):
             
-            PCK = compute_PCK(y, x)
+            PCK = compute_PCK(y, x, norm=0.05)
             if PCK != -1:
-                test_PCKs.append(PCK)
+                test_PCKs_05.append(PCK)
+                
+            PCK = compute_PCK(y, x, norm=0.1)
+            if PCK != -1:
+                test_PCKs_10.append(PCK)
+                
+            PCK = compute_PCK(y, x, norm=0.2)
+            if PCK != -1:
+                test_PCKs_20.append(PCK)
                     
-    print("Eval-PCK", np.mean(eval_PCKs))
-    print("Test-PCK", np.mean(test_PCKs))
+    print("Eval PCK@0.2", np.mean(eval_PCKs))
+    print("Test PCK@0.05", np.mean(test_PCKs_05))
+    print("Test PCK@0.1", np.mean(test_PCKs_10))
+    print("Test PCK@0.2", np.mean(test_PCKs_20))
     
 def test_finetune_models():
     dir_path = "../../data/processed/ClimbAlong/"
