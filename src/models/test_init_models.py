@@ -14,7 +14,7 @@ from tqdm.auto import tqdm
 
 if __name__ == "__main__":
     model_names = list(sorted(os.listdir(overall_models_dir)))
-    model_names = list(map(lambda model_name: model_name != ".gitignore", model_names))
+    model_names = list(filter(lambda model_name: model_name != ".gitignore", model_names))
     model_names = model_names[int(sys.argv[1])::2]
     
     for model_name in tqdm(model_names, desc="Models", leave=False):
