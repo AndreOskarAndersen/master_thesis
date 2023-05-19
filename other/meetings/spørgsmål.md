@@ -131,3 +131,22 @@
     5. Det ligner lidt, at pretraining måske ikke har hjulpet så meget?
     6. Handler jeg std forkert?
     7. Flytning af forsvarsdato?
+    8. Er der noget bias, i og med at Mask RCNN kan være trænet på min valideringsdata
+    9. Handling af koordinator når keypoint mangler?
+    10. Navn på teori der siger der er en sammenhæng imellem datastørrelse og antal parametrer?
+    11. Testing accuracies:
+        1. Lidt støj:
+            1. Baseline: 0.993 - 0.994
+            2. Transformer: 0.991
+            3. ConvLSTM (concat): 0.997 - 0.998
+            4. ConvLSTM (sum): 0.995 - 0.997
+        2. Meget støj:
+            1. Baseline: 0.994 - 0.995
+            2. Transformer: 0.942 - 0.968
+            3. ConvLSTM (concat): 0.995 - 0.997
+            4. ConvLSTM (sum): 0.993 - 0.997
+        3. Generelt:
+            1. ConvLSTM giver de bedste resultater - dog kun lidt bedre end baseline
+            2. Det hjalp faktisk at concatenate branches istedet for at summere
+            3. Transformer giver altid de dårligste resultater
+            4. Støjen fra pretraining har stor effekt på transformeren (måske skyldet dens mange vægte?)
