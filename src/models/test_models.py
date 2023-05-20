@@ -30,6 +30,7 @@ if __name__ == "__main__":
         model_dir = subdir + model_name + "/"
         model_type = model_name.split("_")[0]
         model_params = {"baseline": baseline_params, "deciwatch": deciwatch_params, "unipose": unipose_params, "unipose2": unipose2_params}
+        model_params = model_params[model_type]
         
         # Finding the best epoch of the model
         val_accs = np.load(model_dir + "val_accs.npy")
@@ -37,12 +38,15 @@ if __name__ == "__main__":
         if best_epoch == 0:
             best_epoch = val_accs.argsort()[-2]
             
-        if model_type in ["deciwatch", "unipose", "unipose2"]:
+        if model_type != "baseline":
             model_params["device"] = device
+            
+        if model_type in ["unipose", "unipose2"]:
+            model_params["upper_range"] = 255
             
         # Loading model
         models_dict = {"baseline": Baseline, "unipose": Unipose, "deciwatch": DeciWatch, "unipose2": Unipose2}
-        model = models_dict[model_type](**model_params[model_type])
+        model = models_dict[model_type](**model_params)
         model.load_state_dict(torch.load(model_dir + str(best_epoch) + "/model.pth", map_location=torch.device("cpu")))
         model = model.to(device)
         
