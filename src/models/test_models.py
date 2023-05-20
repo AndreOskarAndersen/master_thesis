@@ -18,6 +18,10 @@ if __name__ == "__main__":
         subdir = subdir + sys.argv[2] + "/"
         
     model_names = os.listdir(subdir)
+    model_names = list(sorted(os.listdir(overall_models_dir)))
+    model_names = list(filter(lambda model_name: model_name != ".gitignore", model_names))
+    if not int(sys.argv[1]):
+        model_names = model_names[int(sys.argv[2])::6]
     
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
