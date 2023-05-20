@@ -69,7 +69,9 @@ def train(model: nn.Module,
           scaler: GradScaler = None,
           train_losses = None,
           val_losses = None,
-          val_accs = None):
+          val_accs = None,
+          pre_val: bool = False,
+          norm: float = 0.2):
     """
     Function for training a model using a dataloader.
     
@@ -120,6 +122,12 @@ def train(model: nn.Module,
         prior to it being inputted to the model, as well as
         any transformation to apply to the target data
         prior to it being used for computing loss.
+        
+    pre_val : bool
+        Whether or not to validate the model before training it.
+        
+    norm : float
+        Normalizer for PCK
     """
     
     train_losses = [] if train_losses is None else train_losses.tolist()
@@ -133,6 +141,11 @@ def train(model: nn.Module,
     torch.save(train_dataloader, saving_path + "train_dataloader.pth")
     torch.save(eval_dataloader, saving_path + "eval_dataloader.pth")
     torch.save(test_dataloader, saving_path + "test_dataloader.pth")
+    
+    if pre_val:
+        val_loss, val_acc = evaluate(model, eval_dataloader, criterion, device, data_transformer=data_transformer, norm=norm)
+        val_accs.append(val_acc)
+        val_losses.append(val_loss)
     
     for epoch in tqdm(range(min_epoch, max_epoch), desc="Epoch", leave=False, disable=disable_tqdm):
         
@@ -172,7 +185,7 @@ def train(model: nn.Module,
         train_losses[-1] /= len(train_dataloader)
         
         # Validating the model
-        val_loss, val_acc = evaluate(model, eval_dataloader, criterion, device, data_transformer=data_transformer)
+        val_loss, val_acc = evaluate(model, eval_dataloader, criterion, device, data_transformer=data_transformer, norm=norm)
         val_accs.append(val_acc)
         val_losses.append(val_loss)
         
@@ -357,4 +370,20 @@ def evaluate_kpts(model: nn.Module,
     # Computing mean PCK and loss
     PCK_mean = np.mean(PCKs, axis=0)
     
-    return PCK_mean
+    PCK_dict = {
+        "nose": PCK_mean[0],
+        "ear": (PCK_mean[1] + PCK_mean[2])/2,
+        "shoulder": (PCK_mean[3] + PCK_mean[4])/2,
+        "elbow": (PCK_mean[5] + PCK_mean[6])/2,
+        "wrist": (PCK_mean[7] + PCK_mean[8])/2,
+        "pinky": (PCK_mean[9] + PCK_mean[10])/2,
+        "index": (PCK_mean[11] + PCK_mean[12])/2,
+        "thumb": (PCK_mean[13] + PCK_mean[14])/2,
+        "hip": (PCK_mean[15] + PCK_mean[16])/2,
+        "knee": (PCK_mean[17] + PCK_mean[18])/2,
+        "ankle": (PCK_mean[19] + PCK_mean[20])/2,
+        "heel": (PCK_mean[21] + PCK_mean[22])/2,
+        "foot": (PCK_mean[23] + PCK_mean[24])/2,
+    }
+    
+    return PCK_dict
