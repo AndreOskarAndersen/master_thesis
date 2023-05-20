@@ -40,10 +40,10 @@ For the groundtruth heatmaps we create twenty five heatmaps of each frame, simil
         \hline
         \hline
         Identity function & 19.4 & 19.4 & 19.4 & 66.1 & 66.1 & 66.1 & 85.2 & 85.2 & 85.2 \\
-        Conv3D & & & & & & & & & \\
-        DeciWatch & 76.7 & 76.7 & 68.1 & 94.4 & 94.4 & 87.3 & 99.2 & 99.2 & 96.3 \\
-        bi-ConvLSTM - sum. & 37.8 & 34.9 & 39.0 & 91.8 & 92.1 & 92.2 & 99.4 & 99.7 & 99.2 \\
-        bi-ConvLSTM - concat. & 35.9 & 39.0 & 38.5 & 93.1 & 93.6 & 92.6 & 99.8 & 99.7 & 99.7 \\
+        Conv3D & 49.7 & 52.3 & 53.1 & \textbf{95.7} & \textbf{95.7} & \textbf{95.8} & 99.2 & 99.3 & 99.3 \\
+        DeciWatch & \textbf{76.7} & \textbf{76.7} & \textbf{68.1} & 94.4 & 94.4 & 87.3 & 99.2 & 99.2 & 96.3 \\
+        bi-ConvLSTM - sum. & 37.8 & 34.9 & 39.0 & 91.8 & 92.1 & 92.2 & 99.4 & \textbf{99.7} & 99.2 \\
+        bi-ConvLSTM - concat. & 35.9 & 39.0 & 38.5 & 93.1 & 93.6 & 92.6 & \textbf{99.8} & \textbf{99.7} & \textbf{99.7} \\
         \hline
     \end{tabular}
     \caption{Testing accuracies of the various developed models for shifting-scalar $k = 1$. *: The mean maximum distance between the predicted keypoint and corresponding groundtruth keypoint for the prediction to count as being correct, using the units of the heatmap coordinates.}
@@ -61,10 +61,10 @@ For the groundtruth heatmaps we create twenty five heatmaps of each frame, simil
         \hline
         \hline
         Identity function & 19.4 & 19.4 & 19.4 & 66.1 & 66.1 & 66.1 & 85.2 & 85.2 & 85.2 \\
-        Conv3D & & & & & & & & & \\
-        DeciWatch & 39.4 & 63.3 & 28.5 & 68.2 & 91.0 & 69.2 & 93.1 & 99.1 & 93.7 \\
-        bi-ConvLSTM - sum. & 38.8 & 37.4 & 35.9 & 92.7 & 92.1 & 91.2 & 99.4 & 99.5 & 99.3 \\
-        bi-ConvLSTM - concat. & 39.2 & 39.5 & 37.1 & 92.5 & 92.9 & 92.6 & 99.6 & 99.3 & 99.6 \\
+        Conv3D & \textbf{46.5} & 51.6 & \textbf{47.3} & \textbf{95.5} & \textbf{95.5} & \textbf{95.8} & 99.2 & 99.3 & 99.2 \\
+        DeciWatch & 39.4 & \textbf{63.3} & 28.5 & 68.2 & 91.0 & 69.2 & 93.1 & 99.1 & 93.7 \\
+        bi-ConvLSTM - sum. & 38.8 & 37.4 & 35.9 & 92.7 & 92.1 & 91.2 & 99.4 & \textbf{99.5} & 99.3 \\
+        bi-ConvLSTM - concat. & 39.2 & 39.5 & 37.1 & 92.5 & 92.9 & 92.6 & \textbf{99.6} & 99.3 & \textbf{99.6} \\
         \hline
     \end{tabular}
     \caption{Testing accuracies of the various developed models for shifting-scalar $k = 2$. *: The mean maximum distance between the predicted keypoint and corresponding groundtruth keypoint for the prediction to count as being correct, using the units of the heatmap coordinates.}
@@ -74,8 +74,14 @@ For the groundtruth heatmaps we create twenty five heatmaps of each frame, simil
 \begin{itemize}
     \item DeciWatch tager meget stor effekt af shifting-scalar
     \item Shifting-scalar har ikke den store effect på unipose1 og unipose2
-    \item Frame skipping har en stor effekt på deciwatch
-    \item 
+    \item Frame skipping har en stor effekt på deciwatch eller uniposes
+    \item Unipose2 er lidt bedre end unipose1
+    \item Uniposes tager stortset ingen effekt af den ekstra noise
+    \item Uniposes performer lidt bedre i 1.2 end i 1.1
+    \item Baseline performer lidt bedre i 1.2 end i 1.1
+    \item Sammelign med andre modeller fra andre datasæt?
+    \item Frame skipping har ingen effekt på baseline (det har næsten en positiv effekt)
+    \item Noise har lidt effekt på PCK@0.05, men ikke på de andre
 \end{itemize}
 
 \begin{table}[htbp]
