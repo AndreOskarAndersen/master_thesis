@@ -143,6 +143,47 @@ For the groundtruth heatmaps we create twenty five heatmaps of each frame, simil
 \end{table}
 
 \section{Further Test Results}
+\begin{table}[htbp]
+    \begin{tabular}{c||ccc|ccc|ccc}
+        \hline
+        Accuracy metric & \multicolumn{3}{c}{PCK@0.05} & \multicolumn{3}{c}{PCK@0.1} & \multicolumn{3}{c}{PCK@0.2} \\
+        \hline
+        Mean threshold distance* & \multicolumn{3}{c}{0.87} & \multicolumn{3}{c}{1.77} & \multicolumn{3}{c}{3.55} \\
+        \hline
+        Setup & 1.1 & 1.2 & 1.3 & 1.1 & 1.2 & 1.3 & 1.1 & 1.2 & 1.3 \\
+        \hline
+        \hline
+        Identity function & 21.2 & 21.2 & 21.2 & 65.5 & 65.5 & 65.5 & 84.7 & 84.7 & 84.7 \\
+        Conv3D & 58.4 & 61.4 & 61.7 & 98.7 & 98.9 & 99.0 & 99.6 & 99.8 & 99.7 \\
+        DeciWatch & 82.4 & 82.3 & 75.3 & 95.6 & 95.7 & 92.8 & 99.1 & 99.1 & 97.7 \\
+        bi-ConvLSTM - sum. & 45.7 & 45.0 & 47.6 & 97.3 & 96.9 & 97.0 & 99.6 & 99.6 & 99.1 \\
+        bi-ConvLSTM - concat. & 44.5 & 46.1 & 48.5 & 97.4 & 97.9 & 97.9 & 99.6 & 99.5 & 99.6 \\
+        \hline
+    \end{tabular}
+    \caption{Testing accuracies of the various developed models for shifting-scalar $k = 1$ on the additional test video. All the accuracies are in percentage. *: The mean maximum distance between the predicted keypoint and corresponding groundtruth keypoint for the prediction to count as being correct, using the units of the heatmap coordinates.}
+    \label{tab:finetune_test_accs_3}
+\end{table}
+
+\begin{table}[htbp]
+    \begin{tabular}{c||ccc|ccc|ccc}
+        \hline
+        Accuracy metric & \multicolumn{3}{c}{PCK@0.05} & \multicolumn{3}{c}{PCK@0.1} & \multicolumn{3}{c}{PCK@0.2} \\
+        \hline
+        Mean threshold distance* & \multicolumn{3}{c}{0.87} & \multicolumn{3}{c}{1.77} & \multicolumn{3}{c}{3.55} \\
+        \hline
+        Setup & 2.1 & 2.2 & 2.3 & 2.1 & 2.2 & 2.3 & 2.1 & 2.2 & 2.3 \\
+        \hline
+        \hline
+        Identity function & 21.2 & 21.2 & 21.2 & 65.5 & 65.5 & 65.5 & 84.7 & 84.7 & 84.7 \\
+        Conv3D & 56.2 & 60.0 & 56.6 & 98.9 & 98.8 & 98.8 & 99.7 & 99.7 & 99.7 \\
+        DeciWatch & 42.8 & 69.8 & 39.8 & 72.7 & 93.5 & 81.0 & 96.0 & 99.0 & 96.8 \\
+        bi-ConvLSTM - sum. & 44.8 & 46.2 & 45.0 & 96.9 & 95.9 & 97.1 & 99.5 & 99.6 & 99.5 \\
+        bi-ConvLSTM - concat. & 45.9 & 47.9 & 46.7 & 96.7 & 97.1 & 98.1 & 99.6 & 99.4 & 99.6 \\
+        \hline
+    \end{tabular}
+    \caption{Testing accuracies of the various developed models for shifting-scalar $k = 2$ on the additional test video. All the accuracies are in percentage. *: The mean maximum distance between the predicted keypoint and corresponding groundtruth keypoint for the prediction to count as being correct, using the units of the heatmap coordinates.}
+    \label{tab:finetune_test_accs_4}
+\end{table}
 
 \section{Technical Details}
 
