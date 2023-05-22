@@ -2,36 +2,44 @@
 
 \begin{document}
 \section{Discussion}
+The following section discusses our approach, including the our choice of configuration of the models, the data and the training parameters, as well as suggests some future work.
+
+\subsection{Data Configuration}
 \begin{itemize}
-    \item Ved ikke PA's fps
-    \item BRACE er landscape
-    \item Der er noget usikkerhed i BRACE da den er annoteret automatisk
-    \item BRACE of Penn Action kan semantisk være meget forskellig
-    \item Jeg shifter efter jeg har udvidet min data med 10\%. Dette kan give noget bias, da der er større sandsynlighed for, at dataen ligger på billedets kant
     \item Vanishing gradient for unipose - den fungerer bedre på range [0, 255] end på range [0, 1]
-    \item Configuration details (se Camilla's)
-    \item Future work
-        \item Transformer uden skipping af frames 
-        \item Dataaugmentation til CA
-        \item Træn uden PA
-        \item Vision transformer
     \item Handling af data uden for pred bbox ved CA-data
-    \item Hvorfor performer mine modeller så meget dårligere på pretraining end på finetuning?
-    \begin{itemize}
-        \item Vi kombinerer to meget forskellige datasæt
-        \item PA frame rates kan ødelægge det
-        \item Pretrain kan være sværre, fordi vi tiløjer (for meget) støj
-        \item Mask RCNN kommer allerede med ret gode resultater, så vi skal kun justerer end smule
-        \item BRACE groundtruth kan også indeholde noget noise da det kommer fra en model, som kan være sværd at predicte.
-    \end{itemize}
-    \item Skulle have brugt en længere patience til early-stopping
-    \item Hvor meget hjalp det faktisk at pretraine?
     \item Valg af shifting-scalar:
     \begin{itemize}
         \item Jeg kunne have approximeret den fra mask rcnn
         \item Jeg kunne have gjort den afhængig af det enkelte led
     \end{itemize}
     \item Pretrain: jeg shifter gt med op til 6 std, men jeg udglatter højst med 3, så jeg dækker egentlig ikke den rigtige placering af gt
+\end{itemize}
+For the data we used three datasets. For the pretraining stage we used the BRACE datase and the Penn Action dataset, whereas for the finetuning stage we used the ClimbAlong dataset. For our choice of pretraining datasets we see a couple of suboptimal choices. 
+\\
+\\
+BRACE and Penn Action can be very semantic different from each other. For instance, in the BRACE dataset the person in the video sequence is very often upside down and performs some very quick movements, whereas the people in the Penn Action dataset is usually in some more usual poses an do not make movements that are as quick as the ones from BRACE. We tried to fix this by only including video sequences from the Penn Action dataset that had more poses where the person was not just standing straight up, however, even by doing so, the two datasets are still sematically different. Further, the video sequences from the two datasets are often filmed from two very different camera angles, resulting in the same keypoints being placed at different locations. If the two datasets are very different this will have an effect on the fitting of the models.
+\\
+\\
+We also see some problems in the pretraining datasets individually. For the BRACE dataset, it is clearly documented, that the video sequences is filmed using 30 frames per second. For Penn Action, on the other hand, a similar information is not stated anywhere and the video sequences comes as individual frames without the duration of the video sequences noted, hence why cannot either compute the frame rate of these video sequences. This could cause some problems, as a two windows of frames, one from each dataset, could span two different durations and thus capture two different duration of context. For the BRACE we also see an issue, as the dataset has not been fully manually annotated, but instead annotated using a pose estimator and only certain incorrectly predicted poses were manually annotated, where incorrectly predicted poses were detected by a machine learning model. However, if this machine learning model for detecting incorrectly predicted poses delivers suboptimal results, then the annotations would also be suboptimal and thus contain some noise, which is very difficult for our models to predict.
+
+\subsection{Model Configuration}
+\begin{itemize}
+    \item Model parametrer
+\end{itemize}
+
+\subsection{Training Configuration}
+\begin{itemize}
+    \item Skulle have brugt en længere patience til early-stopping
+    \item \item Kør eksperimenter flere gange for at fjerne randomness i resultater.
+\end{itemize}
+
+\subsection{Future Work}
+\begin{itemize}
+    \item Transformer uden skipping af frames 
+    \item Dataaugmentation til CA
+    \item Træn uden PA
+    \item Vision transformer
 \end{itemize}
 
 \end{document}
