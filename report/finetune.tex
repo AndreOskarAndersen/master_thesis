@@ -70,15 +70,16 @@ For the groundtruth heatmaps we create twenty five heatmaps of each frame, simil
 We have in Figure \ref{fig:finetune_res} illustrated the evaluation of the training loss, validation loss, and validation PCK@0.05 accuracy of the various models during the finetuning.
 \\
 \\
-If we compare the models against the identity function we clearly see, how all models converge towards beating the identity function, indicating the positive effects of incorporating temporal information into the pose estimation of videos.
+If we compare the models against the identity function we clearly see, how all models converge towards beating the identity function, indicating the positive effects of incorporating temporal information into pose estimation.
 \\
 \\
-Further, most models tend to start off with a low validation accuracy, which could make one believe, that the pretraining has not had any effect. However, we can further see how the models tend to yield very good results after just one epoch of finetuning, making us believe that the pretraining has actually had an effect. One could argue, that a similar pattern occurred in the pretraining stage, which we would agree with. However, we have to remember that the pretraining stage contained many more samples, hence why the models were also trained on much more data in first epoch, and thus had a better likelihood of yielding good results after the first epoch, although they were not pretrained.
+Generally, the 3-dimensional convolutional layer seems to be yielding the greatest results, as these models tend to achieve the highest validation PCK@0.05 accuracy. However, some DeciWatch runs actually starts off with an even higher validation PCK@0.05 accuracy, which then decreases to a much lower value quickly. The two architectures that are based on a bidirectional convolutional LSTM tend to yield some decent results, however, their training tend to plateau rather early, hence why they also terminate very quickly. 
 \\
 \\
-Generally, the shifting-scalar seems to only have a minor effect on the models during the finetuning, as all six runs of each model tend converge towards the same result. This however does not hold for DeciWatch, as the DeciWatch models with shifting-scalar $s = 1$ seems to be having a lot of difficulty fitting compared to all of the other models, however, they do still yield some very accurate results.
+Further, the shifting-scalar seems to only have a minor effect on the models during the finetuning, as all six runs of each model tend converge towards the same result. This however does not hold for DeciWatch, as the DeciWatch models with shifting-scalar $s = 1$ seems to be having a lot of difficulty fitting compared to all of the other models, however, they do still yield some very accurate results.
 
 \subsection{Test Results}
+\label{subsec:finetune_test_res}
 \begin{table}[htbp]
     \begin{tabular}{c||ccc|ccc|ccc}
         \hline
@@ -121,7 +122,7 @@ Generally, the shifting-scalar seems to only have a minor effect on the models d
     \label{tab:finetune_test_accs_2}
 \end{table}
 
-\noindent We have in Table \ref{tab:finetune_test_accs_1} and Table \ref{tab:finetune_test_accs_2} illustrated the testing results of the epoch of each model that yielded the highest validation PCK@0.2 accuracy.
+\noindent We have in Table \ref{tab:finetune_test_accs_1} and Table \ref{tab:finetune_test_accs_2} illustrated the testing results of the epoch of each model that yielded the highest validation PCK@0.05 accuracy.
 \\
 \\
 By comparing the two tables against each other we see, that the shifting-scalar tend to have a big effect on the results of DeciWatch. This is very similar to what we experienced in section \ref{subsec:finetune_train_val_res}, where we saw that the DeciWatch models with shifting-scalar $s = 1$ had a lot of difficulty fitting. For the remaining models we do see a performance difference between the two shifint-scalars, however, the performance difference is not as big as it is for DeciWatch. Generally however, the models do perform best with the noise-scalar $s = 1$.
@@ -130,54 +131,10 @@ By comparing the two tables against each other we see, that the shifting-scalar 
 Similarly to the pretraining stage, we also see here how the 3-dimensional convolutional layer from experiment 2 performs better than the 3-dimensional convolutional layer from experiment 1, however, this performance difference is now smaller than it was in the pretraining stage.
 \\
 \\
-Further, if we look at the DeciWatch-based models we see, that the models from experiment 3 yields the worst results out of the three, similar to how it did in the pretraining stage. For the three other models, the models from experiment 3 do not seem to have any consistent major impact on the final results.
+Further, for experiment 3 DeciWatch is not delivering great results, similarly to its results in the pretraining stage. For the other architectures, there do not seem to be any consistent pattern, as some of them experiment 3 yields the best results, whereas it for others yield the worst results.
 \\
 \\
 Like in the pretraining stage, there does not seem to be any major performance differences between the two architectures that are based on the bidirectional convolutional LSTM, making us further believe that our concern about the missing opportunity of the model to prioritize a processing direction is not that important.
-
-\begin{table}[htbp]
-    \begin{tabular}{c||ccc|ccc|ccc}
-        \hline
-        Accuracy metric & \multicolumn{3}{c}{PCK@0.05} & \multicolumn{3}{c}{PCK@0.1} & \multicolumn{3}{c}{PCK@0.2} \\
-        \hline
-        Mean threshold distance* & \multicolumn{3}{c}{0.87} & \multicolumn{3}{c}{1.77} & \multicolumn{3}{c}{3.55} \\
-        \hline
-        Experiment & 1.1 & 1.2 & 1.3 & 1.1 & 1.2 & 1.3 & 1.1 & 1.2 & 1.3 \\
-        \hline
-        \hline
-        Identity function & 21.2 & 21.2 & 21.2 & 65.5 & 65.5 & 65.5 & 84.7 & 84.7 & 84.7 \\
-        Conv3D & 58.4 & \textbf{61.4} & \textbf{61.7} & \textbf{98.7} & \textbf{98.9} & \textbf{99.0} & \textbf{99.6} & \textbf{99.8} & \textbf{99.7} \\
-        DeciWatch & \textbf{65.1} & 56.0 & 59.6 & 93.5 & 91.1 & 89.5 & 99.1 & 98.9 & 97.6 \\
-        bi-ConvLSTM - sum. & 45.7 & 45.0 & 47.6 & 97.3 & 96.9 & 97.0 & \textbf{99.6} & \textbf{99.6} & 99.1 \\
-        bi-ConvLSTM - concat. & 44.5 & 46.1 & 48.5 & 97.4 & 97.9 & 97.9 & 99.6 & 99.5 & 99.6 \\
-        \hline
-    \end{tabular}
-    \caption{Testing accuracies of the various developed models for shifting-scalar $k = 1$ on the additional test video. All the accuracies are in percentage. *: The mean maximum distance between the predicted keypoint and corresponding groundtruth keypoint for the prediction to count as being correct, using the units of the heatmap coordinates.}
-    \label{tab:finetune_test_accs_3}
-\end{table}
-
-\begin{table}[htbp]
-    \begin{tabular}{c||ccc|ccc|ccc}
-        \hline
-        Accuracy metric & \multicolumn{3}{c}{PCK@0.05} & \multicolumn{3}{c}{PCK@0.1} & \multicolumn{3}{c}{PCK@0.2} \\
-        \hline
-        Mean threshold distance* & \multicolumn{3}{c}{0.87} & \multicolumn{3}{c}{1.77} & \multicolumn{3}{c}{3.55} \\
-        \hline
-        Experiment & 2.1 & 2.2 & 2.3 & 2.1 & 2.2 & 2.3 & 2.1 & 2.2 & 2.3 \\
-        \hline
-        \hline
-        Identity function & 21.2 & 21.2 & 21.2 & 65.5 & 65.5 & 65.5 & 84.7 & 84.7 & 84.7 \\
-        Conv3D & \textbf{56.2} & \textbf{60.0} & \textbf{56.6} & \textbf{98.9} & \textbf{98.8} & \textbf{98.8} & \textbf{99.7} & \textbf{99.7} & \textbf{99.7} \\
-        DeciWatch & 35.2 & 48.8 & 40.5 & 75.9 & 89.3 & 79.3 & 94.1 & 98.9 & 95.5 \\
-        bi-ConvLSTM - sum. & 44.8 & 46.2 & 45.0 & 96.9 & 95.9 & 97.1 & 99.5 & 99.6 & 99.5 \\
-        bi-ConvLSTM - concat. & 45.9 & 47.9 & 46.7 & 96.7 & 97.1 & 98.1 & 99.6 & 99.4 & 99.6 \\
-        \hline
-    \end{tabular}
-    \caption{Testing accuracies of the various developed models for shifting-scalar $k = 2$ on the additional test video. All the accuracies are in percentage. *: The mean maximum distance between the predicted keypoint and corresponding groundtruth keypoint for the prediction to count as being correct, using the units of the heatmap coordinates.}
-    \label{tab:finetune_test_accs_4}
-\end{table}
-
-\noindent One might argue, that our way of splitting the evaluation set into a validation and test set carries some bias, as they are so similar and that we use the validation set to pick the models that we use for testing. To test whether this is true, we have in Table \ref{tab:finetune_test_accs_3} and Table \ref{tab:finetune_test_accs_4} tested the same models on a video that have not been included in any of the other three sets. By looking at these two tables we clearly see, that none of the models perform worse than how they did in Table \ref{tab:finetune_test_accs_1} and \ref{tab:finetune_test_accs_2}, indicating that no bias was introduced when we split the evaluation data into a validation and test set.
 
 \begin{table}[htbp]
     \begin{adjustbox}{center}
@@ -237,28 +194,9 @@ Like in the pretraining stage, there does not seem to be any major performance d
     \end{adjustbox}
 \end{table}
 
-\noindent We have in Table \ref{tab:finetune_kpts_test_accs_1} and Table \ref{tab:finetune_kpts_test_accs_2} illustrated the keypoint specific testing accuracies of the models. 
-\\
-\\
-By comparing these tables to the equivalent tables from section \ref{subsec:pretrain_train_val_res} we see, that most difficult keypoints are now the pinkies, the index finger and the thumbs, which were not a part of the pretraining dataset. One could argue, that there are two reasons for these keypoints being the most difficult keypoints. First off, they are the keypoints that tend to move the most, hence why they are the most difficult. Secondly, these keypoints were not a part of the pretraining dataset, so the model for these keypoints has only been fitted on the finetuning dataset. On the other hand, the heel and foot where neither a part of the pretrainng dataset and the models seem to yield decent results for these keypoints, hence why we believe that the suboptimal results for the fingers is simply due to them carrying a lot of movement.
+\noindent We have in Table \ref{tab:finetune_kpts_test_accs_1} and Table \ref{tab:finetune_kpts_test_accs_2} illustrated the keypoint specific testing accuracies of the models. By comparing these tables to the equivalent tables from section \ref{subsec:pretrain_train_val_res} we see, that most difficult keypoints are no longer the wrists and ankles, but are instead the pinkies, the index fingers and the thumbs, on which the models generally performs much worse than on the remaining keypoints.
 
 \subsection{Technical Details}
 All models were trained and evaluated using a 8GB NVIDIA GTX 1070 and an Intel Core i7-4790K @ 4.00GHz. All models were implemented in Python version 3.9.9 using PyTorch 2.0.0. The 3-dimensional convolutional layer took about 1.5 minutes per epoch, DeciWatch about 2 minutes per epoch, and the two bidirectional convolutional LSTMs took about 2.5 minutes per epoch each.
-
-\begin{itemize}
-    \item Hvorfor performer mine modeller så meget dårligere på pretraining end på finetuning?
-    \begin{itemize}
-        \item Vi kombinerer to meget forskellige datasæt
-        \item PA frame rates kan ødelægge det
-        \item Pretrain kan være sværre, fordi vi tiløjer (for meget) støj
-        \item Mask RCNN kommer allerede med ret gode resultater, så vi skal kun justerer end smule
-        \item BRACE groundtruth kan også indeholde noget noise da det kommer fra en model, som kan være sværd at predicte.
-    \end{itemize}
-    \item Val accs for deciwatch er faldende, men både train og val loss er også faldende.
-    \item Deciwatch 2.2 performer meget bedre på single test video end på de resterende testing videos
-    \item Conv3D er den bedste til denoise
-    \item Conv3D er den bedste ifølge single video 
-    \item Hvilken model er den bedste?
-\end{itemize}
 
 \end{document}
