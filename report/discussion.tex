@@ -2,6 +2,7 @@
 
 \begin{document}
 \section{Discussion}
+\label{sec:discussion}
 The following section discusses our obtained results from the pretraining and finetuning stages, some concerns regarding possible suboptimal configuration choices we have made, as well as suggests some possible future work. 
 
 \subsection{Results}
@@ -33,7 +34,7 @@ In section \ref{subsec:finetune_test_res} we saw how the models from the experim
 One could look at Figure \ref{fig:finetune_res} and claim that the pretraining-stage has had no effect, as the validation accuracy starts off very low. However, we disagree with for two reasons. First off, we just noted that the choice of shifting-scalar from the pretraining-stage had an effect on the final results, so the pretraining-stage must have had an effect. Secondly, most of the models actually reach a very high validation accuracy after just a single epoch, which we believe is due to the pretraining. One could argue, that a similar pattern was observed during the pretraining-stage and is thus just a general pattern. However, we have to remember, that the pretraining-dataset is much bigger than the finetuning-dataset and thus just after one epoch in the pretraining-stage, the models have already been trained on a lot of samples, which explains this major performance-jump during the pretrianing-stage.
 \\
 \\
-Lastly, one saw in section \ref{subsec:finetune_test_res} how the models tend to perform the worst on keypoints related to the thumbs, pinkies and index fingers. We see two reasons for this observation. First off, these keypoints were not included in the pretraining dataset, meaning the models have learned to infer the position of these keypoints purely from the finetuning dataset. We believe this reason to only have a minor effect, as if we look at the performance of the models on the keypoints related to the heels and the feet, which were also not included in the pretraining dataset, we see, that the models generally performs only a tiny bit worse on these keypoints, that on the remaining keypoints. The second reason is, that the finger keypoints just have a lot of movement, as the related joints are the joints that are mostly used for bouldering. And as previously stated, keypoints that move a lot are more difficult to predict the position of.
+Lastly, one saw in section \ref{subsec:finetune_test_res} how the models tend to perform the worst on keypoints related to the thumbs, pinkies and index fingers. We see two reasons for this observation. First off, these keypoints were not included in the pretraining dataset, meaning the models have learned to infer the position of these keypoints purely from the finetuning dataset. We believe this reason to only have a minor effect, as if we look at the performance of the models on the keypoints related to the heels and the toes, which were also not included in the pretraining dataset, we see, that the models generally performs only a tiny bit worse on these keypoints, that on the remaining keypoints. The second reason is, that the finger keypoints just have a lot of movement, as the related joints are the joints that are mostly used for bouldering. And as previously stated, keypoints that move a lot are more difficult to predict the position of.
 
 \begin{table}[htbp]
     \begin{tabular}{c||ccc|ccc|ccc}

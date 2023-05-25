@@ -38,18 +38,23 @@ Further, with the introduction of convolutional LSTM networks \cite{conv_lstm} i
 \\
 Like in the case of the still images, transformer-based networks have also started to been used to capture the temporal information for human pose estimation. One example of this is DeciWatch, introduced by Zeng \textit{Et al.} in 2022, which efficiently delivers state-of-the-art results \cite{https://doi.org/10.48550/arxiv.2203.08713}.
 
-\subsection{Choice of Model}
-\begin{itemize}
-    \item Vi vælger både en 3d-conv, en convlstm og en transformer da vi så representerer alle 3 metoder for at implementere temporal smoothing
-    \item 3d-conv: simpel
-    \item Unipose-lstm: De havde et lignende problem, så dem lader vi os insipere as af
-    \item DeciWatch: Transformer giver lovende resultater, så det vil vi også eksperimentere med
-\end{itemize}
-As seen in section \ref{subsec:related_work}, there are generally three different approaches for incorporating the temporal information of the video into the pose estimator: (1) a 3-dimensional convolution-based approach, (2) an approach based on a convolutional LSTM, and (3) a transformer-based approach. As we find all three approaches interesting and see potential in all of them, we will for each of the approaches be implementing a machine learning method.
+\subsection{Choice of Models}
+\label{sec:model_choice}
+As seen in section \ref{subsec:related_work}, there are generally three different approaches for incorporating the temporal information of the video into the pose estimator: (1) a 3-dimensional convolutional layer based approach, (2) an approach based on a convolutional LSTM, and (3) a transformer-based approach. As we find all three approaches interesting and see potential in all of them, we will for each of the approaches be implementing a machine learning method.
 \\
 \\
+For the 3-dimensional convolutional layer based approach, we will be implementing a very simple model, consisting of only a 3-dimensional convolutional layer followed by an activation function. We picked this model, as we needed something simple to be our baseline model, as we then have a better understanding of the performances of our more complex models.
+\\
+\\
+For the convolutional LSTM we let us inspire by the work of Artacho \textit{Et al.} as they had a similar problem, where they aimed at extending a pose estimator, such that that it included temporal information, which ended up yielding state-of-the-art results \cite{https://doi.org/10.48550/arxiv.2001.08095}. However, we will be modifying their convolutional LSTM, as we see some potential shortcomings of their model.
+\\
+\\
+Finally, for the transformer-based approach we will be implementing DeciWatch by Zeng \textit{Et al.}, as this model provides state-of-the-art results as well as it being very fitting for our project, as it is being described as being a method build on top of already developed human pose estimators, such that it includes temporal information \cite{https://doi.org/10.48550/arxiv.2203.08713}.
 
+\subsection{Choice of Datasets}
 
 \subsection{Reading Guide}
+The following section, section \ref{sec:theory} covers the most relevant machine learning theory for this project. This is then followed by section \ref{sec:models}, where we go into details with the various models that we will be developing. Section \ref{sec:dataset} then covers the used datasets. In section \ref{sec:pretraining} and \ref{sec:finetuning} we describe the experiments we perform, as well as the preprocessing of the datasets. Finally, in section \ref{sec:discussion} we discuss the obtain results, as well as some of our shortcomings. Lastly, we conclude our results in section \ref{sec:conclusion}.
+
 
 \end{document}
