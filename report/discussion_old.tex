@@ -16,7 +16,10 @@ The following section discusses our approach, including the our choice of config
         \item Jeg kunne have gjort den afhængig af det enkelte led
     \end{itemize}
     \item Pretrain: jeg shifter gt med op til 6 std, men jeg udglatter højst med 3, så jeg dækker egentlig ikke den rigtige placering af gt
-    \item 
+    \item Preprocessing:
+    \begin{itemize}
+        \item Vi fjerner visibility=0-samples, hvilken måske kan have en negativ effekt
+    \end{itemize}
 \end{itemize}
 For the data we used three datasets. For the pretraining stage we used the BRACE datase and the Penn Action dataset, whereas for the finetuning stage we used the ClimbAlong dataset. For our choice of pretraining datasets we see a couple of suboptimal choices. 
 \\

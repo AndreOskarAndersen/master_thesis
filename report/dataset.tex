@@ -227,10 +227,10 @@ The frames of the video sequences have been annotated by initially using state-o
     \caption{Example of five consecutive frames of a video from the Penn Action dataset with the corresponding groundtruth keypoints.}
     \label{fig:PA_dataset}
 \end{figure}
-The final dataset we will be using is the \textit{Penn Action} dataset \cite{penn_action}. This dataset consists of $2,326$ video sequences of $15$ different action-types. Table \ref{tab:PA_actions} lists these $15$ action-types \cite{penn_action}.
+The final dataset we will be using is the \textit{Penn Action} dataset \cite{penn_action}. This dataset consists of $2,326$ video sequences of $15$ different action-types. Table \ref{tab:PA_actions} lists these $15$ action-types \cite{penn_action}. Each frame have a resolution within the size of $640 \times 480$ \cite{penn_action}.
 \\
 \\
-Each sequence has been manually annotated with human joint annotation, consisting of $13$ joints as well as a corresponding binary visibility-flag for each joint. The frames have a resolution within the size of $640 \times 480$ \cite{penn_action}.
+Each sequence has been manually annotated with human joint annotation, consisting of $13$ joints as well as a corresponding binary visibility-flag for each joint. The placement of the invincible keypoints is very inconsistent, as some of the positions have been estimated, whereas others have been placed near one of the corners the image.
 \\
 \\
 Unlike the BRACE dataset, most of the poses in the Penn Action dataset are not very unusual and thus are not very relevant for the poses of climbers. For that reason, we have decided to focus on the action-types that may contain more unusual poses. Thus, we only keep the sequences that have \texttt{baseball\_pitch}, \texttt{bench\_press} or \texttt{sit\_ups} as their corresponding action-type \cite{penn_action}. Further, the movements of the Penn Action dataset tend to be of a more similar pace to the ClimbAlong dataset than the BRACE dataset, making the Penn Action dataset relevant for our task.
