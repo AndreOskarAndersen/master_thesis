@@ -63,7 +63,7 @@ if __name__ == "__main__":
     input_max_range = {0: 1, 1: 255}
     data_params["input_name"] = "input" if args[0] else "input_std"
     data_params["interval_skip"] = args[1]
-    data_params["upper_range"] = input_max_range[args[2]]
+    data_params["upper_range"] = 255
     
     # Device to use
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
