@@ -7,8 +7,12 @@ As we expect our models to require more data than what is in the ClimbAlong data
 \\
 \\
 In the pretraining stage we will not be using the already developed pose-estimator, but instead only use our temporal-inclusive models by adding noise to the data such that it simulates the output of the already developed pose-estimator on the ClimbAlong dataset. We do this, as the images of pretraining data is very different from the ClimbAlong data, making us believe that the already developed pose-estiamtor will yield some very inaccurate results, as well as some predictions that will be very different from the predictions of the model on the ClimbAlong dataset.
+\\
+\\
+Throughout section \ref{sec:pretrain_data_preprocessing} we describe the preprocessing of the pretraining dataset. This is then followed by section \ref{subsubsec:training_details}, where we describe the used configuration that we use. Then, in section \ref{subsec:pretrain_train_val_res} we cover the obtain training and validation results, which is followed by section \ref{subsec:pretrain_test_res}, where we cover the testing results. Finally, in section \ref{sec:pretrain_tech_details} we cover the technical details of our pretraining.
 
 \subsection{Data Preprocessing}
+\label{sec:pretrain_data_preprocessing}
 As our models take a sequence of estimated poses as input, we will not be using the images of the frames, hence why we discard the images of all frames from BRACE and Penn Action, such that we only keep the annotated poses. We further preprocess these annotations, such that they simluate the output of the already developed pose-estimator as closely as possible.
 \\
 \\
@@ -119,10 +123,10 @@ Further, we can clearly see the effects of the shifting-scalar on the training o
         \hline
         \hline
         Identity function & 6.95 & 6.95 & 6.95 & 25.7 & 25.7 & 25.7 & 67.4 & 67.4 & 67.4 \\
-        Conv3D & 1.84 & 20.5 & 0.67 & 30.6 & 58.5 & 23.8 & \textbf{96.6} & \textbf{98.0} & 96.3 \\
+        3DConv & 1.84 & 20.5 & 0.67 & 30.6 & 58.5 & 23.8 & \textbf{96.6} & \textbf{98.0} & 96.3 \\
         DeciWatch & \textbf{51.4} & \textbf{51.4} & \textbf{44.5} & 64.6 & 64.6 & 51.5 & 80.2 & 80.2 & 64.2 \\
-        bi-ConvLSTM - sum. & 27.8 & 31.1 & 33.8 & 68.4 & 71.0 & \textbf{72.5} & 95.7 & 95.8 & 96.7\\
-        bi-ConvLSTM - concat. & 29.5 & 31.7 & 31.8 & \textbf{69.5} & \textbf{71.3} & 71.8 & 96.1 & 96.1 & \textbf{96.9} \\
+        bi-ConvLSTM - Model S & 27.8 & 31.1 & 33.8 & 68.4 & 71.0 & \textbf{72.5} & 95.7 & 95.8 & 96.7\\
+        bi-ConvLSTM - Model C & 29.5 & 31.7 & 31.8 & \textbf{69.5} & \textbf{71.3} & 71.8 & 96.1 & 96.1 & \textbf{96.9} \\
         \hline
     \end{tabular}
     \caption{Testing accuracies of the various developed models for shifting-scalar $s = 1$. All the accuracies are in percentage. *: The mean maximum distance between the predicted keypoint and corresponding groundtruth keypoint for the prediction to count as being correct, measured in the heatmap coordinate system.}
@@ -140,10 +144,10 @@ Further, we can clearly see the effects of the shifting-scalar on the training o
         \hline
         \hline
         Identity function & 1.84 & 1.84 & 1.84 & 7.75 & 7.75 & 7.75 & 29.3 & 29.3 & 29.3 \\
-        Conv3D & 0.80 & 2.40 & 0.11 & 21.6 & 27.6 & 16.8 & \textbf{94.2} & \textbf{91.8} & \textbf{95.5} \\
-        DeciWatch & 8.55 & \textbf{35.6} & 8.73 & 27.7 & \textbf{54.8} & 22.1 & 62.7 & 78.4 & 48.0 \\
-        bi-ConvLSTM - sum. & 10.5 & 11.6 & \textbf{10.1} & 31.1 & 33.4 & 29.5 & 68.5 & 67.8 & 69.6 \\
-        bi-ConvLSTM - concat. & \textbf{12.5} & 12.0 & 9.63 & \textbf{36.4} & 32.5 & \textbf{29.8} & 74.6 & 65.5 & 70.0 \\
+        3DConv & 0.80 & 2.40 & 0.11 & 21.6 & 27.6 & 16.8 & \textbf{94.2} & \textbf{91.8} & \textbf{95.5} \\
+        DeciWatch & \textbf{51.2} & \textbf{51.2} & \textbf{10.3} & \textbf{64.4} & \textbf{64.4} & 24.4 & 80.2 & 80.2 & 50.3 \\
+        bi-ConvLSTM - Model S & 10.5 & 11.6 & 10.1 & 31.1 & 33.4 & 29.5 & 68.5 & 67.8 & 69.6 \\
+        bi-ConvLSTM - Model C & 12.5 & 12.0 & 9.63 & 36.4 & 32.5 & \textbf{29.8} & 74.6 & 65.5 & 70.0 \\
         \hline
     \end{tabular}
     \caption{Testing accuracies of the various developed models for shifting-scalar $s = 2$. All the accuracies are in percentage. *: The mean maximum distance between the predicted keypoint and corresponding groundtruth keypoint for the prediction to count as being correct, measured in the heatmap coordinate system.}
@@ -177,19 +181,21 @@ DeciWatch is now generally no longer the model that performs the best when consi
     \begin{adjustbox}{center}
         \begin{tabular}{c||ccc|ccc|ccc|ccc|c}
             \hline
-            & \multicolumn{3}{c}{Conv3D} & \multicolumn{3}{c}{DeciWatch} & \multicolumn{3}{c}{\begin{tabular}[c]{@{}c@{}}bi-ConvLSTM\\ sum.\end{tabular}} & \multicolumn{3}{c}{\begin{tabular}[c]{@{}c@{}}bi-ConvLSTM\\ concat.\end{tabular}} & Total \\ 
+            & \multicolumn{3}{c}{3DConv} & \multicolumn{3}{c}{DeciWatch} & \multicolumn{3}{c}{\begin{tabular}[c]{@{}c@{}}bi-ConvLSTM\\ sum.\end{tabular}} & \multicolumn{3}{c}{\begin{tabular}[c]{@{}c@{}}bi-ConvLSTM\\ concat.\end{tabular}} & Total \\ 
             \hline
             Experiment & 1.1 & 1.2 & 1.3 & 1.1 & 1.2 & 1.3 & 1.1 & 1.2 & 1.3 & 1.1 & 1.2 & 1.3 & \\
             \hline
             \hline
             Nose & 96.2 & 97.3 & 96.3 & 83.0 & 83.0 & 68.0 & 97.3 & 94.2 & 97.8 & 96.2 & 96.4 & 95.9 & 91.8 \\
-            Ear & 96.3 & 97.0 & 96.3 & 85.1 & 85.1 & 69.9 & 96.8 & 96.3 & 96.9 & 96.3 & 96.4 & 96.1 & 92.4 \\
+            Ear & 96.3 & 97.0 & 96.3 & 85.1 & 85.1 & 70.0 & 96.8 & 96.3 & 96.9 & 96.3 & 96.4 & 96.1 & 92.4 \\
             Shoulder & 96.7 & 98.6 & 96.7 & 83.8 & 83.8 & 68.6 & 97.0 & 96.9 & 96.0 & 96.5 & 97.0 & 97.2 & 92.4 \\
             Elbow & 96.7 & 98.7 & 96.4 & 78.3 & 78.3 & 61.8 & 96.1 & 97.6 & 97.6 & 96.1 & 96.5 & 98.5 & 91.1 \\
-            Wrist & 96.5 & 97.8 & 96.2 & 74.0 & 74.0 & 57.7 & 95.8 & 95.0 & 96.2 & 95.9 & 95.5 & 97.0 & 89.3\\
-            Hip & 96.8 & 99.1 & 96.3 & 80.3 & 80.3 & 64.0 & 93.5 & 95.7 & 96.6 & 96.8 & 95.3 & 96.3 & 90.9 \\
+            Wrist & 96.5 & 97.8 & 96.2 & 74.0 & 74.0 & 57.7 & 95.8 & 95.0 & 96.2 & 95.9 & 95.5 & 97.0 & 89.3 \\
+            Hip & 96.8 & 99.1 & 96.3 & 80.3 & 80.3 & 64.0 & 93.5 & 95.7 & 96.6 & 96.8 & 95.3 & 96.3 & 90.1 \\
             Knee & 96.8 & 98.5 & 96.4 & 75.9 & 75.9 & 60.0 & 95.2 & 96.0 & 96.7 & 95.4 & 96.4 & 97.6 & 90.1 \\
             Ankle & 96.2 & 96.9 & 95.8 & 72.8 & 72.8 & 57.9 & 95.1 & 94.1 & 96.7 & 95.7 & 95.6 & 96.4 & 88.8 \\
+            \hline
+            Total & 96.6 & 98.0 & 96.3 & 80.2 & 80.2 & 64.2 & 95.7 & 95.8 & 96.7 & 96.1 & 96.1 & 96.9 & \\
             \hline
         \end{tabular}
         \caption{Keypoint-specific testing PCK@0.2-accuracies of the various models for shiting-scalar $s = 1$. All the accuracies are in percentage.}
@@ -201,19 +207,21 @@ DeciWatch is now generally no longer the model that performs the best when consi
     \begin{adjustbox}{center}
         \begin{tabular}{c||ccc|ccc|ccc|ccc|c}
             \hline
-            & \multicolumn{3}{c}{Conv3D} & \multicolumn{3}{c}{DeciWatch} & \multicolumn{3}{c}{\begin{tabular}[c]{@{}c@{}}bi-ConvLSTM\\ sum.\end{tabular}} & \multicolumn{3}{c}{\begin{tabular}[c]{@{}c@{}}bi-ConvLSTM\\ concat.\end{tabular}} & Total \\ 
+            & \multicolumn{3}{c}{3DConv} & \multicolumn{3}{c}{DeciWatch} & \multicolumn{3}{c}{\begin{tabular}[c]{@{}c@{}}bi-ConvLSTM\\ sum.\end{tabular}} & \multicolumn{3}{c}{\begin{tabular}[c]{@{}c@{}}bi-ConvLSTM\\ concat.\end{tabular}} & Total \\ 
             \hline
             Experiment & 2.1 & 2.2 & 2.3 & 2.1 & 2.2 & 2.3 & 2.1 & 2.2 & 2.3 & 2.1 & 2.2 & 2.3 & \\
             \hline
             \hline
-            Nose & 92.5 & 84.5 & 94.4 & 64.9 & 82.7 & 47.9 & 75.8 & 70.6 & 73.5 & 73.9 & 72.2 & 73.7 & 75.6 \\
-            Ear & 92.0 & 91.1 & 94.4 & 72.5 & 84.7 & 43.9 & 80.3 & 77.7 & 77.7 & 80.8 & 79.2 & 79.9 & 79.5 \\
-            Shoulder & 93.7 & 91.9 & 95.6 & 65.4 & 79.9 & 43.7 & 74.7 & 68.2 & 68.9 & 70.4 & 68.1 & 68.3 & 74.1 \\
-            Elbow & 94.8 & 92.3 & 95.8 & 57.1 & 77.7 & 33.4 & 58.2 & 66.7 & 64.7 & 67.0 & 61.6 & 63.3 & 69.4\\
-            Wrist & 94.8 & 92.6 & 96.0 & 60.5 & 73.9 & 54.7 & 69.4 & 66.3 & 69.4 & 75.6 & 65.4 & 69.4 & 74.0 \\
-            Hip & 94.5 & 91.6 & 95.7 & 62.4 & 72.4 & 44.9 & 64.7 & 61.9 & 67.5 & 80.7 & 57.3 & 74.8 & 72.4 \\
-            Knee & 95.0 & 92.7 & 95.7 & 53.0 & 75.7 & 51.8 & 60.1 & 65.9 & 64.7 & 68.6 & 57.0 & 54.5 & 69.5 \\
-            Ankle & 95.2 & 94.1 & 95.6 & 59.9 & 72.7 & 57.6 & 69.4 & 67.3 & 72.5 & 78.1 & 67.5 & 77.5 & 75.6 \\
+            Nose & 92.5 & 84.5 & 94.4 & 82.9 & 82.9 & 53.3 & 75.8 & 70.6 & 73.5 & 73.9 & 72.2 & 73.7 & 77.5 \\
+            Ear & 92.0 & 91.1 & 94.4 & 85.0 & 85.0 & 51.0 & 80.3 & 77.7 & 77.7 & 80.8 & 79.2 & 79.9 & 81.2 \\
+            Shoulder & 93.7 & 91.9 & 95.6 & 83.8 & 83.8 & 40.8 & 74.7 & 68.2 & 68.9 & 70.4 & 68.1 & 68.3 & 75.7 \\
+            Elbow & 94.8 & 92.3 & 95.8 & 78.3 & 78.3 & 39.9 & 58.2 & 66.7 & 64.7 & 67.0 & 61.6 & 63.3 & 71.7 \\
+            Wrist & 94.8 & 92.6 & 96.0 & 73.9 & 74.0 & 56.0 & 69.4 & 66.3 & 69.4 & 75.6 & 65.4 & 69.4 & 75.2 \\
+            Hip & 94.5 & 91.6 & 95.7 & 80.3 & 80.3 & 46.0 & 64.7 & 61.9 & 67.5 & 80.7 & 57.3 & 74.8 & 74.6 \\
+            Knee & 95.0 & 92.7 & 95.7 & 75.9 & 75.9 & 53.3 & 60.1 & 65.9 & 64.7 & 68.6 & 57.0 & 54.5 & 71.6 \\
+            Ankle & 95.2 & 94.1 & 95.6 & 72.7 & 72.7 & 57.7 & 69.4 & 67.3 & 72.5 & 78.1 & 67.5 & 77.5 & 76.7 \\
+            \hline
+            Total & 94.2 & 91.8 & 95.5 & 80.2 & 80.2 & 50.3 & 68.5 & 67.8 & 69.6 & 74.6 & 65.5 & 70.0 & \\
             \hline
         \end{tabular}
         \caption{Keypoint-specific testing PCK@0.2-accuracies of the various models for shiting-scalar $s = 2$. All the accuracies are in percentage.}
@@ -227,6 +235,7 @@ DeciWatch is now generally no longer the model that performs the best when consi
 Looking at Table \ref{tab:pretrain_kpts_test_accs_1} we see, that the models with shifting-scalar $s = 1$ generally perform the best on the ears and shoulders, whereas they perform the worst the wrists and ankles. The models in Table \ref{tab:pretrain_kpts_test_accs_2} tells another story, as instead of performing the worst on the ankles and wrists, the elbows and knees are now the most difficult keypoints, and the ears, nose and ankles are now the least difficult keypoints.
 
 \subsection{Technical Details}
+\label{sec:pretrain_tech_details}
 All models were trained and evaluated on a shared GPU cluster using a 24GB NVIDIA Titan RTX and an Intel(R) Xeon(R) Gold 6248 CPU @ 2.50GHz. All models were implemented in Python version 3.9.9 using PyTorch 2.0.0. The 3-dimensional convolutional layer took about 60 minutes per epoch, DeciWatch about 86 minutes per epoch, the bidirectional convolutional LSTM with summing about 75 minutes per epoch, and the bidirectional convolutional LSTM with concatenation about 88 minutes per epoch.
 
 \end{document}

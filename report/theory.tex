@@ -1,11 +1,12 @@
 \documentclass[./main.tex]{subfiles}
 
 \begin{document}
-\section{Deep Learning Theory}
+\section{Background Theory}
 \label{sec:theory}
-The following section covers the most important background theory for the experiments in Section \ref{sec:experiments}. This includes an introduction to various types of neural networks, as well as an introduction to the optimization of such networks.
+The following section covers the most important background theory for the experiments in Section \ref{sec:experiments}. This includes an introduction to various types of neural networks, as well as an introduction to the optimization of such networks. In section \ref{sec:FFNN} we go into the details of feedfoward neural networks, including the math behind fully-connected layers and convolutional layers. This is then followed by section \ref{sec:RNN}, where we cover the general idea behind recurrent neural networks, as well as go into details with convolutional LSTMs. Next, in section \ref{sec:Transformer} we cover the Transformer-architecture, as well as the attention metchanism. Lastly, in section \ref{sec:GMLT} we cover the most central machine learning theory.
 
 \subsection{Feedforward Neural Networks}
+\label{sec:FFNN}
 \textbf{Feedforward neural networks} are the most basic type of neural networks. The aim of a feedforward neural network is to approximate some function $f^*$, by defining a mapping $\bm{y} = f(\bm{x}; \bm{\theta})$ and learning the parameters $\bm{\theta}$, that results in the best approximation of $f^*$. These models are called \textbf{feedforward} because there are no \textbf{feedback} connections in which the outputs of the model are fed back into itself. Instead, information flows through the function being evaluated from $\bm{x}$, through the intermediate computations used to define $f$, and finally to the output $\bm{y}$. Feedforward neural networks generally consists of multiple \textbf{layers}, arranged in a chain structure, with each layer being a function of the layer that preceded it \cite{DL_book}. 
 
 \subsubsection{Fully-connected Layers}
@@ -45,6 +46,7 @@ Thus, for a neural network with $n$ layers, we have the mapping \cite{DL_book}
 As seen in Figure \ref{fig:2d_conv_example}, each kernel produces a linear combination of all pixel values in a neighbourhood defined by the size of the kernel. Thus, unlike a fully-connected layer, a convolutional layer captures the high correlation between a pixel and its neighbours. Further, by limiting the size of the kernel, the network will use much fewer parameters, than if it was replaced by a fully-connected layer \cite{DL_book}.
 
 \subsection{Recurrent Neural Networks}
+\section{sec:RNN}
 \begin{figure}[htbp]
     \centering
     \includegraphics[width = 0.5 \textwidth]{./entities/rnn_illustration.PNG}
@@ -93,6 +95,7 @@ Let $\mathsf{X}_1, \mathsf{X}_2, ..., \mathsf{X}_t$ be a sequence of input image
 For $t = 1$, both $\mathsf{H}_{t - 1}$ and $\mathsf{C}_{t - 1}$ have to be initialized \cite{conv_lstm}.
 
 \subsection{Transformer}
+\label{sec:Transformer}
 \begin{figure}[htbp]
     \centering
     \includegraphics[width = 0.5 \textwidth]{./entities/transformer.PNG}
@@ -144,6 +147,7 @@ The Transformer follow an encoder-decoder structure, where the encoder maps an i
 where \textit{pos} is the position and $i$ is the dimension \cite{https://doi.org/10.48550/arxiv.1706.03762}.
 
 \subsection{General Machine Learning Terminology}
+\label{sec:GMLT}
 The following section covers the general terminology and some algorithms, that will be used through this paper. 
 \\
 \\

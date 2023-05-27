@@ -7,24 +7,29 @@ As we now have finetuned our models, we need to finetune the models, such that t
 \\
 \\
 In the finetuning stage we will be using the already developed pose-estiamtor to train our temporal-inclusive models. However, we will be freezing the pose-estimator, such that the weights of the model will not change during the training and we will thus only train our temporal-inclusive models. We do this for the following three reasons: (1) the training of the models will be quicker, as we just need to train the temporal-inclusive models and not the already developed pose-estimator, and (2) we get an greater understanding of the effects of our models when combined with the pose-estimator, as we can clearly see how big of a difference it makes by adding our temporal-inclusive models.
+\\
+\\
+In section \ref{sec:finetune_data_preprocessing} we cover the preprocessing of the finetune dataset. Then, in section \ref{sec:pretrain_details} we cover the used configuration for the finetuning. Then, in section \ref{subsec:finetune_train_val_res} and section \ref{subsec:finetune_test_res} we cover the training and validation results, as well as the testing results, respectively. Lastly, in section \ref{sec:finetune_tech_details} we cover the technical details of the finetuning.
 
 \subsection{Data Preprocessing}
+\label{sec:finetune_data_preprocessing}
 For the ClimbAlong dataset we perform only minor preprocessing. First, the preprocessing of each video is done by having the already developed pose-estimator process the video, such that we have the output heatmaps of the pose-estimator, containing all of the pose-estimations of each video. Next, we preprocess the heatmaps by setting all negative values to $0$ and normalizing each heatmap, such that each heatmap sums up to the fixed value $c = 255$ that we used when preprocessing the BRACE and Penn Action datasets, essentially making the heatmaps more similar to the preprocessed heatmaps of BRACE and Penn Action. These heatmaps will then be used as the input for our models.
 \\
 \\
 For the groundtruth heatmaps we create twenty five heatmaps of each frame, similarly to how we did it for the BRACE and Penn Action datasets, however, in this case we use the predicted bounding-box of the pose-estimator as our bounding-box. In cases where the groundtruth keypoint is placed outside of the bounding-box, we place the groundtruth keypoint at the closest border of the bounding-box.
 
 \subsection{Training Details}
+\label{sec:pretrain_details}
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.8\textwidth]{entities/CA_splitting.png}
     \caption{Illustration of how the ClimbAlong data has been split into a validation dataset and a test dataset.}
     \label{fig:CA_splitting}
 \end{figure}
-\noindent \textbf{Data Configuration} Generally, we follow a similar approach to how we did in the pretraining stage. We again use a window-size of $k = 5$ frames, resulting in a total of $9,419$ windows. Also here are we using $c = 255$ as a representation of the ground truth placement of each keypoint. 
+\noindent \textbf{Data Configuration} Generally, we follow a similar approach to how we did in the pretraining stage. We again use a window-size of $k = 5$ frames, resulting in a total of $10,173$ windows. Also here are we using $c = 255$ as a representation of the ground truth placement of each keypoint. 
 \\
 \\
-As this dataset is much smaller the the dataset used during the pretraining-stage, we can much more easily introduce some evaluation-bias, hence why we also take much more careful steps. Thus, the splitting of the dataset is different than how we performed it in the pretraining-stage. First, we use the first $60\%$ of the frame-windows and use those as the training dataset. For the reamining $40\%$ of the frame-windows, we make sure that they have no overlapping frames with training dataset - if they do, the whole window is moved into the training dataset. As we still have to split the remaining $40\%$ of the frame-windows into a validation dataset and a test dataset, we have to make sure, that (1) both datasets use as many video sequences as possible, which is especially important in this case due to the small dataset size, (2) that none of the windows are overlapping among the two datasets, and (3) both datasets conditions window-frames uniformly distributed throughout the video sequences, as there can be some sepcial movements in certain parts of the video sequences. All of these constraints will make sure that we minimize the evaluation-bias of our models. The splitting of the remaining $40\%$ of the window-frames into two datasets is then done by sorting the non-overlapping windows by their video and by their time of occurence in their corresponding video. Then, if the $i$th window-frame is divisible by two, we move into the validation dataset, otherwise it is moved into the test dataset. By doing so we meet all three of our conditions. The overall idea has been illustrated in Figure \ref{fig:CA_splitting}.
+As this dataset is much smaller the the dataset used during the pretraining-stage, we can much more easily introduce some evaluation-bias, hence why we also take much more careful steps. Thus, the splitting of the dataset is different than how we performed it in the pretraining-stage. First, we extract the longest video, such that none of its windows are on the dataset, which we will be used to unsure an unbias evaluation of our models. Next, we use the first $60\%$ of the frame-windows and use those as the training dataset. For the remaining $40\%$ of the frame-windows, we make sure that they have no overlapping frames with training dataset - if they do, the whole window is moved into the training dataset. As we still have to split the remaining $40\%$ of the frame-windows into a validation dataset and a test dataset, we have to make sure, that (1) both datasets use as many video sequences as possible, which is especially important in this case due to the small dataset size, (2) that none of the windows are overlapping among the two datasets, and (3) both datasets sample the windows uniformly distributed throughout the video sequences, as there can be some sepcial movements in certain parts of the video sequences. All of these constraints will make sure that we minimize the evaluation-bias of our models. The splitting of the remaining $40\%$ of the window into two datasets is then done by sorting the non-overlapping windows by their video and by their time of occurence in their corresponding video. Then, if the $i$th window-frame is divisible by two, we move into the validation dataset, otherwise it is moved into the test dataset. By doing so we meet all three of our conditions. The overall idea has been illustrated in Figure \ref{fig:CA_splitting}.
 \\
 \\
 \textbf{Experiments} As the finetuning dataset is so small, the fitting of the models is very quick, making us fit all of the 26 developed models from the pretraining stage. For each model we pick the epoch from the pretraining stage, that yielded the highest validation accuracy and use that for finetuning.
@@ -82,10 +87,25 @@ We have in Figure \ref{fig:finetune_res} illustrated the evaluation of the train
 If we compare the models against the identity function we clearly see, how all models converge towards beating the identity function, indicating the positive effects of incorporating temporal information into pose estimation.
 \\
 \\
-Generally, the 3-dimensional convolutional layer seems to be yielding the greatest results, as these models tend to achieve the highest validation PCK@0.05 accuracy. However, some DeciWatch runs actually starts off with an even higher validation PCK@0.05 accuracy, which then decreases to a much lower value quickly. The two architectures that are based on a bidirectional convolutional LSTM tend to yield some decent results, however, their training tend to plateau rather early, hence why they also terminate very quickly. 
+Generally, the 3-dimensional convolutional layer seems to be yielding the greatest results, as these models tend to achieve the highest validation PCK@0.05 accuracy. However, some DeciWatch runs actually starts off with an even higher validation PCK@0.05 accuracy, which then decreases to a much lower value quickly. The two architectures that are based on a bidirectional convolutional LSTM tend to yield some decent results, however, their training tend to plateau rather early, hence why they also terminate very quickly. Generally however, both DeciWatch and the two architectures based on a bidirectional convolutional LSTM do seem to overfit. For DeciWatch this is mostly immediately, whereas for the bidirectional convolutional LSTMs this tend to happen a few epochs later.
 \\
 \\
-Further, the shifting-scalar seems to only have a minor effect on the models during the finetuning, as all six runs of each model tend converge towards the same result. This however does not hold for DeciWatch, as the DeciWatch models with shifting-scalar $s = 1$ seems to be having a lot of difficulty fitting compared to all of the other models, however, they do still yield some very accurate results.
+Further, the shifting-scalar seems to only have a minor effect on the models during the finetuning, as all six runs of each model tend converge towards the same result.
+
+\subsubsection{Additional Experiment Results}
+\begin{figure}
+    \centering
+    \includegraphics[width=0.32\textwidth]{./entities/finetuned/adapted/train_losses.png}
+    \includegraphics[width=0.32\textwidth]{./entities/finetuned/adapted/val_losses.png}
+    \includegraphics[width=0.32\textwidth]{./entities/finetuned/adapted/val_accs.png}
+    \caption{Finetuning results of DeciWatch with regularization techniques.}
+    \label{fig:finetune_res_2}
+\end{figure}
+As seen in Figure \ref{fig:finetune_res}, most of the DeciWatch methods would immediately overfit, as the validation loss increased while the training loss decreased ,leading to the validation accuracy decreasing overtime. We performed further experiments, where we implemented various regularization techniques in hopes of this would lower the likelihood of the models overfit. This was done by (1) freezing the whole network except for the very last fully-connected layer, which we reinitialized randomly, (2) added variance to the data by rotating each window through out the training with a random degree in the range $[-45, 45]$, and (3) by applying an L2 penalty of $0.001$.
+\\
+\\
+By incorporating these regualrization techniques we obtain the results visualized in Figure \ref{fig:finetune_res_2}. While the training loss doss generally decrease much slower than previously, the validation accuracy is still decreasing, making the best setting of the models without these regualrization methods perform either at the same level or an even better level than the models with regualrization.
+
 
 \subsection{Test Results}
 \label{subsec:finetune_test_res}
@@ -100,10 +120,10 @@ Further, the shifting-scalar seems to only have a minor effect on the models dur
         \hline
         \hline
         Identity function & 19.4 & 19.4 & 19.4 & 66.1 & 66.1 & 66.1 & 85.2 & 85.2 & 85.2 \\
-        Conv3D & 49.7 & 52.3 & 53.1 & \textbf{95.7} & \textbf{95.7} & \textbf{95.8} & 99.2 & 99.3 & 99.3 \\
-        DeciWatch & \textbf{76.9} & \textbf{76.7} & \textbf{68.7} & 94.3 & 94.4 & 86.9 & 99.2 & 99.2 & 96.2 \\
-        bi-ConvLSTM - sum. & 37.8 & 34.9 & 39.0 & 91.8 & 92.1 & 92.2 & 99.4 & \textbf{99.7} & 99.2 \\
-        bi-ConvLSTM - concat. & 35.9 & 39.0 & 38.5 & 93.1 & 93.6 & 92.6 & \textbf{99.8} & \textbf{99.7} & \textbf{99.7} \\
+        3DConv & 49.7 & 52.3 & 53.1 & \textbf{95.7} & \textbf{95.7} & \textbf{95.8} & 99.2 & 99.3 & 99.3 \\
+        DeciWatch & \textbf{76.6} & \textbf{76.7} & \textbf{68.1} & 94.4 & 94.3 & 87.3 & 99.2 & 99.2 & 96.1 \\
+        bi-ConvLSTM - Model S & 37.8 & 34.9 & 39.0 & 91.8 & 92.1 & 92.2 & 99.4 & \textbf{99.7} & 99.2 \\
+        bi-ConvLSTM - Model C & 35.9 & 39.0 & 38.5 & 93.1 & 93.6 & 92.6 & \textbf{99.8} & \textbf{99.7} & \textbf{99.7} \\
         \hline
     \end{tabular}
     \caption{Testing accuracies of the various developed models for shifting-scalar $k = 1$. All the accuracies are in percentage. *: The mean maximum distance between the predicted keypoint and corresponding groundtruth keypoint for the prediction to count as being correct, measured in the heatmap coordinate system.}
@@ -121,10 +141,10 @@ Further, the shifting-scalar seems to only have a minor effect on the models dur
         \hline
         \hline
         Identity function & 19.4 & 19.4 & 19.4 & 66.1 & 66.1 & 66.1 & 85.2 & 85.2 & 85.2 \\
-        Conv3D & \textbf{46.5} & \textbf{51.6} & \textbf{47.3} & \textbf{95.5} & \textbf{95.5} & \textbf{95.8} & 99.2 & 99.3 & 99.2 \\
-        DeciWatch & 34.4 & 48.9 & 32.3 & 79.4 & 69.0 & 71.6 & 95.8 & 86.3 & 92.3 \\
-        bi-ConvLSTM - sum. & 38.8 & 37.4 & 35.9 & 92.7 & 92.1 & 91.2 & 99.4 & \textbf{99.5} & 99.3 \\
-        bi-ConvLSTM - concat. & 39.2 & 39.5 & 37.1 & 92.5 & 92.9 & 92.6 & \textbf{99.6} & 99.3 & \textbf{99.6} \\
+        3DConv & 46.5 & 51.6 & \textbf{47.3} & \textbf{95.5} & \textbf{95.5} & \textbf{95.8} & 99.2 & 99.3 & 99.2 \\
+        DeciWatch & \textbf{76.0} & \textbf{75.9} & 36.8 & 94.2 & 94.2 & 74.9 & 99.2 & 99.2 & 92.8 \\
+        bi-ConvLSTM - Model S & 38.8 & 37.4 & 35.9 & 92.7 & 92.1 & 91.2 & 99.4 & \textbf{99.5} & 99.3 \\
+        bi-ConvLSTM - Model C & 39.2 & 39.5 & 37.1 & 92.5 & 92.9 & 92.6 & \textbf{99.6} & 99.3 & \textbf{99.6} \\
         \hline
     \end{tabular}
     \caption{Testing accuracies of the various developed models for shifting-scalar $k = 2$. All the accuracies are in percentage. *: The mean maximum distance between the predicted keypoint and corresponding groundtruth keypoint for the prediction to count as being correct, measured in the heatmap coordinate system.}
@@ -146,27 +166,73 @@ Further, for experiment 3 DeciWatch is not delivering great results, similarly t
 Like in the pretraining stage, there does not seem to be any major performance differences between the two architectures that are based on the bidirectional convolutional LSTM, making us further believe that our concern about the missing opportunity of the model to prioritize a processing direction is not that important.
 
 \begin{table}[htbp]
+    \begin{tabular}{c||ccc|ccc|ccc}
+        \hline
+        Accuracy metric & \multicolumn{3}{c}{PCK@0.05} & \multicolumn{3}{c}{PCK@0.1} & \multicolumn{3}{c}{PCK@0.2} \\
+        \hline
+        Mean threshold distance* & \multicolumn{3}{c}{0.87} & \multicolumn{3}{c}{1.77} & \multicolumn{3}{c}{3.55} \\
+        \hline
+        Experiment & 1.1 & 1.2 & 1.3 & 1.1 & 1.2 & 1.3 & 1.1 & 1.2 & 1.3 \\
+        \hline
+        \hline
+        Identity function & 21.2 & 21.2 & 21.2 & 65.5 & 65.5 & 65.5 & 84.7 & 84.7 & 84.7 \\
+        3DConv & 58.4 & 61.4 & 61.7 & \textbf{98.7} & \textbf{98.9} & \textbf{99.0} & \textbf{99.6} & \textbf{99.8} & \textbf{99.7} \\
+        DeciWatch & \textbf{82.6} & \textbf{82.4} & \textbf{74.6} & 96.2 & 96.1 & 92.3 & 99.1 & 99.1 & 97.4 \\
+        bi-ConvLSTM - Model S & 45.7 & 45.0 & 47.6 & 97.3 & 96.9 & 97.0 & \textbf{99.6} & \textbf{99.6} & 99.1 \\
+        bi-ConvLSTM - Model C & 44.5 & 46.1 & 48.5 & 97.4 & 97.9 & 97.9 & 99.6 & 99.5 & 99.6 \\
+        \hline
+    \end{tabular}
+    \caption{Testing accuracies of the various developed models for shifting-scalar $k = 1$ on the additional test video. All the accuracies are in percentage. *: The mean maximum distance between the predicted keypoint and corresponding groundtruth keypoint for the prediction to count as being correct, using the units of the heatmap coordinates.}
+    \label{tab:finetune_test_accs_3}
+\end{table}
+
+\begin{table}[htbp]
+    \begin{tabular}{c||ccc|ccc|ccc}
+        \hline
+        Accuracy metric & \multicolumn{3}{c}{PCK@0.05} & \multicolumn{3}{c}{PCK@0.1} & \multicolumn{3}{c}{PCK@0.2} \\
+        \hline
+        Mean threshold distance* & \multicolumn{3}{c}{0.87} & \multicolumn{3}{c}{1.77} & \multicolumn{3}{c}{3.55} \\
+        \hline
+        Experiment & 2.1 & 2.2 & 2.3 & 2.1 & 2.2 & 2.3 & 2.1 & 2.2 & 2.3 \\
+        \hline
+        \hline
+        Identity function & 21.2 & 21.2 & 21.2 & 65.5 & 65.5 & 65.5 & 84.7 & 84.7 & 84.7 \\
+        3DConv & 56.2 & 60.0 & \textbf{56.6} & \textbf{98.9} & \textbf{98.8} & \textbf{98.8} & \textbf{99.7} & \textbf{99.7} & \textbf{99.7} \\
+        DeciWatch & \textbf{81.6} & \textbf{81.8} & 37.5 & 96.0 & 96.0 & 73.3 & 99.1 & 99.1 & 90.7 \\
+        bi-ConvLSTM - Model S & 44.8 & 46.2 & 45.0 & 96.9 & 95.9 & 97.1 & 99.5 & 99.6 & 99.5 \\
+        bi-ConvLSTM - Model C & 45.9 & 47.9 & 46.7 & 96.7 & 97.1 & 98.1 & 99.6 & 99.4 & 99.6 \\
+        \hline
+    \end{tabular}
+    \caption{Testing accuracies of the various developed models for shifting-scalar $k = 2$ on the additional test video. All the accuracies are in percentage. *: The mean maximum distance between the predicted keypoint and corresponding groundtruth keypoint for the prediction to count as being correct, using the units of the heatmap coordinates.}
+    \label{tab:finetune_test_accs_4}
+\end{table}
+
+\noindent One might argue, that our way of splitting the finetuning dataset into a validation and test dataset might introduce some bias, as the two datasets have overlapping videos and thus videos of the same person that might have some unique movement. To further minimize the likelihood of a bias evaluation of the models, we have in Table \ref{tab:finetune_test_accs_3} and Table \ref{tab:finetune_test_accs_4} tested the models on the longest video of the dataset, which was not used at all in any of the three datasubsets andconsists of 754 overlapping windows. By comparing these tables against Table \ref{tab:finetune_test_accs_1} and \ref{tab:finetune_test_accs_2} we can clearly see, that the models are not performing any worse than what they did in the evaluation of section \ref{subsec:finetune_test_res}, hence why we would argue, that the evaluation is believable. However, we have to note, that the evaluation in Table \ref{tab:finetune_test_accs_3} and Table \ref{tab:finetune_test_accs_4} does also contain some bias as the evaluation is of a single person who might have some easily predictable movements.
+
+\begin{table}[htbp]
     \begin{adjustbox}{center}
         \begin{tabular}{c||ccc|ccc|ccc|ccc|c}
             \hline
-            & \multicolumn{3}{c}{Conv3D} & \multicolumn{3}{c}{DeciWatch} & \multicolumn{3}{c}{\begin{tabular}[c]{@{}c@{}}bi-ConvLSTM\\ sum.\end{tabular}} & \multicolumn{3}{c}{\begin{tabular}[c]{@{}c@{}}bi-ConvLSTM\\ concat.\end{tabular}} & Total \\ 
+            & \multicolumn{3}{c}{3DConv} & \multicolumn{3}{c}{DeciWatch} & \multicolumn{3}{c}{\begin{tabular}[c]{@{}c@{}}bi-ConvLSTM\\ sum.\end{tabular}} & \multicolumn{3}{c}{\begin{tabular}[c]{@{}c@{}}bi-ConvLSTM\\ concat.\end{tabular}} & Total \\ 
             \hline
             Experiment & 1.1 & 1.2 & 1.3 & 1.1 & 1.2 & 1.3 & 1.1 & 1.2 & 1.3 & 1.1 & 1.2 & 1.3 & \\
             \hline
             \hline
-            Nose & 100 & 100 & 100 & 99.8 & 99.8 & 97.5 & 100 & 100 & 99.9 & 100 & 99.7 & 99.9 & \\
-            Ear & 100 & 100 & 100 & 99.8 & 99.8 & 99.8 & 97.7 & 99.9 & 100 & 100 & 100 & 99.9 & \\
-            Shoulder & 99.9 & 100 & 99.9 & 99.8 & 99.8 & 97.4 & 100 & 100 & 99.9 & 100 & 100 & 100 & \\
-            Elbow & 99.9 & 99.9 & 99.9 & 99.4 & 99.4 & 96.9 & 100 & 100 & 100 & 100 & 99.9 & 100 & \\
-            Wrist & 99.8 & 99.9 & 99.9 & 99.1 & 99.2 & 96.2 & 100 & 99.9 & 99.8 & 100 & 99.9 & 100 & \\
-            Pinky & 93.4 & 93.1 & 94.4 & 98.3 & 98.4 & 94.4 & 97.2 & 98.8 & 97.0 & 98.0 & 99.0 & 98.6 & \\
-            Index finger & 99.0 & 98.8 & 98.8 & 98.2 & 98.3 & 93.8 & 99.5 & 98.7 & 97.0 & 99.6 & 99.4 & 99.4 & \\
-            Thumb & 98.9 & 98.8 & 98.9 & 98.2 & 98.3 & 95.0 & 96.8 & 99.6 & 97.8 & 99.7 & 98.6 & 99.6 & \\
-            Hip & 99.9 & 100 & 100 & 99.7 & 99.7 & 97.6 & 100 & 100 & 100 & 100 & 100 & 100 & \\
-            Knee & 100 & 100 & 99.9 & 99.7 & 99.6 & 97.3 & 100 & 100 & 100 & 100 & 100 & 100 & \\
-            Ankle & 100 & 100 & 100 & 99.5 & 99.5 & 96.8 & 100 & 100 & 99.9 & 100 & 100 & 99.9 & \\
-            Heel & 100 & 100 & 100 & 99.3 & 99.3 & 96.1 & 99.3 & 99.9 & 99.9 & 99.9 & 100 & 99.8 & \\
-            Toes & 99.9 & 100 & 100 & 99.0 & 99.1 & 95.2 & 99.6 & 99.8 & 99.4 & 99.8 & 100 & 99.8 & \\
+            Nose & 100 & 100 & 100 & 99.8 & 99.8 & 99.8 & 100 & 100 & 99.9 & 100 & 99.7 & 99.9 & 99.9 \\
+            Ear & 100 & 100 & 100 & 99.8 & 99.8 & 99.8 & 97.7 & 99.9 & 100 & 100 & 100 & 99.9 & 99.7 \\
+            Shoulder & 99.9 & 100 & 99.9 & 99.8 & 99.8 & 99.8 & 100 & 100 & 99.9 & 100 & 100 & 100 & 99.9 \\
+            Elbow & 99.9 & 99.9 & 99.9 & 99.4 & 99.4 & 99.4 & 100 & 100 & 100 & 100 & 99.9 & 100 & 99.8 \\
+            Wrist & 99.8 & 99.9 & 99.9 & 99.1 & 99.2 & 99.1 & 100 & 99.9 & 99.8 & 100 & 99.9 & 100 & 99.7 \\
+            Pinky & 93.4 & 93.1 & 94.4 & 98.3 & 98.4 & 98.3 & 97.2 & 98.8 & 97.0 & 98.0 & 99.0 & 98.6 & 97.0 \\
+            Index finger & 99.0 & 98.8 & 98.8 & 98.2 & 98.2 & 98.2 & 99.5 & 98.7 & 97.0 & 99.6 & 99.4 & 99.4 & 98.7 \\
+            Thumb & 98.9 & 98.8 & 98.9 & 98.3 & 98.3 & 98.3 & 96.8 & 99.6 & 97.8 & 99.7 & 98.6 & 99.6 & 98.6 \\
+            Hip & 99.9 & 100 & 100 & 99.7 & 99.7 & 99.7 & 100 & 100 & 100 & 100 & 100 & 100 & 99.9 \\
+            Knee & 100 & 100 & 99.9 & 99.7 & 99.7 & 99.7 & 100 & 100 & 100 & 100 & 100 & 100 & 99.9 \\
+            Ankle & 100 & 100 & 100 & 99.5 & 99.5 & 99.5 & 100 & 100 & 99.9 & 100 & 100 & 99.9 & 99.9 \\
+            Heel & 100 & 100 & 100 & 99.2 & 99.2 & 99.2 & 99.3 & 99.9 & 99.9 & 99.9 & 100 & 99.8 & 99.7 \\
+            Toes & 99.9 & 100 & 100 & 99.1 & 99.0 & 99.1 & 99.6 & 99.8 & 99.4 & 99.8 & 100 & 99.8 & 99.6 \\
+            \hline
+            Total & 99.2 & 99.3 & 99.3 & 99.2 & 99.2 & 96.1 & 99.4 & 99.7 & 99.2 & 99.8 & 99.7 & 99.7 & \\
             \hline
         \end{tabular}
         \caption{Keypoint-specific testing PCK@0.2-accuracies of the various models for shiting-scalar $k = 1$. All the accuracies are in percentage.}
@@ -178,24 +244,26 @@ Like in the pretraining stage, there does not seem to be any major performance d
     \begin{adjustbox}{center}
         \begin{tabular}{c||ccc|ccc|ccc|ccc|c}
             \hline
-            & \multicolumn{3}{c}{Conv3D} & \multicolumn{3}{c}{DeciWatch} & \multicolumn{3}{c}{\begin{tabular}[c]{@{}c@{}}bi-ConvLSTM\\ sum.\end{tabular}} & \multicolumn{3}{c}{\begin{tabular}[c]{@{}c@{}}bi-ConvLSTM\\ concat.\end{tabular}} & Total \\ 
+            & \multicolumn{3}{c}{3DConv} & \multicolumn{3}{c}{DeciWatch} & \multicolumn{3}{c}{\begin{tabular}[c]{@{}c@{}}bi-ConvLSTM\\ sum.\end{tabular}} & \multicolumn{3}{c}{\begin{tabular}[c]{@{}c@{}}bi-ConvLSTM\\ concat.\end{tabular}} & Total \\ 
             \hline
             Experiment & 2.1 & 2.2 & 2.3 & 2.1 & 2.2 & 2.3 & 2.1 & 2.2 & 2.3 & 2.1 & 2.2 & 2.3 & \\
             \hline
             \hline
-            Nose & 100 & 100 & 100 & 99.0 & 99.8 & 97.2 & 100 & 99.9 & 99.7 & 99.7 & 99.9 & 100 & \\
-            Ear & 100 & 99.8 & 100 & 99.2 & 86.3 & 90.5 & 99.8 & 99.8 & 100 & 99.9 & 99.9 & 99.9 & \\
-            Shoulder & 99.9 & 99.7 & 99.9 & 43.8 & 99.6 & 97.1 & 99.9 & 99.8 & 100 & 99.9 & 100 & 100 & \\
-            Elbow & 99.8 & 99.9 & 99.9 & 93.3 & 65.8 & 91.6 & 100 & 99.5 & 100 & 100 & 100 & 100 & \\
-            Wrist & 99.8 & 100 & 99.9 & 94.1 & 98.4 & 93.9 & 99.8 & 99.7 & 99.8 & 99.8 & 100 & 99.7 & \\
-            Pinky & 93.1 & 93.7 & 93.9 & 91.9 & 98.3 & 87.3 & 97.7 & 98.0 & 97.9 & 99.1 & 96.0 & 98.2 & \\
-            Index finger & 98.9 & 99.0 & 98.8 & 98.2 & 97.9 & 92.3 & 99.4 & 99.1 & 99.2 & 99.6 & 98.0 & 97.5 & \\
-            Thumb & 98.6 & 98.6 & 98.6 & 96.5 & 98.2 & 92.8 & 95.7 & 96.6 & 98.6 & 97.5 & 98.3 & 99.6 & \\
-            Hip & 100 & 99.9 & 100 & 96.7 & 38.3 & 91.7 & 99.9 & 99.8 & 99.9 & 99.8 & 100 & 99.9 & \\
-            Knee & 100 & 100 & 99.9 & 95.1 & 99.5 & 91.8 & 100 & 99.9 & 99.9 & 99.9 & 99.9 & 100 & \\
-            Ankle & 100 & 99.9 & 100 & 94.1 & 99.5 & 92.7 & 100 & 100 & 100 & 100 & 100 & 100 & \\
-            Heel & 100 & 100 & 100 & 96.1 & 99.3 & 89.5 & 99.9 & 99.9 & 99.8 & 99.9 & 99.6 & 99.9 & \\
-            Foot & 99.9 & 100 & 100 & 97.2 & 99.1 & 93.7 & 99.9 & 99.4 & 98.4 & 99.8 & 99.6 & 99.8 & \\
+            Nose & 100 & 100 & 100 & 99.8 & 99.8 & 97.2 & 100 & 99.9 & 99.7 & 99.7 & 99.9 & 100 & 99.7 \\
+            Ear & 100 & 99.8 & 100 & 99.7 & 99.7 & 97.1 & 99.8 & 99.8 & 100 & 99.9 & 99.9 & 99.9 & 99.6 \\
+            Shoulder & 99.9 & 99.7 & 99.9 & 99.8 & 99.9 & 95.8 & 99.9 & 99.8 & 100 & 99.9 & 100 & 100 & 99.6 \\
+            Elbow & 99.8 & 99.9 & 99.9 & 99.5 & 99.4 & 90.8 & 100 & 99.5 & 100 & 100 & 100 & 100 & 99.1 \\
+            Wrist & 99.8 & 100 & 99.9 & 99.1 & 99.1 & 94.4 & 99.8 & 99.7 & 99.8 & 99.8 & 100 & 99.7 & 99.3 \\
+            Pinky & 93.1 & 93.7 & 93.9 & 98.4 & 98.4 & 86.5 & 97.7 & 98.0 & 97.9 & 99.1 & 96.0 & 98.2 & 95.9 \\
+            Index finger & 98.9 & 99.0 & 98.8 & 98.2 & 98.2 & 88.9 & 99.4 & 99.1 & 99.2 & 99.6 & 98.0 & 97.5 & 97.9 \\
+            Thumb & 98.6 & 98.6 & 98.6 & 98.3 & 98.2 & 90.1 & 95.7 & 96.6 & 98.6 & 97.5 & 98.3 & 99.6 & 97.4 \\
+            Hip & 100 & 99.9 & 100 & 99.7 & 99.8 & 95.1 & 99.9 & 99.8 & 99.9 & 99.8 & 100 & 99.9 & 99.5 \\
+            Knee & 100 & 100 & 99.9 & 99.6 & 99.7 & 95.1 & 100 & 99.9 & 99.9 & 99.9 & 99.9 & 100 & 99.5 \\
+            Ankle & 100 & 99.9 & 100 & 99.5 & 99.5 & 93.9 & 100 & 100 & 100 & 100 & 100 & 100 & 99.4 \\
+            Heel & 100 & 100 & 100 & 99.3 & 99.3 & 91.0 & 99.9 & 99.9 & 99.8 & 99.9 & 99.6 & 99.9 & 99.1 \\
+            Toes & 99.9 & 100 & 100 & 99.0 & 99.1 & 91.9 & 99.9 & 99.4 & 98.4 & 99.8 & 99.6 & 99.8 & 98.9 \\
+            \hline
+            Total & 99.2 & 99.3 & 99.2 & 99.2 & 99.2 & 92.8 & 99.4 & 99.5 & 99.3 & 99.6 & 99.3 & 99.6 & \\
             \hline
         \end{tabular}
         \caption{Keypoint-specific testing PCK@0.2-accuracies of the various models for shiting-scalar $k = 2$. All the accuracies are in percentage.}
@@ -204,8 +272,12 @@ Like in the pretraining stage, there does not seem to be any major performance d
 \end{table}
 
 \noindent We have in Table \ref{tab:finetune_kpts_test_accs_1} and Table \ref{tab:finetune_kpts_test_accs_2} illustrated the keypoint specific testing accuracies of the models. By comparing these tables to the equivalent tables from section \ref{subsec:pretrain_train_val_res} we see, that most difficult keypoints are no longer the wrists and ankles, but are instead the pinkies, the index fingers and the thumbs, on which the models generally performs much worse than on the remaining keypoints.
+\\
+\\
+For some illustrations of the predictions of the best setup of each model based on Table \ref{finetune_test_accs_1} and Table \ref{finetune_test_accs_2}, see Figure \ref{fig:predictions} in the appendix.
 
 \subsection{Technical Details}
+\label{sec:finetune_tech_details}
 All models were trained and evaluated using a 8GB NVIDIA GTX 1070 and an Intel Core i7-4790K @ 4.00GHz. All models were implemented in Python version 3.9.9 using PyTorch 2.0.0. The 3-dimensional convolutional layer took about 1.5 minutes per epoch, DeciWatch about 2 minutes per epoch, and the two bidirectional convolutional LSTMs took about 2.5 minutes per epoch each.
 
 \end{document}

@@ -2,5 +2,6 @@
 
 \begin{document}
 \section*{Abstract}
+In this thesis we implement four architectures for extending an already implemented pose-estimator for bouldering. The three architectures consist of (1) a single 3-dimensional convolutional layer followed by the ReLU activation-functio, (2) DeciWatch by Zeng \textit{Et al.} \cite{https://doi.org/10.48550/arxiv.2203.08713}, and (3) two kinds of bidirectional convolutional LSTMs inspired by Unipise-LSTM by Artacho and Savakis \cite{https://doi.org/10.48550/arxiv.2001.08095}, where the difference between the two architectures lies in how they combine the two processing directions. The models are pretrained on the BRACE and Penn Action datasets and finetuned on a dataset for bouldering. The already developed pose-estimator and the finetuning dataset are both provided by ClimbAlong at NorthTech ApS. We perform various experiments to find the optimal setting of the four models. Finally, we conclude, that the optimal choice of model depends on ones needs.
 
 \end{document}
