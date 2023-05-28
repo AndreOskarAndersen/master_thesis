@@ -6,7 +6,7 @@
 As we now have finetuned our models, we need to finetune the models, such that they are specialized to yield optimial results on the ClimbAlong dataset. The following section describes the finetuning of these models. This includes the preprocessing of the data, the configuration details we use, as well as the obtained results.
 \\
 \\
-In the finetuning stage we will be using the already developed pose-estiamtor to train our temporal-inclusive models. However, we will be freezing the pose-estimator, such that the weights of the model will not change during the training and we will thus only train our temporal-inclusive models. We do this for the following three reasons: (1) the training of the models will be quicker, as we just need to train the temporal-inclusive models and not the already developed pose-estimator, and (2) we get an greater understanding of the effects of our models when combined with the pose-estimator, as we can clearly see how big of a difference it makes by adding our temporal-inclusive models.
+In the finetuning stage we will be using the already developed pose-estiamtor to train our temporal-inclusive models. However, we will be freezing the pose-estimator, such that the weights of the model will not change during the training and we will thus only train our temporal-inclusive models. We do this as (1) the training of the models will be quicker, as we just need to train the temporal-inclusive models and not the already developed pose-estimator, and (2) we get an greater understanding of the effects of our models when combined with the pose-estimator, as we can clearly see how big of a difference it makes by adding our temporal-inclusive models.
 \\
 \\
 In section \ref{sec:finetune_data_preprocessing} we cover the preprocessing of the finetune dataset. Then, in section \ref{sec:pretrain_details} we cover the used configuration for the finetuning. Then, in section \ref{subsec:finetune_train_val_res} and section \ref{subsec:finetune_test_res} we cover the training and validation results, as well as the testing results, respectively. Lastly, in section \ref{sec:finetune_tech_details} we cover the technical details of the finetuning.
@@ -26,16 +26,16 @@ For the groundtruth heatmaps we create twenty five heatmaps of each frame, simil
     \caption{Illustration of how the ClimbAlong data has been split into a validation dataset and a test dataset.}
     \label{fig:CA_splitting}
 \end{figure}
-\noindent \textbf{Data Configuration} Generally, we follow a similar approach to how we did in the pretraining stage. We again use a window-size of $k = 5$ frames, resulting in a total of $10,173$ windows. Also here are we using $c = 255$ as a representation of the ground truth placement of each keypoint. 
+\noindent \textbf{Data Configuration} Generally, for the data configuration we follow a similar approach to how we did in the pretraining stage. We again use a window-size of $k = 5$ frames, resulting in a total of $10,173$ windows. Also here are we using $c = 255$ as a representation of the ground truth placement of each keypoint. 
 \\
 \\
-As this dataset is much smaller the the dataset used during the pretraining-stage, we can much more easily introduce some evaluation-bias, hence why we also take much more careful steps. Thus, the splitting of the dataset is different than how we performed it in the pretraining-stage. First, we extract the longest video, such that none of its windows are on the dataset, which we will be used to unsure an unbias evaluation of our models. Next, we use the first $60\%$ of the frame-windows and use those as the training dataset. For the remaining $40\%$ of the frame-windows, we make sure that they have no overlapping frames with training dataset - if they do, the whole window is moved into the training dataset. As we still have to split the remaining $40\%$ of the frame-windows into a validation dataset and a test dataset, we have to make sure, that (1) both datasets use as many video sequences as possible, which is especially important in this case due to the small dataset size, (2) that none of the windows are overlapping among the two datasets, and (3) both datasets sample the windows uniformly distributed throughout the video sequences, as there can be some sepcial movements in certain parts of the video sequences. All of these constraints will make sure that we minimize the evaluation-bias of our models. The splitting of the remaining $40\%$ of the window into two datasets is then done by sorting the non-overlapping windows by their video and by their time of occurence in their corresponding video. Then, if the $i$th window-frame is divisible by two, we move into the validation dataset, otherwise it is moved into the test dataset. By doing so we meet all three of our conditions. The overall idea has been illustrated in Figure \ref{fig:CA_splitting}.
+As this dataset is much smaller the the dataset used during the pretraining-stage, we can much more easily introduce some evaluation-bias, hence why we also take much more careful steps. Thus, the splitting of the dataset is different than how we performed it in the pretraining-stage. First, we extract the longest video, such that none of its windows are on the dataset, which we will be used to unsure an unbias evaluation of our models. Next, we use the first $60\%$ of the frame-windows and use those as the training dataset. For the remaining $40\%$ of the frame-windows, we make sure that they have no overlapping frames with training dataset - if they do, the whole window is moved into the training dataset. As we still have to split the remaining $40\%$ of the frame-windows into a validation dataset and a test dataset, we have to make sure, that (1) both datasets use as many video sequences as possible, which is especially important in this case due to the small dataset size, (2) that none of the windows are overlapping among the two datasets, and (3) both datasets sample the windows uniformly distributed throughout the video sequences, as there can be some sepcial movements in certain parts of the video sequences. All of these constraints will make sure that we minimize the evaluation-bias of our models. The splitting of the remaining $40\%$ of the window into two datasets is then done by sorting the non-overlapping windows by their video and by their time of occurence in their corresponding video. Then, if the $i$th window-frame is divisible by two, it is moved into the validation dataset, otherwise it is moved into the test dataset. By doing so we meet all three of our conditions. The overall idea has been illustrated in Figure \ref{fig:CA_splitting}.
 \\
 \\
-\textbf{Experiments} As the finetuning dataset is so small, the fitting of the models is very quick, making us fit all of the 26 developed models from the pretraining stage. For each model we pick the epoch from the pretraining stage, that yielded the highest validation accuracy and use that for finetuning.
+\textbf{Experiments} As the finetuning dataset is so small, the fitting of the models are very quick, making us fit all of the 26 developed models from the pretraining stage, instead of us picking which models we should finetune. For each model we pick the epoch from the pretraining stage, that yielded the highest validation accuracy and use that for finetuning.
 \\
 \\
-\textbf{Training Configuration} The optimization parameters are very similar to the ones from the pretraining stage. We again use the ADAM optimzer with a batch size of $16$ and the MSE loss-function. During training, we again keep track of the lowest reached validation loss of an epoch and use learning-rate reduction and early-stopping in a similar manner to how we did in the pretraining stage. However, unlike the pretraining stage, we here use a smaller iniitial learning rate of $10^{-4}$, as the weights only need to be fineadjusted, making us believe that greater learning rate would skew the weights too much.
+\textbf{Training Configuration} The optimization parameters are very similar to the ones from the pretraining stage. We again use the ADAM optimzer with a batch size of $16$ and the MSE loss-function. During training, we again keep track of the lowest reached validation loss of an epoch and use learning-rate reduction and early-stopping in a similar manner to how we did in the pretraining stage. However, unlike the pretraining stage, we here use a smaller iniitial learning rate of $10^{-4}$, as the weights only need to be fineadjusted, making us believe that a greater learning rate would skew the weights too much.
 
 \subsection{Training and Validation Results}
 \label{subsec:finetune_train_val_res}
@@ -46,7 +46,7 @@ As this dataset is much smaller the the dataset used during the pretraining-stag
          \includegraphics[width=0.32\textwidth]{./entities/finetuned/baseline/train_losses.png}
          \includegraphics[width=0.32\textwidth]{./entities/finetuned/baseline/val_losses.png}
          \includegraphics[width=0.32\textwidth]{./entities/finetuned/baseline/val_accs.png}
-         \caption{Finetuning results of the 3-dimensional convolutional layer.}
+         \caption{Finetuning results of 3DConv.}
      \end{subfigure}
     \hfill
 
@@ -77,22 +77,23 @@ As this dataset is much smaller the the dataset used during the pretraining-stag
     \end{subfigure}
     \hfill
     
-    \caption{Evolution of the training loss, validation loss and validation PCK@0.05 accuracy of the 24 models during training, as well as the validation PCK@0.05 accuracy of the identity function of the two datasets. The dots indicates a reduction of learning-rate. First row: 3-dimensional convolutional layer. Second row: DeciWatch. Third row: Bidirectional Convolutional LSTM with summing. Fourth row: Bidirectional Convolutional LSTM with concatenation.}
+    \caption{Evolution of the training loss, validation loss and validation PCK@0.05 accuracy of the 24 models during training, as well as the validation PCK@0.05 accuracy of the identity function of the two datasets. The dots indicates a reduction of learning-rate. First row: 3DConv. Second row: DeciWatch. Third row: Bidirectional Convolutional LSTM with summing. Fourth row: Bidirectional Convolutional LSTM with concatenation.}
     \label{fig:finetune_res}
 \end{figure}
 
 We have in Figure \ref{fig:finetune_res} illustrated the evaluation of the training loss, validation loss, and validation PCK@0.05 accuracy of the various models during the finetuning.
 \\
 \\
-If we compare the models against the identity function we clearly see, how all models converge towards beating the identity function, indicating the positive effects of incorporating temporal information into pose estimation.
+If we compare the models against the identity function we clearly see, how all models at some point beats the identity function, indicating the positive effects of incorporating temporal information into pose estimation.
 \\
 \\
-Generally, the 3-dimensional convolutional layer seems to be yielding the greatest results, as these models tend to achieve the highest validation PCK@0.05 accuracy. However, some DeciWatch runs actually starts off with an even higher validation PCK@0.05 accuracy, which then decreases to a much lower value quickly. The two architectures that are based on a bidirectional convolutional LSTM tend to yield some decent results, however, their training tend to plateau rather early, hence why they also terminate very quickly. Generally however, both DeciWatch and the two architectures based on a bidirectional convolutional LSTM do seem to overfit. For DeciWatch this is mostly immediately, whereas for the bidirectional convolutional LSTMs this tend to happen a few epochs later.
+Generally, 3DConv seems to be converging towards the greatest results, as these models tend to converge towards the highest validation PCK@0.05 accuracy. However, some DeciWatch runs actually starts off with an even higher validation PCK@0.05 accuracy, which then decreases to a much lower value quickly. The two architectures that are based on a bidirectional convolutional LSTM tend to yield some decent results, however, their training tend to plateau rather early, hence why they also terminate very quickly. Generally however, both DeciWatch and the two architectures based on a bidirectional convolutional LSTM do seem to overfit. For DeciWatch this is mostly immediately, whereas for the bidirectional convolutional LSTMs this tend to happen a few epochs later.
 \\
 \\
 Further, the shifting-scalar seems to only have a minor effect on the models during the finetuning, as all six runs of each model tend converge towards the same result.
 
 \subsubsection{Additional Experiment Results}
+\label{sec:finetune_additional_experiment}
 \begin{figure}
     \centering
     \includegraphics[width=0.32\textwidth]{./entities/finetuned/adapted/train_losses.png}
@@ -101,7 +102,7 @@ Further, the shifting-scalar seems to only have a minor effect on the models dur
     \caption{Finetuning results of DeciWatch with regularization techniques.}
     \label{fig:finetune_res_2}
 \end{figure}
-As seen in Figure \ref{fig:finetune_res}, most of the DeciWatch methods would immediately overfit, as the validation loss increased while the training loss decreased ,leading to the validation accuracy decreasing overtime. We performed further experiments, where we implemented various regularization techniques in hopes of this would lower the likelihood of the models overfit. This was done by (1) freezing the whole network except for the very last fully-connected layer, which we reinitialized randomly, (2) added variance to the data by rotating each window through out the training with a random degree in the range $[-45, 45]$, and (3) by applying an L2 penalty of $0.001$.
+As seen in Figure \ref{fig:finetune_res}, most of the DeciWatch methods would immediately overfit, as the validation loss increased while the training loss decreased, leading to the validation accuracy decreasing overtime. We performed further experiments, where we implemented various regularization techniques in hopes of this would lower the likelihood of the models overfitting. This was done by (1) freezing the whole network except for the very last fully-connected layer, which we reinitialized randomly, (2) added variance to the data by rotating each window throughout the training with a random degree in the range $[-45, 45]$, and (3) by applying weight decay with $\lambda = 0.001$.
 \\
 \\
 By incorporating these regualrization techniques we obtain the results visualized in Figure \ref{fig:finetune_res_2}. While the training loss doss generally decrease much slower than previously, the validation accuracy is still decreasing, making the best setting of the models without these regualrization methods perform either at the same level or an even better level than the models with regualrization.
@@ -154,16 +155,16 @@ By incorporating these regualrization techniques we obtain the results visualize
 \noindent We have in Table \ref{tab:finetune_test_accs_1} and Table \ref{tab:finetune_test_accs_2} illustrated the testing results of the epoch of each model that yielded the highest validation PCK@0.05 accuracy.
 \\
 \\
-By comparing the two tables against each other we see, that the shifting-scalar tend to have a big effect on the results of DeciWatch. This is very similar to what we experienced in section \ref{subsec:finetune_train_val_res}, where we saw that the DeciWatch models with shifting-scalar $s = 1$ had a lot of difficulty fitting. For the remaining models we do see a performance difference between the two shifint-scalars, however, the performance difference is not as big as it is for DeciWatch. Generally however, the models do perform best with the noise-scalar $s = 1$.
+by comparing the two tables against each other we see, that the shifting-scalar only have a minor effect on the results of the models. Generally however, the models do perform best with the noise-scalar $s = 1$.
 \\
 \\
-Similarly to the pretraining stage, we also see here how the 3-dimensional convolutional layer from experiment 2 performs better than the 3-dimensional convolutional layer from experiment 1, however, this performance difference is now smaller than it was in the pretraining stage.
+Similarly to the pretraining stage, we also see here how 3DConv from experiment 2 performs better than 3DConv from experiment 1, however, this performance difference is now smaller than it was in the pretraining stage.
 \\
 \\
 Further, for experiment 3 DeciWatch is not delivering great results, similarly to its results in the pretraining stage. For the other architectures, there do not seem to be any consistent pattern, as some of them experiment 3 yields the best results, whereas it for others yield the worst results.
 \\
 \\
-Like in the pretraining stage, there does not seem to be any major performance differences between the two architectures that are based on the bidirectional convolutional LSTM, making us further believe that our concern about the missing opportunity of the model to prioritize a processing direction is not that important.
+Like in the pretraining stage, there does not seem to be any major performance differences between the two architectures that are based on the bidirectional convolutional LSTM, making us further believe that our concern about the missing opportunity of biConv-LSTM Model S to prioritize a processing direction is not that important.
 
 \begin{table}[htbp]
     \begin{tabular}{c||ccc|ccc|ccc}
@@ -207,7 +208,7 @@ Like in the pretraining stage, there does not seem to be any major performance d
     \label{tab:finetune_test_accs_4}
 \end{table}
 
-\noindent One might argue, that our way of splitting the finetuning dataset into a validation and test dataset might introduce some bias, as the two datasets have overlapping videos and thus videos of the same person that might have some unique movement. To further minimize the likelihood of a bias evaluation of the models, we have in Table \ref{tab:finetune_test_accs_3} and Table \ref{tab:finetune_test_accs_4} tested the models on the longest video of the dataset, which was not used at all in any of the three datasubsets andconsists of 754 overlapping windows. By comparing these tables against Table \ref{tab:finetune_test_accs_1} and \ref{tab:finetune_test_accs_2} we can clearly see, that the models are not performing any worse than what they did in the evaluation of section \ref{subsec:finetune_test_res}, hence why we would argue, that the evaluation is believable. However, we have to note, that the evaluation in Table \ref{tab:finetune_test_accs_3} and Table \ref{tab:finetune_test_accs_4} does also contain some bias as the evaluation is of a single person who might have some easily predictable movements.
+\noindent One might argue, that our way of splitting the finetuning dataset into a validation and test dataset might introduce some bias, as the two datasets have overlapping videos and thus videos of the same person that might have some unique movement. To further minimize the likelihood of a biased evaluation of the models, we have in Table \ref{tab:finetune_test_accs_3} and Table \ref{tab:finetune_test_accs_4} tested the models on the longest video of the dataset, which was not used at all in any of the three datasubsets and consists of 754 overlapping windows. By comparing these tables against Table \ref{tab:finetune_test_accs_1} and \ref{tab:finetune_test_accs_2} we can clearly see, that the models are performing similarly, if not actually better, than how they did previously, hence why we would argue, that there are no indication of the first test evaluation being biased. However, we have to note, that the evaluation in Table \ref{tab:finetune_test_accs_3} and Table \ref{tab:finetune_test_accs_4} do contain some bias, as the evaluation is of a single person who might have some easily predictable movements.
 
 \begin{table}[htbp]
     \begin{adjustbox}{center}
@@ -278,6 +279,6 @@ For some illustrations of the predictions of the best setup of each model based 
 
 \subsection{Technical Details}
 \label{sec:finetune_tech_details}
-All models were trained and evaluated using a 8GB NVIDIA GTX 1070 and an Intel Core i7-4790K @ 4.00GHz. All models were implemented in Python version 3.9.9 using PyTorch 2.0.0. The 3-dimensional convolutional layer took about 1.5 minutes per epoch, DeciWatch about 2 minutes per epoch, and the two bidirectional convolutional LSTMs took about 2.5 minutes per epoch each.
+All models were trained and evaluated using a 8GB NVIDIA GTX 1070 and an Intel Core i7-4790K @ 4.00GHz. All models were implemented in Python version 3.9.9 using PyTorch 2.0.0. 3DConv took about 1.5 minutes per epoch, DeciWatch about 2 minutes per epoch, and the two bidirectional convolutional LSTMs took about 2.5 minutes per epoch each.
 
 \end{document}
