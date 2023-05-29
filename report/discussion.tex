@@ -46,22 +46,59 @@ We also see a problem with the Penn Action dataset, which can have an effect on 
 \\
 Lastly, one major reason behind the performance differences behind the models on the pretraining dataset and the finetuning dataset is the perforamnce of the identity functions. If we compare the performance of the identity function on the pretraining dataset in Table \ref{tab:pretrain_test_accs_1} and Table \ref{tab:pretrain_test_accs_2} against the performance of the identity function on the finetuning dataset in Table \ref{tab:finetune_test_accs_1} and Table \ref{tab:finetune_test_accs_2}, we clearly see, that the identity function performs much better during the finetuning than during the pretraining. Thus, a lot less temporal smoothing has to be done by our temporal-inclusive models, making the learning a lot easier.
 
-\subsection{Which Model is the Best for Incorporating Temporal Smoothing?}
+\subsection{Which Model is the Best for Temporal Smoothing?}
 \label{sec:best_model}
-As we have now fuly developed and tested all of our models on all three experiments, we can decide which models yield the best results.
+\begin{table}[htbp]
+    \centering
+    \begin{tabular}{c||cccccc|c}
+        \hline
+        & 1.1 & 1.2 & 1.3 & 2.1 & 2.2 & 2.3 & Total \\
+        \hline
+        \hline
+        3DConv & 81.5 & 82.4 & 82.7 & 80.4 & 82.1 & \textbf{80.8} & 81.7 \\
+        DeciWatch & \textbf{90.1} & \textbf{90.1} & \textbf{83.8} & \textbf{89.8} & \textbf{89.8} & 68.2 & \textbf{85.3} \\
+        bi-Conv LSTM Model S & 76.3 & 75.6 & 76.8 & 77.0 & 76.0 & 75.5 & 76.2 \\
+        bi-Conv LSTM Model C & 76.3 & 77.4 & 77.3 & 77.1 & 77.2 & 76.4 & 77.0 \\
+        \hline
+    \end{tabular}
+    \label{tab:finetune_mean_res}
+    \caption{Mean of testing PCK$@0.05$, PCK$@0.1$, and PCK$@0.2$ of each finetuning run.}
+\end{table}\
+
+\begin{table}[htbp]
+    \centering
+    \begin{tabular}{c||ccc}
+        \hline
+         & \begin{tabular}[c]{@{}c@{}}Mean\\prediction time (ms) \end{tabular} & \begin{tabular}[c]{@{}c@{}}Standard deviation\\of prediction time (ms)\end{tabular} & \begin{tabular}[c]{@{}c@{}}Number of\\parameters\end{tabular} \\
+        \hline
+        \hline 
+        3DConv & $0.39$ & $9.29 \times 10^{-2}$ & 78,150\\
+        DeciWatch & $14.2$ & $0.11$  & 1,708,388 \\
+        bi-Conv LSTM Model S & $10.6$ & $1.68 \times 10^{-2}$ & 1,875,666 \\
+        bi-Conv LSTM Model C & $20.1$ & $6.93 \times 10^{-2}$ & 1,872313 \\
+        \hline
+    \end{tabular}
+    \label{tab:model_measurements}
+    \caption{Mean prediction time of each architecture on a single window from the whole finetune dataset, as well as the total number of parameters of each architecture. The time measurements are based on five runs and were measure on the machine described in section \ref{sec:finetune_tech_details}.}
+\end{table}
+\noindent As we have now fuly developed and tested all of our models on all three experiments, we can decide which models yield the best results for temporal smoothing in bouldering.
 \\
 \\
-As we know from section \ref{subsec:finetune_test_res}, all of the models tend to deliver similar great results when considering PCK$@0.2$. However, generally DeciWatch does consistently deliver the least optimal results when considering this metric. On the other hand, if we instead consider PCK$@0.05$, then DeciWatch is generally the model that delivers the greatest results and by quite a big margin, whereas either of the architectures based on a bidirectional convolutional LSTM delivers the worst results and the results of 3DConv are somewhere in between.
+We have in Figure \ref{tab:finetune_mean_res} written the mean testing PCK$@0.05$, PCK$@0.1$, and PCK$@0.2$ of each finetuning run. Based on these numbers it seems like DeciWatch 1.1/1.2 would be the models to pick, as these yield the highest testing accuracy, based on the average PCK$@0.05$, PCK$@0.1$, and PCK$@0.2$ accuracies. However, as we know from section \ref{subsec:finetune_res_res}, DeciWatch 1.1/1.2 delivers some of the least optimal results when considering PCK$@0.2$. On the other hand, if we instead consider PCK$@0.05$, then DeciWatch is generally the model that delivers the greatest results and by quite a big margin.
 \\
 \\
-Thus, looking at the accuracies, if one is looking for the model that most consistently delivers great rough estimations of the placement of the keypoints, then either 3DConv 1.2 or either of the two architectures based on the bidirectional convolutional LSTM for any of the three experiments would be the optimal choice. On the other hand, if one is looking for the model that most consistently delivers the most accurate results, but do however occasionally yield some predictions that are pretty far off, then DeciWatch 1.1 or 1.2 would be the ideal choice. We have to however keep in mind, that 3DConv is much smaller than the remaining three architectures, so if one is also considering in the memory usage of the models, then 3DConv would be the optimal choice.
+Thus, if one is looking for the run that is on average delivering the greatest results, then DeciWatch 1.1 or 1.2 would be the ideal choice. However, if one is just looking for a rough estimation of the position of the keypoints, then bi-ConvLSTM Model C 1.1 would be the ideal choice, as we know from section \ref{subsec:finetune_test_res}, that this run delivers the highest PCK$@0.2$ testing accuracy, at the cost of one of the lowest PCK$@0.05$ testing accuracies.
+\\
+\\
+One could also consider the prediciton time and the size of each model. We have in Table \ref{tab:model_measurements} written the mean prediction time of each model on a single window, as well as the size of each model. From the table we can clearly see, that 3DConv is by far the fastest and smallest architecture. This, combined with the general decent results of 3DConv in Table \ref{tab:finetune_mean_res}, could mean, that 3DConv could be the optimal choice if one is concerned about the prediction time or size of the model.
+
 
 \subsection{General Reflections}
 \label{sec:general_reflections}
 Generally, we believe that we made the correct choices throughout the execution of the project. However, looking back throughout the project, we do find some bad decision made by us, that could have been avoided or made in another way.
 
 \subsubsection{Pretraining}
-For the preprocessing of the pretraining dataset, the goal was to preprocess the data, such that it simulated the output of the already developed pose-estimator. This was done through multiple steps, where we used multiple values. For instance, when we expanded the bounding-boxes created from the keypoints by $10\%$ in each direction, we used a standard deviation in the range $\{1, 1.5, 2, 2.5, 3\}$ for the Gaussian filter on the input data, and we shifted the input by sampling from a normal distribution with mean $\mu_{in} = 1$ and standard deviation $3$ or $6$, depending on the experiment. These values were all some values that we came up with. We could instead have picked these values in a more sophisticated manner such that the data would be more similar to the ClimbAlong data. This could for instance have been done by approximating them from the ClimbAlong dataset. We could further have made this standard deviation keypoint-dependent, such that it would have modelled how much movement each keypoint makes. However, we do not too sure how beneficial this would have been, as (1) we generally already receive some great results which are difficult to beat, and (2) for the experiments where we increased the added noise, we did not see an improvement on of the keypoints that carry a lot of movement, for instance the pinky, hence why do not believe that more moving keypoints require being shifted more than less moving keypoints.
+For the preprocessing of the pretraining dataset, the goal was to preprocess the data, such that it simulated the output of the keypoint detector. This was done through multiple steps, where we used multiple values. For instance, when we expanded the bounding-boxes created from the keypoints by $10\%$ in each direction, we used a standard deviation in the range $\{1, 1.5, 2, 2.5, 3\}$ for the Gaussian filter on the input data, and we shifted the input by sampling from a normal distribution with mean $\mu_{in} = 1$ and standard deviation $3$ or $6$, depending on the experiment. These values were all some values that we came up with. We could instead have picked these values in a more sophisticated manner such that the data would be more similar to the ClimbAlong data. This could for instance have been done by approximating them from the ClimbAlong dataset. We could further have made this standard deviation keypoint-dependent, such that it would have modelled how much movement each keypoint makes. However, we do not too sure how beneficial this would have been, as (1) we generally already receive some great results which are difficult to beat, and (2) for the experiments where we increased the added noise, we did not see an improvement on of the keypoints that carry a lot of movement, for instance the pinky, hence why do not believe that more moving keypoints require being shifted more than less moving keypoints.
 \\
 \\
 For the last part of the preprocessing of the pretraining dataset, we split the data into a training, validation and test set, consisting of $60\%$, $20\%$ and $20\%$ of the data respectively. This was done by making sure that none of the windows were repeated and that none of the windows were overlapping between the three datasets. By doing so we ensured that the evaluation carried minimal bias, as the models had not seen any of the frames in the validation and test set during its training. However, different frames of the same video sequence could appear across the three sets, which could potentially carry some bias, as the same person appear accross the multiple sets. Instead, it would most likely have been better if we made sure that the same sets had no overlapping video sequences, as this would lower the likelihood of introducing any evaluation bias.

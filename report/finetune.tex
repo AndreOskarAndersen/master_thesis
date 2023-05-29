@@ -6,17 +6,17 @@
 As we now have finetuned our models, we need to finetune the models, such that they are specialized to yield optimial results on the ClimbAlong dataset. The following section describes the finetuning of these models. This includes the preprocessing of the data, the configuration details we use, as well as the obtained results.
 \\
 \\
-In the finetuning stage we will be using the already developed pose-estiamtor to train our temporal-inclusive models. However, we will be freezing the pose-estimator, such that the weights of the model will not change during the training and we will thus only train our temporal-inclusive models. We do this as (1) the training of the models will be quicker, as we just need to train the temporal-inclusive models and not the already developed pose-estimator, and (2) we get an greater understanding of the effects of our models when combined with the pose-estimator, as we can clearly see how big of a difference it makes by adding our temporal-inclusive models.
+In the finetuning stage we will be using the keypoint detector to train our temporal-inclusive models. However, we will be freezing the pose estimator, such that the weights of the model will not change during the training and we will thus only train our temporal-inclusive models. We do this as (1) the training of the models will be quicker, as we just need to train the temporal-inclusive models and not the keypoint detector, and (2) we get an greater understanding of the effects of our models when combined with the pose estimator, as we can clearly see how big of a difference it makes by adding our temporal-inclusive models.
 \\
 \\
 In section \ref{sec:finetune_data_preprocessing} we cover the preprocessing of the finetune dataset. Then, in section \ref{sec:pretrain_details} we cover the used configuration for the finetuning. Then, in section \ref{subsec:finetune_train_val_res} and section \ref{subsec:finetune_test_res} we cover the training and validation results, as well as the testing results, respectively. Lastly, in section \ref{sec:finetune_tech_details} we cover the technical details of the finetuning.
 
 \subsection{Data Preprocessing}
 \label{sec:finetune_data_preprocessing}
-For the ClimbAlong dataset we perform only minor preprocessing. First, the preprocessing of each video is done by having the already developed pose-estimator process the video, such that we have the output heatmaps of the pose-estimator, containing all of the pose-estimations of each video. Next, we preprocess the heatmaps by setting all negative values to $0$ and normalizing each heatmap, such that each heatmap sums up to the fixed value $c = 255$ that we used when preprocessing the BRACE and Penn Action datasets, essentially making the heatmaps more similar to the preprocessed heatmaps of BRACE and Penn Action. These heatmaps will then be used as the input for our models.
+For the ClimbAlong dataset we perform only minor preprocessing. First, the preprocessing of each video is done by having the keypoint detector process the video, such that we have the output heatmaps of the pose estimator, containing all of the pose-estimations of each video. Next, we preprocess the heatmaps by setting all negative values to $0$ and normalizing each heatmap, such that each heatmap sums up to the fixed value $c = 255$ that we used when preprocessing the BRACE and Penn Action datasets, essentially making the heatmaps more similar to the preprocessed heatmaps of BRACE and Penn Action. These heatmaps will then be used as the input for our models.
 \\
 \\
-For the groundtruth heatmaps we create twenty five heatmaps of each frame, similarly to how we did it for the BRACE and Penn Action datasets, however, in this case we use the predicted bounding-box of the pose-estimator as our bounding-box. In cases where the groundtruth keypoint is placed outside of the bounding-box, we place the groundtruth keypoint at the closest border of the bounding-box.
+For the groundtruth heatmaps we create twenty five heatmaps of each frame, similarly to how we did it for the BRACE and Penn Action datasets, however, in this case we use the predicted bounding-box of the pose estimator as our bounding-box. In cases where the groundtruth keypoint is placed outside of the bounding-box, we place the groundtruth keypoint at the closest border of the bounding-box.
 
 \subsection{Training Details}
 \label{sec:pretrain_details}
@@ -35,7 +35,7 @@ As this dataset is much smaller the the dataset used during the pretraining-stag
 \textbf{Experiments} As the finetuning dataset is so small, the fitting of the models are very quick, making us fit all of the 26 developed models from the pretraining stage, instead of us picking which models we should finetune. For each model we pick the epoch from the pretraining stage, that yielded the highest validation accuracy and use that for finetuning.
 \\
 \\
-\textbf{Training Configuration} The optimization parameters are very similar to the ones from the pretraining stage. We again use the ADAM optimzer with a batch size of $16$ and the MSE loss-function. During training, we again keep track of the lowest reached validation loss of an epoch and use learning-rate reduction and early-stopping in a similar manner to how we did in the pretraining stage. However, unlike the pretraining stage, we here use a smaller iniitial learning rate of $10^{-4}$, as the weights only need to be fineadjusted, making us believe that a greater learning rate would skew the weights too much.
+\textbf{Training Configuration} The optimization parameters are very similar to the ones from the pretraining stage. We again use the MSE loss-function, a batch size of $16$, and the ADAM optimizer with an initial learning rate of $10^{-3}$, and $\rho_1 = 0.9$ and $\rho_{2} = 0.999$ as these three values were suggested by \cite{DL_book}. During training, we again keep track of the lowest reached validation loss of an epoch and use learning rate reduction and early-stopping in a similar manner to how we did in the pretraining stage. However, unlike the pretraining stage, we here use a smaller iniitial learning rate of $10^{-4}$, as the weights only need to be fineadjusted, making us believe that a greater learning rate would skew the weights too much.
 
 \subsection{Training and Validation Results}
 \label{subsec:finetune_train_val_res}
@@ -77,7 +77,7 @@ As this dataset is much smaller the the dataset used during the pretraining-stag
     \end{subfigure}
     \hfill
     
-    \caption{Evolution of the training loss, validation loss and validation PCK@0.05 accuracy of the 24 models during training, as well as the validation PCK@0.05 accuracy of the identity function of the two datasets. The dots indicates a reduction of learning-rate. First row: 3DConv. Second row: DeciWatch. Third row: Bidirectional Convolutional LSTM with summing. Fourth row: Bidirectional Convolutional LSTM with concatenation.}
+    \caption{Evolution of the training loss, validation loss and validation PCK@0.05 accuracy of the 24 models during training, as well as the validation PCK@0.05 accuracy of the identity function of the two datasets. The dots indicates a reduction of learning rate. First row: 3DConv. Second row: DeciWatch. Third row: Bidirectional Convolutional LSTM with summing. Fourth row: Bidirectional Convolutional LSTM with concatenation.}
     \label{fig:finetune_res}
 \end{figure}
 

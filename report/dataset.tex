@@ -3,7 +3,7 @@
 \begin{document}
 \section{Dataset}
 \label{sec:dataset}
-To perform the pose estimation in section \ref{sec:pretraining} and section \ref{sec:finetuning}, we need some data on which to train, validate and test our models. The following section describes the datasets that will be used. This starts off in section \ref{sec:ClimbAlong}, where we describe the dataset provided by ClimbAlong. This is then followed by section \ref{sec:BRACE} and section \ref{sec:PA}, where we describe the datasets that we will be used during pretraining of our models.
+To perform the pose estimation in section \ref{sec:pretraining} and section \ref{sec:finetuning}, we need some data on which to train, validate and test our models. The following section describes the datasets that will be used. This starts off in section \ref{sec:ClimbAlong}, where we describe the dataset provided by ClimbAlong. This is then followed by section \ref{sec:dataset_pretraining}, where we describe the datasets that we will be using during pretraining of our models.
 
 \begin{table}[htbp]
     \begin{tabular}{|l|c|c|c|c|}
@@ -42,7 +42,7 @@ To perform the pose estimation in section \ref{sec:pretraining} and section \ref
     \label{tab:keypoints}
 \end{table}
 
-\subsection{The ClimbAlong Dataset}
+\subsection{The Finetuning Dataset}
 \label{sec:ClimbAlong}
 \begin{figure}[htbp]
     \centering
@@ -107,12 +107,16 @@ To perform the pose estimation in section \ref{sec:pretraining} and section \ref
     \label{fig:CA_dataset_quick}
 \end{figure}
 
-As the aim of our models is to perform well on climbers, we will be using some annotated data of climbers. For this, ClimbAlong has developed a dataset that we will be using. The dataset consists of videos of various climbers on bouldering walls, where each video contains just a single climber. Figure \ref{fig:CA_dataset_static} and \ref{fig:CA_dataset_quick} illustrates two windows of five consecutive frames of a single video from the ClimbAlong dataset. As shown in the figures, the videos in the dataset contains both static positions, where the climber holds a position for a while, as well as quick movements.
+As the aim of our models is to perform well on climbers, we will be using some annotated data of climbers. For this, ClimbAlong has developed a dataset that we will be using. The dataset consists of videos of various climbers on bouldering walls, where each video contains just a single climber. Figure \ref{fig:CA_dataset_static} and \ref{fig:CA_dataset_quick} illustrates two windows of five consecutive frames of a single video from the ClimbAlong dataset. As shown in the figures, the videos in the dataset contains both static movements, where the climber holds a position for a while, as well as quick movements.
 \\
 \\
-The dataset consists of $30$ fully annotated videos and a total of $10,293$ fully annotated frames, where each annotation consists of $25$ keypoints. Table \ref{tab:keypoints} gives an overview of which keypoints are annotated in the dataset. Each videos is filmed in portrait mode with a resolution of $1080 \times 1920$ and $30$ frames per second.
+The dataset consists of $30$ fully annotated videos and a total of $10,293$ fully annotated frames, where each annotation consists of $25$ keypoints. Table \ref{tab:keypoints} gives an overview of which keypoints are annotated in the dataset. Each videos is filmed in portrait mode with a resolution of $1080 \times 1920$ and $30$ frames per second. We will throughout this project be referring to this dataset as either the \textbf{ClimbAlong dataset} or the \textbf{finetuning dataset}.
 
-\subsection{The BRACE Dataset}
+\subsection{The Pretraining Dataset}
+\label{sec:dataset_pretraining}
+As we will in section \ref{sec:pretraining} be pretraining our models before specializing our models on bouldering, we will be requiring some pretraining data. For this we use the BRACE dataset \cite{BRACE} and parts of the Penn Action dataset \cite{penn_action}. We chose these datasets, as they are rather similar to the ClimbAlong dataset, as they also mostly consist of unusual movements and only very few usual movements, such as walking. Genrally, the movements of BRACE tend to be quicker than the movements of ClimbAlong, whereas the movements of Penn Action tend to be of a more similar pace. Thus, by incorporating both BRACE and Penn Action, we should capture both the fast and slow movements of the ClimbAlong dataset. The following section introduces these datasets for pretraining.
+
+\subsubsection{The BRACE Dataset}
 \label{sec:BRACE}
 \begin{figure}[htbp]
     \centering
@@ -177,15 +181,15 @@ The dataset consists of $30$ fully annotated videos and a total of $10,293$ full
     \label{fig:BRACE_dataset_quick}
 \end{figure}
 
-\noindent The second dataset we will be using is the \textit{BRACE} dataset \cite{BRACE}. This dataset consists of $1,352$ video sequences and a total of $334,538$ frames with keypoints annotations of breakdancers. The frames of the video sequences have a resolution of $1920 \times 1080$ \cite{BRACE}.
+\noindent The first pretraining dataset we will be using is the BRACE dataset \cite{BRACE}. This dataset consists of $1,352$ video sequences and a total of $334,538$ frames with keypoints annotations of breakdancers. The frames of the video sequences have a resolution of $1920 \times 1080$ \cite{BRACE}.
 \\
 \\
-We chose to use this dataset as breakdancers tend to swap between static and quick poses, as well as containing some acrobatic poses, similarly to the ones seen in the ClimbAlong dataset. Generally, the movements of the BRACE dataset are quicker than the movements of the ClimbAlong dataset. The static poses of the BRACE dataset tend to occur less frequently than the static poses of the the ClimbAlong dataset, as well as the quick movements tend to be quicker than the quick movements of the ClimbAlong dataset. However, as both the actors of both datasets swap between static and quick poses, as well as both datasets containing acrobatic poses, we found the BRACE dataset relevant for our experiments. Figure \ref{fig:BRACE_dataset_static} and \ref{fig:BRACE_dataset_quick} contains two consecutive sequences, each of five frames, that illustrates these two cases.
+Generally, the movements of the BRACE dataset are quicker than the movements of the ClimbAlong dataset. Similarly, the annotated person of BRACE tend to swap between static and quick movements just like the annotated person of the ClimbAlong dataset. The static poses of the BRACE dataset tend to occur less frequently than the static poses of the the ClimbAlong dataset, as well as the quick movements tend to be quicker than the quick movements of the ClimbAlong dataset. Figure \ref{fig:BRACE_dataset_static} and \ref{fig:BRACE_dataset_quick} contains two consecutive sequences, each of five frames, that illustrates these two cases.
 \\
 \\
 The frames of the video sequences have been annotated by initially using state-of-the-art human pose estimators to extract automatic poses. This was then followed by manually annotating bad keypoints, corresponding to difficult poses, as well as pose outliers. Finally, the automatic and manual annotations were merged by using interpolating. Each frame-annotation consists of $17$ keypoints, following the COCO-format, as illustrated in Table \ref{tab:keypoints} \cite{BRACE}.
 
-\subsection{The Penn Action Dataset}
+\subsubsection{The Penn Action Dataset}
 \label{sec:PA}
 \begin{table}
     \begin{tabular}[htbp]{lllllllllllllll}
@@ -229,13 +233,13 @@ The frames of the video sequences have been annotated by initially using state-o
     \caption{Example of five consecutive frames of a video from the Penn Action dataset with the corresponding groundtruth keypoints \cite{penn_action}.}
     \label{fig:PA_dataset}
 \end{figure}
-The final dataset we will be using is the \textit{Penn Action} dataset \cite{penn_action}. This dataset consists of $2,326$ video sequences of $15$ different action-types. Table \ref{tab:PA_actions} lists these $15$ action-types \cite{penn_action}. Each frame have a resolution within the size of $640 \times 480$ \cite{penn_action}.
+The second pretraining dataset we will be using is the Penn Action dataset \cite{penn_action}. This dataset consists of $2,326$ video sequences of $15$ different action-types. Table \ref{tab:PA_actions} lists these $15$ action-types \cite{penn_action}. Each frame have a resolution within the size of $640 \times 480$ \cite{penn_action}.
 \\
 \\
-Each sequence has been manually annotated with human joint annotation, consisting of $13$ joints as well as a corresponding binary visibility-flag for each joint. The handling of the non-visible keypoints is very inconsistent, as the position of some of the keypoints have been estimated, whereas for others it have been placed near one of the corners the image.
+Each sequence has been manually annotated with human joint annotation, consisting of $13$ joints as well as a corresponding binary visibility-flag for each joint. The handling of the non-visible keypoints is very inconsistent, as the position of some of the keypoints have been estimated, whereas for others it have been placed near one of the corners of the frame.
 \\
 \\
-Unlike the BRACE dataset, most of the poses in the Penn Action dataset are not very unusual and thus are not very relevant for the poses of climbers. For that reason, we have decided to focus on the action-types that may contain more unusual poses. Thus, we only keep the keypoints that have \texttt{baseball\_pitch}, \texttt{bench\_press} or \texttt{sit\_ups} as their corresponding action-type \cite{penn_action}. Further, the movements of the Penn Action dataset tend to be of a more similar pace to the ClimbAlong dataset than the BRACE dataset, making the Penn Action dataset relevant for our task.
+Unlike the BRACE dataset, most of the poses in the Penn Action dataset are not very unusual and thus are not very relevant for the poses of climbers. For that reason, we have decided to focus on the action-types that may contain more unusual poses. Thus, we only keep the keypoints that have \texttt{baseball\_pitch}, \texttt{bench\_press} or \texttt{sit\_ups} as their corresponding action-type \cite{penn_action}.
 \\
 \\
 In total, we use $307$ video sequences from the Penn Action dataset, consisting of a total of $26,036$ frames. Figure \ref{fig:PA_dataset} illustrates five consecutive frames with its groundtruth annotations for one of these video sequences.

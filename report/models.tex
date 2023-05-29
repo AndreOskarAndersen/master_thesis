@@ -3,7 +3,7 @@
 \begin{document}
 \section{Models}
 \label{sec:models}
-The following section goes into details with the models from section \ref{sec:model_choice}, that we will also be experimenting with in section \ref{sec:pretraining} and section \ref{sec:finetuning}. The section starts off with section \ref{sec:3DConv}, where we describe the architecture behind the most simple models we will be implementing. Throughout section \ref{sec:bi-ConvLSTMs} we describe the architecture behind the two different bidirectional convolutional LSTMs that we will be experimenting with. This is then followed by section \ref{sec:deciwatch}, where we cover the architecture of our Transformer-based model. Lastly, in section \ref{sec:Mask_RCNN}, we give a brief overview of the already developed pose-estimator.
+The following section goes into details with the models from section \ref{sec:model_choice}, that we will also be experimenting with in section \ref{sec:pretraining} and section \ref{sec:finetuning}. The section starts off with section \ref{sec:3DConv}, where we describe the architecture behind the most simple models we will be implementing. Throughout section \ref{sec:bi-ConvLSTMs} we describe the architecture behind the two different bidirectional convolutional LSTMs that we will be experimenting with. This is then followed by section \ref{sec:deciwatch}, where we cover the architecture of our Transformer-based model. Lastly, in section \ref{sec:Mask_RCNN}, we give a brief overview of the already developed keypoint detector.
 
 \subsection{3DConv}
 \label{sec:3DConv}
@@ -100,7 +100,7 @@ To avoid overfitting, dropout is applied to the input of each sub-layer and sums
 
 \subsection{Mask R-CNN for Human Pose Estimation}
 \label{sec:Mask_RCNN}
-The last model we will be using is the \textit{Mask R-CNN for human pose estimation} as introduced by He \textit{Et al.} in 2017 \cite{https://doi.org/10.48550/arxiv.1703.06870}. Unlike the previously described model, we will not be implementing this model, but instead use an already implemented and trained model on the ClimbAlong dataset, which has been provided by ClimbAlong A/S. As we will not be implementing this model, we will here not go into the details of how the model works, but instead just give a brief overview of the model.
+The last model we will be using is the \textit{Mask R-CNN for human pose estimation} as introduced by He \textit{Et al.} in 2017 \cite{https://doi.org/10.48550/arxiv.1703.06870}. Unlike the previously described model, we will not be implementing this model, but instead use an already  developed model on the ClimbAlong dataset, which has been provided by ClimbAlong A/S. As we will not be implementing this model, we will here not go into the details of how the model works, but instead just give a brief overview of the model. We will throughout this project be refering to this already developed model as the \textbf{keypoint detector}.
 \\
 \\
 The model takes a single rgb-image with height $h_{in} \in \mathbb{N}$ and width $w_{in} \in \mathbb{N}$ as input and returns $K \in \mathbb{N}$ heatmaps of height $h_{out} \in \mathbb{N}$ and width $w_{out} \in \mathbb{N}$ such that each heatmap corresponds to a single keypoint where the position of the element with the greatest value corresponds is the location of the predicted keypoint. The Mask R-CNN by ClimbAlong A/S uses $h_{out} = w_{out} = 56$ and $K = 25$.
