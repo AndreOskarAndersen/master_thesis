@@ -16,6 +16,8 @@ from utils import make_dir
 from config import finetune_dataset_path, pretrained_models_path, finetune_saving_path, finetune_params
 from tqdm.auto import tqdm
 
+regualize = False
+
 def main():
     noise_scalar = sys.argv[1]
     models_dir = pretrained_models_path + noise_scalar + "/"
@@ -49,17 +51,16 @@ def main():
         
         # Finding the best version of the current model
         best_model_idx = np.argmax(np.load(model_dir + "val_accs.npy"))
-        if best_model_idx == 0:
-            best_model_idx = np.argsort(np.load(model_dir + "val_accs.npy"))[-2]
             
         # Loading the best version of the current model
         model = models_dict[model_type](**model_config["model_params"])
         model.load_state_dict(torch.load(model_dir + str(best_model_idx) + "/" + "model.pth", map_location=torch.device("cpu")))
         
-        for param in model.parameters():
-            param.requires_grad = False
+        if regualize:
+            for param in model.parameters():
+                param.requires_grad = False
             
-        model.recover_net.linear_rd = nn.Linear(128, 25*2)
+            model.recover_net.linear_rd = nn.Linear(128, 25*2)
         
         model = model.to(device)
         
@@ -76,40 +77,42 @@ def main():
             interval_skip=model_config["data_params"]["interval_skip"],
             upper_range=model_config["data_params"]["upper_range"],
             dataset_type="CA",
-            augment_data=True
+            augment_data=regualize
         )
         
         # Creating various objects
-        optimizer = optim.Adam(model.parameters(), lr=finetune_params["learning_rate"], weight_decay=0.001)
+        optimizer = optim.Adam(model.parameters(), lr=finetune_params["learning_rate"])#, weight_decay=0.001)
         scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=finetune_params["scheduler_reduce_factor"], patience=finetune_params["scheduler_patience"])
         criterion = torch.nn.MSELoss()
         
         # Training the model
-        train(
-            model,
-            train_dataloader,
-            eval_dataloader,
-            test_dataloader,
-            criterion,
-            optimizer,
-            finetune_params["max_epochs"],
-            device,
-            finetune_params["early_stopping_patience"],
-            finetune_params["min_delta"],
-            training_path,
-            finetune_params["disable_tqdm"],
-            scheduler=scheduler, 
-            data_transformer=data_transformer,
-            pre_val=True,
-            norm=0.05
-        )
+        if model_name != "deciwatch_1684938562.615292":
+            train(
+                model,
+                train_dataloader,
+                eval_dataloader,
+                test_dataloader,
+                criterion,
+                optimizer,
+                finetune_params["max_epochs"],
+                device,
+                finetune_params["early_stopping_patience"],
+                finetune_params["min_delta"],
+                training_path,
+                finetune_params["disable_tqdm"],
+                scheduler=scheduler, 
+                data_transformer=data_transformer,
+                pre_val=True,
+                norm=0.05
+            )
         
         # Finding the best version of the current model
         best_model_idx = np.argmax(np.load(training_path + "val_accs.npy"))
         if best_model_idx == 0:
-            best_model_idx = np.argsort(np.load(training_path + "val_accs.npy"))[-2]
+            training_path = pretrained_models_path + sys.argv[1] + "/" + model_name + "/"
+            best_model_idx = np.argmax(np.load(model_dir + "val_accs.npy")) + 1
             
-         # Loading the best version of the current model
+        # Loading the best version of the current model
         model_type = model_name.split("_")[0].replace("newdeciwatch", "deciwatch")
         model = models_dict[model_type](**model_config["model_params"])
         model.load_state_dict(torch.load(training_path + str(best_model_idx) + "/" + "model.pth", map_location=torch.device("cpu")))
@@ -119,10 +122,18 @@ def main():
         _, test_acc_05 = evaluate(model, test_dataloader, torch.nn.MSELoss(), device, data_transformer=data_transformer, norm=0.05)
         _, test_acc_1 = evaluate(model, test_dataloader, torch.nn.MSELoss(), device, data_transformer=data_transformer, norm=0.1)
         _, test_acc_2 = evaluate(model, test_dataloader, torch.nn.MSELoss(), device, data_transformer=data_transformer, norm=0.2)
-        test_kpts_acc = evaluate_kpts(model, test_dataloader, device, data_transformer=data_transformer)
+        test_kpts_acc_05 = evaluate_kpts(model, test_dataloader, device, data_transformer=data_transformer, norm=0.05)
+        test_kpts_acc_10 = evaluate_kpts(model, test_dataloader, device, data_transformer=data_transformer, norm=0.10)
+        test_kpts_acc_20 = evaluate_kpts(model, test_dataloader, device, data_transformer=data_transformer, norm=0.20)
         
         print("===================================")
-        print(f"Model: {model_name}, PCK@0.05: {test_acc_05}, PCK@0.1: {test_acc_1}, PCK@0.2: {test_acc_2}, kpts: {test_kpts_acc}")
+        print(f"Model: {model_name}, PCK@0.05: {test_acc_05}, PCK@0.1: {test_acc_1}, PCK@0.2: {test_acc_2}")
+        print()
+        print(f"kpts 0.05: {test_kpts_acc_05}")
+        print()
+        print(f"kpts 0.10: {test_kpts_acc_10}")
+        print()
+        print(f"kpts 0.20: {test_kpts_acc_20}")
         print("===================================")
         
     
