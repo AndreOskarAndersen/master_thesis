@@ -55,6 +55,10 @@ def main(overall_models_dir: str, training_path, model_name, dataloaders, model,
     )
 
 if __name__ == "__main__":
+    if not torch.cuda.is_available():
+        print("CUDA NOT AVAILABLE")
+        exit(0)
+
     argv = int(sys.argv[1])
     args = {0: (0, 0, 1), 1: (1, 0, 1), 2: (0, 1, 1), 3: (0, 0, 2), 4: (1, 0, 2), 5: (0, 1, 2)}
     args = args[argv]
@@ -64,7 +68,7 @@ if __name__ == "__main__":
     input_max_range = {0: 1, 1: 255}
     data_params["input_name"] = "input" if args[0] else "input_std"
     data_params["interval_skip"] = args[1]
-    data_params["upper_range"] = 255
+    data_params["upper_range"] = 1
     data_params["dir_path"] = f"../../data/processed_{args[-1]}/"
     
     # Device to use
@@ -72,7 +76,7 @@ if __name__ == "__main__":
     
     # Collecting model params
     unipose2_params["device"] = device
-    unipose2_params["upper_range"] = 255
+    unipose2_params["upper_range"] = 1
     
     model = Unipose2(**unipose2_params).to(device)
     

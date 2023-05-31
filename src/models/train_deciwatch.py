@@ -51,7 +51,8 @@ def main(overall_models_dir: str, training_path, model_name, dataloaders, model,
         training_path,
         disable_tqdm,
         scheduler=scheduler,
-        data_transformer=data_transformer
+        data_transformer=data_transformer,
+        pre_val=True,
     )
 
 if __name__ == "__main__":
