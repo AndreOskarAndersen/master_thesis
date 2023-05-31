@@ -61,8 +61,8 @@ Lastly, one major reason behind the performance differences behind the models on
         bi-Conv LSTM Model C & 76.3 & 77.4 & 77.3 & 77.1 & 77.2 & 76.4 & 77.0 \\
         \hline
     \end{tabular}
-    \label{tab:finetune_mean_res}
     \caption{Mean of testing PCK$@0.05$, PCK$@0.1$, and PCK$@0.2$ of each finetuning run.}
+    \label{tab:finetune_mean_res}
 \end{table}\
 
 \begin{table}[htbp]
@@ -78,13 +78,13 @@ Lastly, one major reason behind the performance differences behind the models on
         bi-Conv LSTM Model C & $20.1$ & $6.93 \times 10^{-2}$ & 1,872313 \\
         \hline
     \end{tabular}
-    \label{tab:model_measurements}
     \caption{Mean prediction time of each architecture on a single window from the whole finetune dataset, as well as the total number of parameters of each architecture. The time measurements are based on five runs and were measure on the machine described in section \ref{sec:finetune_tech_details}.}
+    \label{tab:model_measurements}
 \end{table}
 \noindent As we have now fuly developed and tested all of our models on all three experiments, we can decide which models yield the best results for temporal smoothing in bouldering.
 \\
 \\
-We have in Figure \ref{tab:finetune_mean_res} written the mean testing PCK$@0.05$, PCK$@0.1$, and PCK$@0.2$ of each finetuning run. Based on these numbers it seems like DeciWatch 1.1/1.2 would be the models to pick, as these yield the highest testing accuracy, based on the average PCK$@0.05$, PCK$@0.1$, and PCK$@0.2$ accuracies. However, as we know from section \ref{subsec:finetune_res_res}, DeciWatch 1.1/1.2 delivers some of the least optimal results when considering PCK$@0.2$. On the other hand, if we instead consider PCK$@0.05$, then DeciWatch is generally the model that delivers the greatest results and by quite a big margin.
+We have in Figure \ref{tab:finetune_mean_res} written the mean testing PCK$@0.05$, PCK$@0.1$, and PCK$@0.2$ of each finetuning run. Based on these numbers it seems like DeciWatch 1.1/1.2 would be the models to pick, as these yield the highest testing accuracy, based on the average PCK$@0.05$, PCK$@0.1$, and PCK$@0.2$ accuracies. However, as we know from section \ref{subsec:finetune_test_res}, DeciWatch 1.1/1.2 delivers some of the least optimal results when considering PCK$@0.2$. On the other hand, if we instead consider PCK$@0.05$, then DeciWatch is generally the model that delivers the greatest results and by quite a big margin.
 \\
 \\
 Thus, if one is looking for the run that is on average delivering the greatest results, then DeciWatch 1.1 or 1.2 would be the ideal choice. However, if one is just looking for a rough estimation of the position of the keypoints, then bi-ConvLSTM Model C 1.1 would be the ideal choice, as we know from section \ref{subsec:finetune_test_res}, that this run delivers the highest PCK$@0.2$ testing accuracy, at the cost of one of the lowest PCK$@0.05$ testing accuracies.

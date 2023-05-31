@@ -64,7 +64,7 @@ As this dataset is much smaller the the dataset used during the pretraining-stag
     \includegraphics[width=0.32\textwidth]{./entities/finetuned/unipose/train_losses.png}
     \includegraphics[width=0.32\textwidth]{./entities/finetuned/unipose/val_losses.png}
     \includegraphics[width=0.32\textwidth]{./entities/finetuned/unipose/val_accs.png}
-    \caption{Finetuning results of the bidirectional convolutional LSTM with summing.}
+    \caption{Finetuning results of bi-Conv LSTM Model S.}
     \end{subfigure}
     \hfill
 
@@ -73,11 +73,11 @@ As this dataset is much smaller the the dataset used during the pretraining-stag
         \includegraphics[width=0.32\textwidth]{./entities/finetuned/unipose2/train_losses.png}
         \includegraphics[width=0.32\textwidth]{./entities/finetuned/unipose2/val_losses.png}
         \includegraphics[width=0.32\textwidth]{./entities/finetuned/unipose2/val_accs.png}
-        \caption{Finetuning results of the bidirectional convolutional LSTM with concatenation.}
+        \caption{Finetuning results of bi-Conv LSTM Model C.}
     \end{subfigure}
     \hfill
     
-    \caption{Evolution of the training loss, validation loss and validation PCK@0.05 accuracy of the 24 models during training, as well as the validation PCK@0.05 accuracy of the identity function of the two datasets. The dots indicates a reduction of learning rate. First row: 3DConv. Second row: DeciWatch. Third row: Bidirectional Convolutional LSTM with summing. Fourth row: Bidirectional Convolutional LSTM with concatenation.}
+    \caption{Evolution of the training loss, validation loss and validation PCK@0.05 accuracy of the 24 models during training, as well as the validation PCK@0.05 accuracy of the identity function of the two datasets. The dots indicates a reduction of learning rate. First row: 3DConv. Second row: DeciWatch. Third row: Finetuning results of bi-Conv LSTM Model S. Fourth row: Finetuning results of bi-Conv LSTM Model C.}
     \label{fig:finetune_res}
 \end{figure}
 
@@ -236,9 +236,9 @@ Like in the pretraining stage, there does not seem to be any major performance d
             Total & 95.7 & 95.7 & 95.8 & 94.4 & 94.3 & 87.3 & 91.8 & 92.1 & 92.2 & 93.1 & 93.6 & 92.6 & \\
             \hline
         \end{tabular}
-        \caption{Keypoint-specific testing PCK@0.1-accuracies of the various models for shiting-scalar $s = 1$. All the accuracies are in percentage.}
-        \label{tab:finetune_kpts_test_accs_1_1}
     \end{adjustbox}
+    \caption{Keypoint-specific testing PCK@0.1-accuracies of the various models for shifting-scalar $s = 1$. All the accuracies are in percentage.}
+    \label{tab:finetune_kpts_test_accs_1_1}
 \end{table}
 
 \begin{table}[htbp]
@@ -267,15 +267,15 @@ Like in the pretraining stage, there does not seem to be any major performance d
             Total & 95.5 & 95.5 & 95.8 & 94.2 & 94.2 & 74.9 & 92.7 & 92.1 & 91.2 & 92.5 & 92.9 & 92.6 & \\
             \hline
         \end{tabular}
-        \caption{Keypoint-specific testing PCK@0.1-accuracies of the various models for shiting-scalar $s = 2$. All the accuracies are in percentage.}
-        \label{tab:finetune_kpts_test_accs_1_2}
     \end{adjustbox}
+    \caption{Keypoint-specific testing PCK@0.1-accuracies of the various models for shifting-scalar $s = 2$. All the accuracies are in percentage.}
+    \label{tab:finetune_kpts_test_accs_1_2}
 \end{table}
 
 \noindent We have in Table \ref{tab:finetune_kpts_test_accs_1_1} and Table \ref{tab:finetune_kpts_test_accs_1_2} illustrated the keypoint specific PCK$0.1$ testing accuracies of the models. For similar tables for PCK$@0.05$ and PCK$@0.2$ see Table \ref{tab:finetune_kpts_test_accs_05_1}-\ref{tab:finetune_kpts_test_accs_2_2} in the appendix. By comparing these two tables to the equivalent tables from section \ref{subsec:pretrain_train_val_res} we see, that the most difficult keypoints are no longer the wrists and ankles, but generally are instead the pinkies, the index fingers and the thumbs, on which the models generally performs much worse than on the remaining keypoints.
 \\
 \\
-For some illustrations of the predictions of the best setup of each model based on Table \ref{finetune_test_accs_1} and Table \ref{finetune_test_accs_2}, see Figure \ref{fig:predictions} in the appendix.
+For some illustrations of the predictions of the best setup of each model based on Table \ref{tab:finetune_test_accs_1} and Table \ref{tab:finetune_test_accs_2}, see Figure \ref{fig:predictions} in the appendix.
 
 \subsection{Technical Details}
 \label{sec:finetune_tech_details}
