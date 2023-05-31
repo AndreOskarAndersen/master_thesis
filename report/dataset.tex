@@ -71,7 +71,7 @@ To perform the pose estimation in section \ref{sec:pretraining} and section \ref
         \includegraphics[width=\textwidth]{entities/CA_21.png}
         \caption{Frame 21}
     \end{subfigure}
-    \caption{Example of five consecutive frames of a video from the ClimbAlong dataset with the corresponding groundtruth keypoints, where the actor holds his position for a while.}
+    \caption{Example of five consecutive frames of a video from the ClimbAlong dataset with the corresponding ground truth keypoints, where the actor holds his position for a while.}
     \label{fig:CA_dataset_static}
 \end{figure}
 
@@ -103,7 +103,7 @@ To perform the pose estimation in section \ref{sec:pretraining} and section \ref
         \caption{Frame 35}
     \end{subfigure}
 
-    \caption{Example of five consecutive frames of a video from the ClimbAlong dataset with the corresponding groundtruth keypoints, where the actor performs a quick movement.}
+    \caption{Example of five consecutive frames of a video from the ClimbAlong dataset with the corresponding ground truth keypoints, where the actor performs a quick movement.}
     \label{fig:CA_dataset_quick}
 \end{figure}
 
@@ -146,7 +146,7 @@ As we will in section \ref{sec:pretraining} be pretraining our models before spe
         \caption{Frame 2454}
     \end{subfigure}
 
-    \caption{Example of five consecutive frames of a video from the BRACE dataset with the corresponding groundtruth keypoints, where the actor holds his position for a while \cite{BRACE}.}
+    \caption{Example of five consecutive frames of a video from the BRACE dataset with the corresponding ground truth keypoints, where the actor holds his position for a while \cite{BRACE}.}
     \label{fig:BRACE_dataset_static}
 \end{figure}
 
@@ -177,7 +177,7 @@ As we will in section \ref{sec:pretraining} be pretraining our models before spe
         \includegraphics[width=\textwidth]{entities/BRACE_1152.png}
         \caption{Frame 1152}
     \end{subfigure}
-    \caption{Example of five consecutive frames of a video from the BRACE dataset with the corresponding groundtruth keypoints, where the actor performs a quick movement \cite{BRACE}.}
+    \caption{Example of five consecutive frames of a video from the BRACE dataset with the corresponding ground truth keypoints, where the actor performs a quick movement \cite{BRACE}.}
     \label{fig:BRACE_dataset_quick}
 \end{figure}
 
@@ -230,7 +230,7 @@ The frames of the video sequences have been annotated by initially using state-o
         \includegraphics[width=\textwidth]{entities/PA_64.png}
         \caption{Frame 1152}
     \end{subfigure}
-    \caption{Example of five consecutive frames of a video from the Penn Action dataset with the corresponding groundtruth keypoints \cite{penn_action}.}
+    \caption{Example of five consecutive frames of a video from the Penn Action dataset with the corresponding ground truth keypoints \cite{penn_action}.}
     \label{fig:PA_dataset}
 \end{figure}
 The second pretraining dataset we will be using is the Penn Action dataset \cite{penn_action}. This dataset consists of $2,326$ video sequences of $15$ different action-types. Table \ref{tab:PA_actions} lists these $15$ action-types \cite{penn_action}. Each frame have a resolution within the size of $640 \times 480$ \cite{penn_action}.
@@ -242,6 +242,6 @@ Each sequence has been manually annotated with human joint annotation, consistin
 Unlike the BRACE dataset, most of the poses in the Penn Action dataset are not very unusual and thus are not very relevant for the poses of climbers. For that reason, we have decided to focus on the action-types that may contain more unusual poses. Thus, we only keep the keypoints that have \texttt{baseball\_pitch}, \texttt{bench\_press} or \texttt{sit\_ups} as their corresponding action-type \cite{penn_action}.
 \\
 \\
-In total, we use $307$ video sequences from the Penn Action dataset, consisting of a total of $26,036$ frames. Figure \ref{fig:PA_dataset} illustrates five consecutive frames with its groundtruth annotations for one of these video sequences.
+In total, we use $307$ video sequences from the Penn Action dataset, consisting of a total of $26,036$ frames. Figure \ref{fig:PA_dataset} illustrates five consecutive frames with its ground truth annotations for one of these video sequences.
 
 \end{document}

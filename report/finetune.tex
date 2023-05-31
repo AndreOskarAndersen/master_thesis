@@ -3,20 +3,20 @@
 \begin{document}
 \section{Finetuning}
 \label{sec:finetuning}
-As we now have finetuned our models, we need to finetune the models, such that they are specialized to yield optimial results on the ClimbAlong dataset. The following section describes the finetuning of these models. This includes the preprocessing of the data, the configuration details we use, as well as the obtained results.
+As we now have pretrained our models, we need to finetune the models, such that they are specialized to yield optimial results on the ClimbAlong dataset. The following section describes the finetuning of these models. This includes the preprocessing of the data, the configuration details we use, as well as the obtained results.
 \\
 \\
-In the finetuning stage we will be using the keypoint detector to train our temporal-inclusive models. However, we will be freezing the pose estimator, such that the weights of the model will not change during the training and we will thus only train our temporal-inclusive models. We do this as (1) the training of the models will be quicker, as we just need to train the temporal-inclusive models and not the keypoint detector, and (2) we get an greater understanding of the effects of our models when combined with the pose estimator, as we can clearly see how big of a difference it makes by adding our temporal-inclusive models.
+In the finetuning stage we will be using the keypoint detector to train our temporal-inclusive models. However, we will be freezing the pose detector, such that the weights of the model will not change during the training and we will thus only train our temporal-inclusive models. We do this as (1) the training of the models will be quicker, as we just need to train the temporal-inclusive models and not the keypoint detector, and (2) we get an greater understanding of the effects of our models when combined with the pose detector, as we can clearly see how big of a difference it makes by adding our temporal-inclusive models.
 \\
 \\
 In section \ref{sec:finetune_data_preprocessing} we cover the preprocessing of the finetune dataset. Then, in section \ref{sec:pretrain_details} we cover the used configuration for the finetuning. Then, in section \ref{subsec:finetune_train_val_res} and section \ref{subsec:finetune_test_res} we cover the training and validation results, as well as the testing results, respectively. Lastly, in section \ref{sec:finetune_tech_details} we cover the technical details of the finetuning.
 
 \subsection{Data Preprocessing}
 \label{sec:finetune_data_preprocessing}
-For the ClimbAlong dataset we perform only minor preprocessing. First, the preprocessing of each video is done by having the keypoint detector process the video, such that we have the output heatmaps of the pose estimator, containing all of the pose-estimations of each video. Next, we preprocess the heatmaps by setting all negative values to $0$ and normalizing each heatmap, such that each heatmap sums up to the fixed value $c = 255$ that we used when preprocessing the BRACE and Penn Action datasets, essentially making the heatmaps more similar to the preprocessed heatmaps of BRACE and Penn Action. These heatmaps will then be used as the input for our models.
+For the ClimbAlong dataset we perform only minor preprocessing. First, the preprocessing of each video is done by having the keypoint detector process the video, such that we have the output heatmaps of the pose detector, containing all of the pose-estimations of each video. Next, we preprocess the heatmaps by setting all negative values to $0$ and normalizing each heatmap, such that each heatmap sums up to the fixed value $c = 255$ that we used when preprocessing the BRACE and Penn Action datasets, essentially making the heatmaps more similar to the preprocessed heatmaps of BRACE and Penn Action. These heatmaps will then be used as the input for our models.
 \\
 \\
-For the groundtruth heatmaps we create twenty five heatmaps of each frame, similarly to how we did it for the BRACE and Penn Action datasets, however, in this case we use the predicted bounding-box of the pose estimator as our bounding-box. In cases where the groundtruth keypoint is placed outside of the bounding-box, we place the groundtruth keypoint at the closest border of the bounding-box.
+For the ground truth heatmaps we create twenty five heatmaps of each frame, similarly to how we did it for the BRACE and Penn Action datasets, however, in this case we use the predicted bounding-box of the pose detector as our bounding-box. In cases where the ground truth keypoint is placed outside of the bounding-box, we place the ground truth keypoint at the closest border of the bounding-box.
 
 \subsection{Training Details}
 \label{sec:pretrain_details}
@@ -29,13 +29,13 @@ For the groundtruth heatmaps we create twenty five heatmaps of each frame, simil
 \noindent \textbf{Data Configuration} Generally, for the data configuration we follow a similar approach to how we did in the pretraining stage. We again use a window-size of $k = 5$ frames, resulting in a total of $10,173$ windows. Also here are we using $c = 255$ as a representation of the ground truth placement of each keypoint. 
 \\
 \\
-As this dataset is much smaller the the dataset used during the pretraining-stage, we can much more easily introduce some evaluation-bias, hence why we also take much more careful steps. Thus, the splitting of the dataset is different than how we performed it in the pretraining-stage. First, we extract the longest video, such that none of its windows are on the dataset, which we will be used to unsure an unbias evaluation of our models. Next, we use the first $60\%$ of the frame-windows and use those as the training dataset. For the remaining $40\%$ of the frame-windows, we make sure that they have no overlapping frames with training dataset - if they do, the whole window is moved into the training dataset. As we still have to split the remaining $40\%$ of the frame-windows into a validation dataset and a test dataset, we have to make sure, that (1) both datasets use as many video sequences as possible, which is especially important in this case due to the small dataset size, (2) that none of the windows are overlapping among the two datasets, and (3) both datasets sample the windows uniformly distributed throughout the video sequences, as there can be some sepcial movements in certain parts of the video sequences. All of these constraints will make sure that we minimize the evaluation-bias of our models. The splitting of the remaining $40\%$ of the window into two datasets is then done by sorting the non-overlapping windows by their video and by their time of occurence in their corresponding video. Then, if the $i$th window-frame is divisible by two, it is moved into the validation dataset, otherwise it is moved into the test dataset. By doing so we meet all three of our conditions. The overall idea has been illustrated in Figure \ref{fig:CA_splitting}.
+As this dataset is much smaller than the dataset used during the pretraining-stage, we can much more easily introduce some evaluation-bias, hence why we also take much more careful steps. Thus, the splitting of the dataset is different than how we performed it in the pretraining-stage. First, we extract the longest video, such that none of its windows are on the dataset, which we will use to ensure, that our validation and testing of our models is unbiased. Next, we use the first $60\%$ of frame-windows of the remaining part of the dataset and use those as the training dataset. For the other $40\%$ of the frame-windows, we make sure that they have no overlapping frames the with training dataset, as these windows will be used for evaluating the models. If they do have any overlapping frames with the training dataset, the whole window is moved into the training dataset. As we still have to split the remaining $40\%$ of the frame-windows into a validation dataset and a test dataset, we have to make sure, that (1) both datasets use as many video sequences as possible, which is especially important in this case due to the small dataset size, (2) that none of the windows are overlapping between the two datasets, and (3) both datasets sample the windows uniformly distributed throughout the video sequences, as there can be some sepcial movements in certain parts of the video sequences. All of these constraints will make sure that we minimize the evaluation-bias of our models. The splitting of the remaining $40\%$ of the window into two datasets is then done by sorting the non-overlapping windows by their video and by their time of occurence in their corresponding video. Then, if the $i$th window-frame is divisible by two, it is moved into the validation dataset, otherwise it is moved into the test dataset. By doing so we meet all three of our conditions. The overall idea has been illustrated in Figure \ref{fig:CA_splitting}.
 \\
 \\
-\textbf{Experiments} As the finetuning dataset is so small, the fitting of the models are very quick, making us fit all of the 26 developed models from the pretraining stage, instead of us picking which models we should finetune. For each model we pick the epoch from the pretraining stage, that yielded the highest validation accuracy and use that for finetuning.
+\textbf{Experiments} As the finetuning dataset is very small, the fitting of the models are very quick, making us fit all of the 26 developed models from the pretraining stage, instead of us picking which models we should finetune. For each model we pick the epoch from the pretraining stage, that yielded the highest validation PCK@0.2 accuracy and use that for finetuning.
 \\
 \\
-\textbf{Training Configuration} The optimization parameters are very similar to the ones from the pretraining stage. We again use the MSE loss-function, a batch size of $16$, and the ADAM optimizer with an initial learning rate of $10^{-3}$, and $\rho_1 = 0.9$ and $\rho_{2} = 0.999$ as these three values were suggested by \cite{DL_book}. During training, we again keep track of the lowest reached validation loss of an epoch and use learning rate reduction and early-stopping in a similar manner to how we did in the pretraining stage. However, unlike the pretraining stage, we here use a smaller iniitial learning rate of $10^{-4}$, as the weights only need to be fineadjusted, making us believe that a greater learning rate would skew the weights too much.
+\textbf{Training Configuration} The optimization parameters are very similar to the ones from the pretraining stage. We again use the MSE loss-function, a batch size of $16$, and the ADAM optimizer with $\rho_1 = 0.9$ and $\rho_{2} = 0.999$ as these two values were suggested by \cite{DL_book}. During training, we again keep track of the lowest reached validation loss of an epoch and use learning rate reduction and early-stopping in a similar manner to how we did in the pretraining stage. However, unlike the pretraining stage, we here use a smaller initial learning rate of $10^{-4}$, as the weights only need to be fineadjusted, making us believe that a greater learning rate would skew the weights too much.
 
 \subsection{Training and Validation Results}
 \label{subsec:finetune_train_val_res}
@@ -105,7 +105,7 @@ Further, the shifting-scalar seems to only have a minor effect on the models dur
 As seen in Figure \ref{fig:finetune_res}, most of the DeciWatch methods would immediately overfit, as the validation loss increased while the training loss decreased, leading to the validation accuracy decreasing overtime. We performed further experiments, where we implemented various regularization techniques in hopes of this would lower the likelihood of the models overfitting. This was done by (1) freezing the whole network except for the very last fully-connected layer, which we reinitialized randomly, (2) added variance to the data by rotating each window throughout the training with a random degree in the range $[-45, 45]$, and (3) by applying weight decay with $\lambda = 0.001$.
 \\
 \\
-By incorporating these regualrization techniques we obtain the results visualized in Figure \ref{fig:finetune_res_2}. While the training loss doss generally decrease much slower than previously, the validation accuracy is still decreasing, making the best setting of the models without these regualrization methods perform either at the same level or an even better level than the models with regualrization.
+By incorporating these regularization techniques we obtain the results visualized in Figure \ref{fig:finetune_res_2}. While the training loss doss generally decrease much slower than previously, the validation loss is still increasing and the validation PCK@0.2 accuracy is also decreasing, making the best setting of the models without these regularization methods perform either at the same level or an even better level than the models with regularization.
 
 
 \subsection{Test Results}
@@ -127,7 +127,7 @@ By incorporating these regualrization techniques we obtain the results visualize
         bi-ConvLSTM - Model C & 35.9 & 39.0 & 38.5 & 93.1 & 93.6 & 92.6 & \textbf{99.8} & \textbf{99.7} & \textbf{99.7} \\
         \hline
     \end{tabular}
-    \caption{Testing accuracies of the various developed models for shifting-scalar $s = 1$. All the accuracies are in percentage. *: The mean maximum distance between the predicted keypoint and corresponding groundtruth keypoint for the prediction to count as being correct, measured in the heatmap coordinate system.}
+    \caption{Testing accuracies of the various developed models for shifting-scalar $s = 1$. All the accuracies are in percentage. *: The mean maximum distance between the predicted keypoint and corresponding ground truth keypoint for the prediction to count as being correct, measured in the heatmap coordinate system.}
     \label{tab:finetune_test_accs_1}
 \end{table}
 
@@ -148,23 +148,23 @@ By incorporating these regualrization techniques we obtain the results visualize
         bi-ConvLSTM - Model C & 39.2 & 39.5 & 37.1 & 92.5 & 92.9 & 92.6 & \textbf{99.6} & 99.3 & \textbf{99.6} \\
         \hline
     \end{tabular}
-    \caption{Testing accuracies of the various developed models for shifting-scalar $s = 2$. All the accuracies are in percentage. *: The mean maximum distance between the predicted keypoint and corresponding groundtruth keypoint for the prediction to count as being correct, measured in the heatmap coordinate system.}
+    \caption{Testing accuracies of the various developed models for shifting-scalar $s = 2$. All the accuracies are in percentage. *: The mean maximum distance between the predicted keypoint and corresponding ground truth keypoint for the prediction to count as being correct, measured in the heatmap coordinate system.}
     \label{tab:finetune_test_accs_2}
 \end{table}
 
 \noindent We have in Table \ref{tab:finetune_test_accs_1} and Table \ref{tab:finetune_test_accs_2} illustrated the testing results of the epoch of each model that yielded the highest validation PCK@0.05 accuracy.
 \\
 \\
-by comparing the two tables against each other we see, that the shifting-scalar only have a minor effect on the results of the models. Generally however, the models do perform best with the noise-scalar $s = 1$.
+By comparing the two tables against each other we see, that the shifting-scalar only have a minor effect on the results of the models. Generally however, the models do perform the best with the noise-scalar $s = 1$.
 \\
 \\
 Similarly to the pretraining stage, we also see here how 3DConv from experiment 2 performs better than 3DConv from experiment 1, however, this performance difference is now smaller than it was in the pretraining stage.
 \\
 \\
-Further, for experiment 3 DeciWatch is not delivering great results, similarly to its results in the pretraining stage. For the other architectures, there do not seem to be any consistent pattern, as some of them experiment 3 yields the best results, whereas it for others yield the worst results.
+Further, for experiment 3 DeciWatch is not delivering great results, similarly to its results in the pretraining stage. For the other architectures, there do not seem to be any consistent pattern, as for some of them, experiment 3 yields the best results, whereas it for others yield the worst results.
 \\
 \\
-Like in the pretraining stage, there does not seem to be any major performance differences between the two architectures that are based on the bidirectional convolutional LSTM, making us further believe that our concern about the missing opportunity of biConv-LSTM Model S to prioritize a processing direction is not that important.
+Like in the pretraining stage, there does only seem to be a minor performance differences between the two architectures that are based on the bidirectional convolutional LSTM, making us further believe that our concern about the missing opportunity of bi-Conv LSTM Model S to prioritize a processing direction is only a minor problem.
 
 \begin{table}[htbp]
     \begin{tabular}{c||ccc|ccc|ccc}
@@ -183,7 +183,7 @@ Like in the pretraining stage, there does not seem to be any major performance d
         bi-ConvLSTM - Model C & 44.5 & 46.1 & 48.5 & 97.4 & 97.9 & 97.9 & 99.6 & 99.5 & 99.6 \\
         \hline
     \end{tabular}
-    \caption{Testing accuracies of the various developed models for shifting-scalar $s = 1$ on the additional test video. All the accuracies are in percentage. *: The mean maximum distance between the predicted keypoint and corresponding groundtruth keypoint for the prediction to count as being correct, using the units of the heatmap coordinates.}
+    \caption{Testing accuracies of the various developed models for shifting-scalar $s = 1$ on the additional test video. All the accuracies are in percentage. *: The mean maximum distance between the predicted keypoint and corresponding ground truth keypoint for the prediction to count as being correct, using the units of the heatmap coordinates.}
     \label{tab:finetune_test_accs_3}
 \end{table}
 
@@ -204,12 +204,13 @@ Like in the pretraining stage, there does not seem to be any major performance d
         bi-ConvLSTM - Model C & 45.9 & 47.9 & 46.7 & 96.7 & 97.1 & 98.1 & 99.6 & 99.4 & 99.6 \\
         \hline
     \end{tabular}
-    \caption{Testing accuracies of the various developed models for shifting-scalar $s = 2$ on the additional test video. All the accuracies are in percentage. *: The mean maximum distance between the predicted keypoint and corresponding groundtruth keypoint for the prediction to count as being correct, using the units of the heatmap coordinates.}
+    \caption{Testing accuracies of the various developed models for shifting-scalar $s = 2$ on the additional test video. All the accuracies are in percentage. *: The mean maximum distance between the predicted keypoint and corresponding ground truth keypoint for the prediction to count as being correct, using the units of the heatmap coordinates.}
     \label{tab:finetune_test_accs_4}
 \end{table}
 
-\noindent One might argue, that our way of splitting the finetuning dataset into a validation and test dataset might introduce some bias, as the two datasets have overlapping videos and thus videos of the same person that might have some unique movement. To further minimize the likelihood of a biased evaluation of the models, we have in Table \ref{tab:finetune_test_accs_3} and Table \ref{tab:finetune_test_accs_4} tested the models on the longest video of the dataset, which was not used at all in any of the three datasubsets and consists of 754 overlapping windows. By comparing these tables against Table \ref{tab:finetune_test_accs_1} and \ref{tab:finetune_test_accs_2} we can clearly see, that the models are performing similarly, if not actually better, than how they did previously, hence why we would argue, that there are no indication of the first test evaluation being biased. However, we have to note, that the evaluation in Table \ref{tab:finetune_test_accs_3} and Table \ref{tab:finetune_test_accs_4} do contain some bias, as the evaluation is of a single person who might have some easily predictable movements.
-
+\noindent One might argue, that our way of splitting the finetuning dataset into a validation and test dataset might introduce some bias, as the two datasets have overlapping videos and thus videos of the same person that might have some unique movement. To further minimize the likelihood of a biased evaluation of the models, we have in Table \ref{tab:finetune_test_accs_3} and Table \ref{tab:finetune_test_accs_4} tested the models on the longest video of the dataset, consisting of 754 overlapping windows, which was not used at all in any of the three datasubsets. By comparing these tables against Table \ref{tab:finetune_test_accs_1} and \ref{tab:finetune_test_accs_2} we can clearly see, that the models are performing similarly, if not actually better, than how they did previously, hence why we would argue, that there are no indication of the first test evaluation being biased. However, we have to note, that the evaluation in Table \ref{tab:finetune_test_accs_3} and Table \ref{tab:finetune_test_accs_4} do contain some bias, as the evaluation is of a single person who might have some easily predictable movements.
+\\
+\\
 \begin{table}[htbp]
     \begin{adjustbox}{center}
         \begin{tabular}{c||ccc|ccc|ccc|ccc|c}
@@ -272,13 +273,13 @@ Like in the pretraining stage, there does not seem to be any major performance d
     \label{tab:finetune_kpts_test_accs_1_2}
 \end{table}
 
-\noindent We have in Table \ref{tab:finetune_kpts_test_accs_1_1} and Table \ref{tab:finetune_kpts_test_accs_1_2} illustrated the keypoint specific PCK$0.1$ testing accuracies of the models. For similar tables for PCK$@0.05$ and PCK$@0.2$ see Table \ref{tab:finetune_kpts_test_accs_05_1}-\ref{tab:finetune_kpts_test_accs_2_2} in the appendix. By comparing these two tables to the equivalent tables from section \ref{subsec:pretrain_train_val_res} we see, that the most difficult keypoints are no longer the wrists and ankles, but generally are instead the pinkies, the index fingers and the thumbs, on which the models generally performs much worse than on the remaining keypoints.
+\noindent We have in Table \ref{tab:finetune_kpts_test_accs_1_1} and Table \ref{tab:finetune_kpts_test_accs_1_2} illustrated the keypoint specific PCK@$0.1$ testing accuracies of the models. For the equivalent tables of PCK$@0.05$ and PCK$@0.2$ see Table \ref{tab:finetune_kpts_test_accs_05_1}-\ref{tab:finetune_kpts_test_accs_2_2} in the appendix. By comparing these two tables to the equivalent tables from section \ref{subsec:pretrain_train_val_res} we see, that the most difficult keypoints are no longer the wrists and ankles, but generally are instead the pinkies, the index fingers and the thumbs, on which the models generally performs much worse than on the remaining keypoints.
 \\
 \\
 For some illustrations of the predictions of the best setup of each model based on Table \ref{tab:finetune_test_accs_1} and Table \ref{tab:finetune_test_accs_2}, see Figure \ref{fig:predictions} in the appendix.
 
 \subsection{Technical Details}
 \label{sec:finetune_tech_details}
-All models were trained and evaluated using a 8GB NVIDIA GTX 1070 and an Intel Core i7-4790K @ 4.00GHz. All models were implemented in Python version 3.9.9 using PyTorch 2.0.0. 3DConv took about 1.5 minutes per epoch, DeciWatch about 2 minutes per epoch, and the two bidirectional convolutional LSTMs took about 2.5 minutes per epoch each.
+All models were trained and evaluated using an 8GB NVIDIA GTX 1070 and an Intel Core i7-4790K @ 4.00GHz. All models were implemented in Python version 3.9.9 using PyTorch 2.0.0. 3DConv took about 1.5 minutes per epoch, DeciWatch about 2 minutes per epoch, and the two bidirectional convolutional LSTMs took about 2.5 minutes per epoch each.
 
 \end{document}
