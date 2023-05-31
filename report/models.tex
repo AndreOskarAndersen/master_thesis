@@ -39,7 +39,7 @@ Both models take a sequence of $T \in \mathbb{N}$ estimated poses $\hat{\mathcal
     \caption{Illustration of the implemented bidirectional convolutional LSTM, where the two sequence orders are summed together.}
     \label{fig:bi_conv_lstm}
 \end{figure}
-\noindent Figure \ref{fig:bi_conv_lstm} illustrates the architecture of the second model. We will throughout this project refer to this model as \textbf{bi-ConvLSTM Model S}. The model starts by branching into two seperate branches, that processes the estimated poses in opposite sequence order. Each branch processes the estimated poses one frame at a time. This is done by first applying a convolutional LSTM to the input frame at time step $t \in \mathbb{N}$, using the preceding output of the convolutional LSTM as the hidden state. Each convolutional LSTM is followed by five 2-dimensional convolutional layers, each applying $128$ filters, except for the last convolutional layer of each branch, which aplies $K$ filters. The first three convolutional layers use a kernel size of $3 \times 3$, whereas the following two convolutional layers use a kernel size of $1 \times 1$. The outputs of the two branches are then summed together element-wise.
+\noindent Figure \ref{fig:bi_conv_lstm} illustrates the architecture of the second model. We will throughout this project refer to this model as \textbf{bi-ConvLSTM Model S}. The model starts by branching into two seperate branches, that processes the estimated poses in opposite sequence order. Each branch processes the estimated poses one frame at a time. This is done by first applying a convolutional LSTM to the input frame at time step $t \in \mathbb{N}$, using the preceding output of the convolutional LSTM as the hidden state. Each convolutional LSTM is followed by five 2-dimensional convolutional layers, each applying $128$ filters, except for the last convolutional layer of each branch, which applies $K$ filters. The first three convolutional layers use a kernel size of $3 \times 3$, whereas the following two convolutional layers use a kernel size of $1 \times 1$. Each convolutional layer is followed by the ReLU activation-function. The outputs of the two branches are then summed together element-wise.
 \\
 \\
 All convolutional layers use a stride of one and zero-padding on the input, such that the output of each convolutional layer has the same dimensions as the input to the convolutional layer.
@@ -61,7 +61,7 @@ Figure \ref{fig:unipose2} illustrates the architecture of our third model. We wi
 Different from the previous model, this model concatenates the output of each branch to form a $256 \times h \times w$ tensor, which is then processed by two $1 \times 1$ 2-dimensional convolutional layers with $128$ and $K$ filters, respectively.
 \\
 \\
-Similarly to the second model, all convolutional layers also use a stride of one and zero-padding on the input, such that the output of each convolutional layer has the same dimensions as the input to the convolutional layer.
+Similarly to the second model, all convolutional layers are followed by the ReLU activation-function, use a stride of one and zero-padding on the input, such that the output of each convolutional layer has the same dimensions as the input to the convolutional layer.
 
 \subsection{DeciWatch}
 \label{sec:deciwatch}
@@ -100,10 +100,10 @@ To avoid overfitting, dropout is applied to the input of each sub-layer and sums
 
 \subsection{Mask R-CNN for Human Pose Estimation}
 \label{sec:Mask_RCNN}
-The last model we will be using is the \textit{Mask R-CNN for human pose estimation} as introduced by He \textit{Et al.} in 2017 \cite{https://doi.org/10.48550/arxiv.1703.06870}. Unlike the previously described model, we will not be implementing this model, but instead use an already  developed model on the ClimbAlong dataset, which has been provided by ClimbAlong A/S. As we will not be implementing this model, we will here not go into the details of how the model works, but instead just give a brief overview of the model. We will throughout this project be refering to this already developed model as the \textbf{keypoint detector}.
+The last model we will be using is the \textit{Mask R-CNN for human pose estimation} as introduced by He \textit{Et al.} in 2017 \cite{https://doi.org/10.48550/arxiv.1703.06870}. Unlike the previously described model, we will not be implementing this model, but instead use an already  developed model on the ClimbAlong dataset, which has been provided by ClimbAlong. As we will not be implementing this model, we will here not go into the details of how the model works, but instead just give a brief overview of the model. We will throughout this project be refering to this already developed model as the \textbf{keypoint detector}.
 \\
 \\
-The model takes a single rgb-image with height $h_{in} \in \mathbb{N}$ and width $w_{in} \in \mathbb{N}$ as input and returns $K \in \mathbb{N}$ heatmaps of height $h_{out} \in \mathbb{N}$ and width $w_{out} \in \mathbb{N}$ such that each heatmap corresponds to a single keypoint where the position of the element with the greatest value corresponds is the location of the predicted keypoint. The Mask R-CNN by ClimbAlong A/S uses $h_{out} = w_{out} = 56$ and $K = 25$.
+The model takes a single rgb-image with height $h_{in} \in \mathbb{N}$ and width $w_{in} \in \mathbb{N}$ as input and returns $K \in \mathbb{N}$ heatmaps of height $h_{out} \in \mathbb{N}$ and width $w_{out} \in \mathbb{N}$ such that each heatmap corresponds to a single keypoint where the position of the element with the greatest value corresponds is the location of the predicted keypoint. The Mask R-CNN by ClimbAlong uses $h_{out} = w_{out} = 56$ and $K = 25$.
 \\
 \\
 Each heatmap corresponds to the predicted bounding-box of the person that the keypoints corresponds to. Further, this bounding-box has been resized such that it is squared, discarding the aspect ratio of the original bounding-box.
