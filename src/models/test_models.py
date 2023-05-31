@@ -10,16 +10,16 @@ from unipose2 import Unipose2
 from deciwatch import DeciWatch
 from pipeline import evaluate, evaluate_kpts
 from utils import heatmaps2coordinates
-from config import baseline_params, deciwatch_params, unipose_params, unipose2_params, overall_models_dir, finetune_saving_path
+from config import baseline_params, deciwatch_params, unipose_params, unipose2_params, overall_models_dir, finetune_saving_path, pretrained_models_path
 
 if __name__ == "__main__":
     subdir = [overall_models_dir, finetune_saving_path][int(sys.argv[1])]
     if int(sys.argv[1]):
         subdir = subdir + sys.argv[2] + "/"
-        
+
     model_names = os.listdir(subdir)
-    model_names = list(sorted(os.listdir(overall_models_dir)))
-    model_names = list(filter(lambda model_name: model_name != ".gitignore", model_names))
+    model_names = list(sorted(os.listdir(subdir)))
+    model_names = list(filter(lambda model_name: model_name != ".gitignore" and model_name.split("_")[0] == "deciwatch", model_names))
     if not int(sys.argv[1]):
         model_names = model_names[int(sys.argv[2])::6]
     
@@ -32,6 +32,7 @@ if __name__ == "__main__":
         
         # Overall path of the model
         model_dir = subdir + model_name + "/"
+        dataloader_path = subdir + model_name + "/test_dataloader.pth"
         model_type = model_name.split("_")[0]
         model_params = {"baseline": baseline_params, "deciwatch": deciwatch_params, "unipose": unipose_params, "unipose2": unipose2_params}
         model_params = model_params[model_type]
@@ -39,8 +40,9 @@ if __name__ == "__main__":
         # Finding the best epoch of the model
         val_accs = np.load(model_dir + "val_accs.npy")
         best_epoch = np.argmax(val_accs)
-        if best_epoch == 0:
-            best_epoch = val_accs.argsort()[-2]
+        if best_epoch == 0 and int(sys.argv[1]):
+            model_dir = pretrained_models_path + sys.argv[2] + "/" + model_name + "/"
+            best_epoch = len(np.load(model_dir + "val_accs.npy")) - 1
             
         if model_type != "baseline":
             model_params["device"] = device
@@ -59,7 +61,7 @@ if __name__ == "__main__":
         data_transformer = data_transforms[model_name.split("_")[0]]
         
         # Loading dataloader
-        test_dataloader = torch.load(model_dir + "test_dataloader.pth")
+        test_dataloader = torch.load(dataloader_path)
         
         for norm in tqdm(norms, desc="norm", leave=False):
             
@@ -69,5 +71,5 @@ if __name__ == "__main__":
             
             model_res[norm] = {"loss": model_loss, "pck": model_pck, "pck_kpts": model_pck_kpts}
 
-        with open(model_dir + "test_res.json", "w") as f:
+        with open(dataloader_path.replace("/test_dataloader.pth", "/test_res.json"), "w") as f:
             json.dump(model_res, f, indent=4)

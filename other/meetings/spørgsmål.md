@@ -150,3 +150,23 @@
             2. Det hjalp faktisk at concatenate branches istedet for at summere
             3. Transformer giver altid de dårligste resultater
             4. Støjen fra pretraining har stor effekt på transformeren (måske skyldet dens mange vægte?)
+
+- 23/5:
+    1. Titel på projektet?
+    2. Hvad skal jeg aflevere?
+    3. Skal forsvaret være på engelsk?
+    4. Hvorfor skal jeg sørge for non-overlapping frames i val/test for CA?
+    5. Shifted keypoints kan godt ligge uden for deres udglattet heatmap - er dette er problem?
+    6. DeciWatch 1.3 performer dårligt i pretrain for PCK@0.2 men godt for de andre - hvorfor kan det være?
+    7. Baseline er totalt omvendt - hvorfor kan det være?
+    8. Unipose2 outperformer unipose med kun en lille smule.
+    9. DeciWatch 2.2 outperformer 2.1 hele tiden selvom der ikke burde være en forskel
+    10. Pretrain k=2: knees og elbows er de sværeste.
+    11. Finetune: pretraining har ikke haft en effekt?
+    12. Ville det være en ide at sammenligne med andre modeller fra andre datasæt?
+    13. Kan man sige semantically different?
+    14. Skal diskussion af resultater ske i eksperiment-afsnit eller diskussion?
+    15. Finetune: deciwatch acc er faldende, men det er train/val loss også.
+    16. Finetune: deciwatch 2.2 performer meget bedre på single video end på det resterende testing
+    17. Skal argumentation for valg jeg har foretaget ske hvor jeg beskriver valget eller nede i diskussionen (eks. at jeg sørger for non-overlapping windows i evaluation set i fineutning?)
+    18. I diskussion - er det nødvendigt at jeg går igennem alle valg jeg har foretaget? Der er nogle af dem hvor jeg ikke føler jeg har så meget at sige.

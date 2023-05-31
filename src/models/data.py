@@ -1,5 +1,7 @@
 import os
+import random
 import torch
+import torchvision.transforms.functional as TF
 from tqdm.auto import tqdm
 from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader, Dataset
@@ -287,7 +289,7 @@ class _PretrainDataSet(Dataset):
         return input_samples, target_samples, is_PA
     
 class _ClimbAlongDataset():
-    def __init__(self, dir_path: str, window_size: int, heatmap_shape: Tuple[int, int, int], train_ratio: float, interval_skip: int = 0, upper_range: int = 1):
+    def __init__(self, dir_path: str, window_size: int, heatmap_shape: Tuple[int, int, int], train_ratio: float, interval_skip: int = 0, upper_range: int = 1, augment_data: bool = False):
         """
         ClimbAlong dataset
         
@@ -312,6 +314,8 @@ class _ClimbAlongDataset():
         upper_range: int
             Upper range of the data
         """
+        
+        self.augment_data = augment_data
         
         # Upper range of the data
         self.upper_range = upper_range
@@ -454,12 +458,11 @@ class _ClimbAlongDataset():
             
             return train_mapper, test_mapper, val_mapper
         else:
-            val_mapper = self._prune_mapper(mapper)
-            val_mapper = {i: v for i, v in enumerate(val_mapper.values())}
+            val_mapper = {i: v for i, v in enumerate(mapper.values())}
             return val_mapper
     
     class _CA_subdataset(Dataset):
-        def __init__(self, mapper, window_size: int, upper_range: int, heatmap_shape: Tuple[int, int, int], input_dir: str, target_dir: str):
+        def __init__(self, mapper, window_size: int, upper_range: int, heatmap_shape: Tuple[int, int, int], input_dir: str, target_dir: str, augment_data: bool):
             
             # Dict that contains the mapping from index to data
             self.mapper = mapper
@@ -478,6 +481,8 @@ class _ClimbAlongDataset():
             
             # Path to where the target data is stored
             self.target_dir = target_dir
+            
+            self.augment_data = augment_data
         
         def __len__(self):
             return len(self.mapper)
@@ -491,6 +496,11 @@ class _ClimbAlongDataset():
             for j, sample_name in enumerate(sample_names):
                 input_samples[j] = torch.load(self.input_dir + sample_name) * self.upper_range
                 target_samples[j] = torch.load(self.target_dir + sample_name) * self.upper_range
+                
+            if self.augment_data:
+                angle = random.randint(-45, 45)
+                input_samples = TF.rotate(input_samples, angle)
+                target_samples = TF.rotate(target_samples, angle)
 
             return input_samples, target_samples, -1
         
@@ -500,13 +510,13 @@ class _ClimbAlongDataset():
         """
         
         if self.train_ratio > 0:
-            train_dataset = self._CA_subdataset(self.train_mapper, self.window_size, self.upper_range, self.heatmap_shape, self.input_dir, self.target_dir)
-            test_dataset = self._CA_subdataset(self.test_mapper, self.window_size, self.upper_range, self.heatmap_shape, self.input_dir, self.target_dir)
-            val_dataset = self._CA_subdataset(self.val_mapper, self.window_size, self.upper_range, self.heatmap_shape, self.input_dir, self.target_dir)
+            train_dataset = self._CA_subdataset(self.train_mapper, self.window_size, self.upper_range, self.heatmap_shape, self.input_dir, self.target_dir, self.augment_data)
+            test_dataset = self._CA_subdataset(self.test_mapper, self.window_size, self.upper_range, self.heatmap_shape, self.input_dir, self.target_dir, False)
+            val_dataset = self._CA_subdataset(self.val_mapper, self.window_size, self.upper_range, self.heatmap_shape, self.input_dir, self.target_dir, False)
             
             return train_dataset, test_dataset, val_dataset
         else:
-            return self._CA_subdataset(self.val_mapper, self.window_size, self.upper_range, self.heatmap_shape, self.input_dir, self.target_dir)
+            return self._CA_subdataset(self.val_mapper, self.window_size, self.upper_range, self.heatmap_shape, self.input_dir, self.target_dir, False)
                 
 def get_dataloaders(dir_path: str, 
                     window_size: int, 
@@ -517,7 +527,8 @@ def get_dataloaders(dir_path: str,
                     interval_skip: int = 0,
                     input_name: str = "input",
                     upper_range: int = 1,
-                    dataset_type: str = "pretrain"
+                    dataset_type: str = "pretrain",
+                    augment_data: bool = False,
                     ):
     """
     Function for getting train-, validation- and test-dataloader.
@@ -586,7 +597,7 @@ def get_dataloaders(dir_path: str,
         
         if eval_ratio != 1:
             # Loading the datasets
-            total_dataset = _ClimbAlongDataset(dir_path, window_size, heatmap_shape, 1 - eval_ratio, interval_skip, upper_range)
+            total_dataset = _ClimbAlongDataset(dir_path, window_size, heatmap_shape, 1 - eval_ratio, interval_skip, upper_range, augment_data)
             train_dataset, test_dataset, val_dataset = total_dataset.get_datasets()
             
             # Creating dataloaders
@@ -596,7 +607,7 @@ def get_dataloaders(dir_path: str,
             
             data_loaders = (train_loader, val_loader, test_loader)
         else:
-            total_dataset = _ClimbAlongDataset(dir_path, window_size, heatmap_shape, 1 - eval_ratio, interval_skip, upper_range)
+            total_dataset = _ClimbAlongDataset(dir_path, window_size, heatmap_shape, 1 - eval_ratio, interval_skip, upper_range, False)
             val_dataset = total_dataset.get_datasets()
             val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers)
             data_loaders = val_loader

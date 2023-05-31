@@ -419,11 +419,11 @@ if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
     # Making data
-    batch_size = 2
-    num_frames = 100
-    num_keypoints = 16
-    frame_height = 8
-    frame_width = 8
+    batch_size = 1
+    num_frames = 1
+    num_keypoints = 2
+    frame_height = 2
+    frame_width = 2
     video_sequence = torch.rand(batch_size, num_frames, num_keypoints, frame_height, frame_width).to(device)
     
     # Making models
@@ -438,8 +438,13 @@ if __name__ == "__main__":
                  upper_range=upper_range,
                  frame_shape=video_sequence[:, 0].shape).to(device)
     
+    for _, param in lstm.named_parameters():
+        print(param.data.min(), param.data.max())
+    
     # Predicting
     start_time = time()
     output = lstm(video_sequence)
+    print(video_sequence.squeeze())
+    print(output.squeeze())
     print("Runtime", time() - start_time)
     print(output.shape)

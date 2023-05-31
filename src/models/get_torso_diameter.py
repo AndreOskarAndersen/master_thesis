@@ -9,9 +9,9 @@ from utils import heatmaps2coordinates, get_torso_diameter
 if __name__ == "__main__":
     
     data_params["upper_range"] = 255
-    data_params["input_name"] = "input_std"
+    data_params["input_name"] = "target"
     data_params["interval_skip"] = 0
-    data_params["dir_path"] = "../../data/processed_1/"
+    data_params["dir_path"] = "../../data/processed/ClimbAlong/"
     data_params["batch_size"] = 1
     
     train_dataloader, eval_dataloader, test_dataloader = get_dataloaders(**data_params)
