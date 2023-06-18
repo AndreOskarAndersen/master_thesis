@@ -1,0 +1,336 @@
+\documentclass{beamer}
+\usepackage{graphicx}
+\usepackage{bm}
+\usepackage{xcolor}
+\usepackage[ruled]{algorithm}
+\usepackage{algorithmicx}
+\usepackage[noend]{algpseudocode}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+\begin{document}
+\beamertemplatenavigationsymbolsempty
+
+\title{Temporal Smoothing in 2D Human Pose Estimation for Bouldering}
+
+\author{André Oskar Andersen
+\newline \small \texttt{wpr684}}
+
+\institute{Institution of Computer Science, University of Copenhagen}
+
+\date{2023}
+
+\frame{\titlepage}
+
+\begin{frame}
+    \frametitle{Introduction}
+    \begin{itemize}
+        \item<1-3> Increased usage of video analysis in sports.
+        \item<2-3> Often requires the position of the players.
+        \begin{itemize}
+            \item Already developed for popular sports.
+            \item Missing for the less popular sports.
+        \end{itemize}
+        \item<3-3> Problems with the data
+        \begin{itemize}
+            \item Methods require large quantities
+            \item Unusual poses/movements
+        \end{itemize}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Introduction}
+    \begin{itemize}
+        \item<1-> ClimbAlong at NorthTech ApS
+        \begin{itemize}
+            \item<1-> Frame-idependent pose-detector for bouldering 
+            \item<2-> Proposition: Incorporate temporal information
+        \end{itemize}
+    \end{itemize}
+    % TODO: Tilføj nogle frames her
+\end{frame}
+
+\begin{frame}
+    \frametitle{Introduction}
+    \begin{itemize}
+        \item<1-> Aim: extending the ClimbAlong pose-dector to use temporal information.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{The Data}
+    \begin{itemize}
+        \item<1-> 30 fully annotated videos of climbers with 25 keypoints, totalling to 10,293 frames, provided by ClimbAlong
+        \item<2-> Both static and quick movements.
+        % TODO: tilføj visualizations
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{The Data}
+    \begin{itemize}
+        \item<1-> Very small dataset
+        \item<2-> Instead, pretraing on related datasets and finetune of ClimbAlong
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{The Data}
+    \begin{itemize}
+        \item<1-> The BRACE dataset:
+        \begin{itemize}
+            \item<1-> Breakdancers
+            \item<2-> 1,352 video sequences / 334,538 frames with 17 keypoints.
+            \item<3-> Compared to ClimbAlong:
+            \begin{itemize}
+                \item Swaps between static and quick movements
+                \item Less frequent static movements
+                \item Quicker movements
+            \end{itemize}
+        \end{itemize}
+    \end{itemize}
+    % TODO: tilføj visualizations
+\end{frame}
+
+\begin{frame}
+    \frametitle{The Data}
+    \begin{itemize}
+        \item<1-> Penn Action dataset:
+        \begin{itemize}
+            \item<1-> People performing various actions
+            \item<2-> 2,326 video sequences with 13 keypoints and binary visibility-flag.
+            \item<3-> Filtered down to 307 video sequences / 26,036 frames.
+        \end{itemize}
+    \end{itemize}
+    % TODO: tilføj visualizations
+\end{frame}
+
+\begin{frame}
+    \frametitle{The Models}
+    \begin{itemize}
+        \item Motivation for valg
+        \item 3D Conv
+        \item DeciWatch
+        \item bi-ConvLSTM Model S
+        \item bi-ConvLSTM Model C
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{The Models}
+    \begin{itemize}
+        \item<1-> Generally, three approaches
+        \begin{enumerate}
+            \item 3-dimensional convolutional layer
+            \item Convolutional recurrent neural network
+            \item Transformer
+        \end{enumerate}
+        \item<2-> One architecture based on each approach
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{The Models}
+    \begin{itemize}
+        \item<1-> 3DConv
+        \begin{itemize}
+            \item<1-> 3-dimensional conv. layer + ReLU
+            \item<1-> Input/output: heatmaps
+            \item<2-> $K \in \mathbb{N}$ filters with $h, w \in \mathbb{N}$ height and width
+            \item<2-> $T \in \mathbb{N}$ frames
+        \end{itemize}
+    \end{itemize}
+    % TODO: tilføj visualization
+\end{frame}
+
+\begin{frame}
+    \frametitle{The Models}
+    \begin{itemize}
+        \item<1-> bi-ConvLSTM Model S
+        \begin{itemize}
+            \item<1-> Adoptation of Unipose by Artacho and Savakis
+            \item<1-> Bidirectional convolutional LSTM + conv. layers and ReLU
+            \item<1-> Processing directions summed together
+            \item<2-> Input/output: heatmaps
+            \item<2-> $K \in \mathbb{N}$ filters with $h, w \in \mathbb{N}$ height and width
+            \item<2-> $T \in \mathbb{N}$ frames
+        \end{itemize}
+    \end{itemize}
+    % TODO: tilføj visualization
+\end{frame}
+
+\begin{frame}
+    \frametitle{The Models}
+    \begin{itemize}
+        \item<1-> bi-ConvLSTM Model C
+        \begin{itemize}
+            \item<1-> Similary to bi-ConvLSTM Model S
+            \item<1-> Problem: Prioritization of processing direction
+            \item<2-> Solution: Using convolution
+        \end{itemize}
+    \end{itemize}
+    % TODO: tilføj visualization
+\end{frame}
+
+\begin{frame}
+    \frametitle{The Models}
+    \begin{itemize}
+        \item<1-> DeciWatch by Zeng \textit{Et al}
+        \begin{itemize}
+            \item<1-> Transformer-based
+            \item<1-> Only considers every $n$th frame
+            \item<1-> Processes keypoints
+            \item<2-> Encoder: DenoiseNet
+            \item<2-> Decoder: RecoverNet
+        \end{itemize}
+    \end{itemize}
+    % TODO: tilføj visualization
+\end{frame}
+
+\begin{frame}
+    \frametitle{Pretraining}
+    \begin{itemize}
+        \item<1-> Not training pose-detector 
+        \item<2-> Adding noise to input-data
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Pretraining}
+    Data preprocessing
+    \begin{itemize}
+        \item<1-> Discarding images
+        \item<2-> Simulating output of pose-detector on ClimbAlong dataset:
+        \begin{enumerate}
+            \item<2-> Making input data consist of bboxes with side-length of 56 px
+            \item<3-> 25 Heatmaps
+            \item<4-> Adding noise to input
+            \begin{enumerate}
+                \item Shifting-scalar
+                \item Gaussian filter standard deviation
+            \end{enumerate}
+        \end{enumerate}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Pretraining}
+    \begin{itemize}
+        \item<1-> Data configuration
+        \begin{itemize}
+            \item $s = 5$ frames
+            \item Splitting of data into non-overlapping and repeating subsets
+            \item Handling of missing keypoints
+        \end{itemize}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Pretraining}
+    \begin{itemize}
+        \item<1-> Experiments
+        \begin{itemize}
+            \item<1-> Sample Gaussian filter standard deviation from $\{1, 1.5, 2, 2.5, 3\}$.
+            \item<2-> Fixed standard deviation
+            \item<3-> Decreased frame rate
+        \end{itemize}
+        \item<4-> Two different shifting-scalars $s \in \{1, 2\}$
+        \item<5-> DeciWatch - inspected source code:
+        \begin{itemize}
+            \item Sampling every $5$th frame
+        \end{itemize}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Pretraining}
+    \begin{itemize}
+        \item Results
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Finetuning}
+    \begin{itemize}
+        \item Data-preprocessing
+        \item Training Details
+        \item Results
+        \item Visualizations?
+        \item Subconclusion
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Finetuning}
+    \begin{itemize}
+        \item<1-> Freezing pose-detector
+        \begin{itemize}
+            \item<1-> Quicker fitting
+            \item<2-> Greater understanding of results  
+        \end{itemize}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Finetuning}
+    \begin{itemize}
+        \item<1-> Data preprocessing
+        \begin{itemize}
+            \item<1-> Making data more similar to pretraining
+            \begin{itemize}
+                \item Setting negative values to $0$
+                \item Normalizing summing up to same value as pretraining heatmaps
+            \end{itemize}
+            \item<2-> Using predicted bbox to create heatmaps
+            \begin{itemize}
+                \item<3-> Handling of groundtruth keypoints out of bbox  
+            \end{itemize}
+        \end{itemize}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Finetuning}
+    \begin{itemize}
+        \item<1-> Data configuration
+        \begin{itemize}
+            \item Careful splitting of dataset
+        \end{itemize}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Finetuning}
+    \begin{itemize}
+        \item<1-> Results
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Finetuning}
+    \begin{itemize}
+        \item<1-> Additional experiments
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Finetuning}
+    \begin{itemize}
+        \item<1-> Additional test results
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Discussion}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Conclusion}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Extras: Mistakes Were Made!}
+\end{frame}
+
+\end{document}

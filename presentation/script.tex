@@ -1,0 +1,43 @@
+\documentclass[a4paper]{report}
+\usepackage[utf8]{inputenc}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{verbatim}
+\usepackage{bm}
+\usepackage{listings}
+
+\lstset{
+  basicstyle=\ttfamily,
+  mathescape
+}
+
+\title{Master Thesis Defence Script}
+\author{André Oskar Andersen}
+\date{}
+
+\begin{document}
+    
+\maketitle
+
+\section{Introduction}
+\begin{itemize}
+    \item Video analysis in sports have become more and more common, as we by using machine learning can for instance help a referee make the correct calls or help the people improve their techniques.
+    \item This often requires the system to know the position of the players. Models for extracting such positions have already been developed for the more popular sports such as soccer, however, have not been developed for less popular sports such as bouldering.
+    \item Further, performing such pose estimations often requires a lot of data, which does not align with the less popular sports, where annotated data does not come in large quantities.
+    \item ClimbAlong at NorthTech ApS has aimed at tackling this problem, by estimated the pose of boulders. Their model processes the frames of an input video independtly of each other, leading to suboptimal results.
+    \item Instead, we theorize, that by incorporating the temporal information of the video we can improve the performance.
+    \item Thus, the aim of this thesis is to implement various methods for extending an already developed keypoints detector for bouldering, such that it makes use of temporal smoothing for infering the position of the keypoints.
+    \item This will be done by developing and testing various machine learning methods through multiple different experiments, such that we end up with the most optimal results.
+\end{itemize}
+
+\section{The Data}
+\begin{itemize}
+    \item To develop these machine learning methods, we will of course require some data. As our model will be used for climbers, it would be optimal to also use data of climbers. For this, ClimbAlong has kindly provided us with a dataset of climbers, consisting of 30 videos fully annotated with 25 keypoints, totalling to 10,293 annotated frames.
+    \item This is of course a very small dataset, making us believe, that we would benefit by incorporating other datasets as well.
+    \item For that reason, we will be pretraining our models on other related datasets and just finetune the models the the ClimbAlong dataset.
+    \item The first 
+\end{itemize}
+
+\end{document}
