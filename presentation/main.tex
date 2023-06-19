@@ -315,7 +315,7 @@
                 Identity function & 19.4 & 19.4 & 19.4 & 66.1 & 66.1 & 66.1 & 85.2 & 85.2 & 85.2 \\
                 3DConv & \textcolor{red}{46.5} & \textcolor{red}{51.6} & \textcolor{red}{47.3} & \textcolor{red}{95.5} & \textcolor{red}{95.5} & \textcolor{black}{95.8} & \textcolor{black}{99.2} & \textcolor{black}{99.3} & \textcolor{red}{99.2} \\
                 DeciWatch & \textcolor{red}{76.0} & \textcolor{red}{75.9} & \textcolor{red}{36.8} & \textcolor{red}{94.2} & \textcolor{red}{94.2} & \textcolor{red}{74.9} & \textcolor{black}{99.2} & \textcolor{black}{99.2} & \textcolor{red}{92.8} \\
-                bi-ConvLSTM - Model S & \textcolor{green}{38.8} & \textcolor{green}{37.4} & \textcolor{red}{35.9} & \textcolor{red}{92.7} & \textcolor{black}{92.1} & \textcolor{red}{91.2} & \textcolor{black}{99.4} & \textcolor{red}{99.5} & \textcolor{green}{99.3} \\
+                bi-ConvLSTM - Model S & \textcolor{green}{38.8} & \textcolor{green}{37.4} & \textcolor{red}{35.9} & \textcolor{green}{92.7} & \textcolor{black}{92.1} & \textcolor{red}{91.2} & \textcolor{black}{99.4} & \textcolor{red}{99.5} & \textcolor{green}{99.3} \\
                 bi-ConvLSTM - Model C & \textcolor{green}{39.2} & \textcolor{green}{39.5} & \textcolor{red}{37.1} & \textcolor{red}{92.5} & \textcolor{red}{92.9} & \textcolor{black}{92.6} & \textcolor{red}{99.6} & \textcolor{red}{99.3} & \textcolor{red}{99.6} \\
                 \hline
             \end{tabular}
@@ -537,6 +537,49 @@
 \begin{frame}
     \frametitle{Extras: Mistakes Were Made!}
     Misimplemented evaluation-function
+    \begin{itemize}
+        \item Generally, same patterns
+        \item Decreased accuracies
+        \item Models do not improve the rough estimates
+        \item bi-ConvLSTM: Model C is now always better than Model S
+    \end{itemize}
+    \begin{table}[htbp]
+        \scalebox{0.7}{
+            \begin{tabular}{c||ccc|ccc|ccc}
+                \hline
+                Accuracy metric & \multicolumn{3}{c}{PCK@0.05} & \multicolumn{3}{c}{PCK@0.1} & \multicolumn{3}{c}{PCK@0.2} \\
+                \hline
+                Experiment & 1.1 & 1.2 & 1.3 & 1.1 & 1.2 & 1.3 & 1.1 & 1.2 & 1.3 \\
+                \hline
+                \hline
+                Identity function & 19.4 & 19.4 & 19.4 & 66.1 & 66.1 & 66.1 & 85.2 & 85.2 & 85.2 \\
+                3DConv & 33.3 & 33.4 & 32.8 & 72.5 & 72.4 & 73.1 & 85.8 & 85.8 & 86.0 \\
+                DeciWatch & 32.8 & 33.8 & 30.9 & 68.0 & 68.1 & 62.7 & 85.1 & 84.9 & 82.8 \\
+                bi-ConvLSTM - Model S & 31.7 & 30.1 & 31.6 & 71.5 & 68.3 & 71.3 & 86.3 & 82.5 & 86.2 \\
+                bi-ConvLSTM - Model C & 32.0 & 32.2 & 31.8 & 72.2 & 72.2 & 71.4 & 86.6 & 86.5 & 86.5 \\
+                \hline
+            \end{tabular}
+        }
+    \end{table}
+    
+    \begin{table}[htbp]
+        \scalebox{0.7}{
+            \begin{tabular}{c||ccc|ccc|ccc}
+                \hline
+                Accuracy metric & \multicolumn{3}{c}{PCK@0.05} & \multicolumn{3}{c}{PCK@0.1} & \multicolumn{3}{c}{PCK@0.2} \\
+                \hline
+                Experiment & 2.1 & 2.2 & 2.3 & 2.1 & 2.2 & 2.3 & 2.1 & 2.2 & 2.3 \\
+                \hline
+                \hline
+                Identity function & 19.4 & 19.4 & 19.4 & 66.1 & 66.1 & 66.1 & 85.2 & 85.2 & 85.2 \\
+                3DConv & 33.1 & 33.3 & 32.7 & 72.1 & 72.3 & 72.6 & 85.6 & 85.7 & 85.6 \\
+                DeciWatch & 21.3 & 26.4 & 19.4 & 51.1 & 58.7 & 48.1 & 77.1 & 81.0 & 77.0 \\
+                bi-ConvLSTM - Model S & 30.9 & 31.6 & 30.6 & 71.2 & 71.6 & 70.7 & 86.0 & 86.1 & 86.2 \\
+                bi-ConvLSTM - Model C & 31.5 & 32.2 & 30.8 & 71.8 & 72.0 & 71.9 & 86.4 & 86.4 & 86.5 \\
+                \hline
+            \end{tabular}
+        }
+    \end{table}
 \end{frame}
 
 \end{document}
