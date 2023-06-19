@@ -22,6 +22,8 @@ def main():
     noise_scalar = sys.argv[1]
     models_dir = pretrained_models_path + noise_scalar + "/"
     model_names = os.listdir(models_dir)
+    idk = ["baseline_1685811266.2595556", "baseline_1685811266.2655702", "baseline_1685811266.2920554", "deciwatch_1685802556.685904", "deciwatch_1685802556.6888742"]
+    model_names = list(filter(lambda x: x not in idk, model_names))
     
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
@@ -81,30 +83,29 @@ def main():
         )
         
         # Creating various objects
-        optimizer = optim.Adam(model.parameters(), lr=finetune_params["learning_rate"])#, weight_decay=0.001)
+        optimizer = optim.Adam(model.parameters(), lr=finetune_params["learning_rate"])
         scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=finetune_params["scheduler_reduce_factor"], patience=finetune_params["scheduler_patience"])
         criterion = torch.nn.MSELoss()
         
         # Training the model
-        if model_name != "deciwatch_1684938562.615292":
-            train(
-                model,
-                train_dataloader,
-                eval_dataloader,
-                test_dataloader,
-                criterion,
-                optimizer,
-                finetune_params["max_epochs"],
-                device,
-                finetune_params["early_stopping_patience"],
-                finetune_params["min_delta"],
-                training_path,
-                finetune_params["disable_tqdm"],
-                scheduler=scheduler, 
-                data_transformer=data_transformer,
-                pre_val=True,
-                norm=0.05
-            )
+        train(
+            model,
+            train_dataloader,
+            eval_dataloader,
+            test_dataloader,
+            criterion,
+            optimizer,
+            finetune_params["max_epochs"],
+            device,
+            finetune_params["early_stopping_patience"],
+            finetune_params["min_delta"],
+            training_path,
+            finetune_params["disable_tqdm"],
+            scheduler=scheduler, 
+            data_transformer=data_transformer,
+            pre_val=True,
+            norm=0.05
+        )
         
         # Finding the best version of the current model
         best_model_idx = np.argmax(np.load(training_path + "val_accs.npy"))
@@ -125,17 +126,23 @@ def main():
         test_kpts_acc_05 = evaluate_kpts(model, test_dataloader, device, data_transformer=data_transformer, norm=0.05)
         test_kpts_acc_10 = evaluate_kpts(model, test_dataloader, device, data_transformer=data_transformer, norm=0.10)
         test_kpts_acc_20 = evaluate_kpts(model, test_dataloader, device, data_transformer=data_transformer, norm=0.20)
+    
+        model_res = {
+            "accs": {
+                0.05: test_acc_05,
+                0.10: test_acc_1,
+                0.20: test_acc_2,
+            },
+            
+            "keypoints": {
+                0.05: test_kpts_acc_05,
+                0.10: test_kpts_acc_10,
+                0.20: test_kpts_acc_20,
+            }
+        } 
         
-        print("===================================")
-        print(f"Model: {model_name}, PCK@0.05: {test_acc_05}, PCK@0.1: {test_acc_1}, PCK@0.2: {test_acc_2}")
-        print()
-        print(f"kpts 0.05: {test_kpts_acc_05}")
-        print()
-        print(f"kpts 0.10: {test_kpts_acc_10}")
-        print()
-        print(f"kpts 0.20: {test_kpts_acc_20}")
-        print("===================================")
-        
+        with open(training_path + "/res.json", "w") as f:
+            json.dump(model_res, f)      
     
 
 if __name__ == "__main__":

@@ -285,7 +285,7 @@ def evaluate(model: nn.Module,
             y = data_transformer(y).float().to(device)
             
             # Predicting
-            pred = model(y)
+            pred = model(x)
             if torch.all(is_pa != -1):
                 y = modify_target(pred, y, is_pa, type(model))
             
@@ -361,7 +361,7 @@ def evaluate_kpts(model: nn.Module,
             y = data_transformer(y).float().to(device)
             
             # Predicting
-            pred = model(y)
+            pred = model(x)
 
             # Computing PCK of the current iteration
             PCK = compute_PCK_kpts(y, pred, norm)

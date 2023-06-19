@@ -20,317 +20,344 @@
 
 \date{2023}
 
+\newcommand\unfootnote[1]{%
+  \begingroup
+  \renewcommand\thefootnote{}\footnote{#1}%
+  \addtocounter{footnote}{-1}%
+  \endgroup
+}
+
 \frame{\titlepage}
 
 \begin{frame}
     \frametitle{Introduction}
-    \begin{itemize}
-        \item<1-3> Increased usage of video analysis in sports.
-        \item<2-3> Often requires the position of the players.
+    \begin{minipage}{0.5\textwidth}
         \begin{itemize}
-            \item Already developed for popular sports.
-            \item Missing for the less popular sports.
+            \item<1-> Increased usage of video analysis in sports.
         \end{itemize}
-        \item<3-3> Problems with the data
-        \begin{itemize}
-            \item Methods require large quantities
-            \item Unusual poses/movements
-        \end{itemize}
-    \end{itemize}
+    \end{minipage} \hfill
+    \begin{minipage}{0.45\textwidth}
+        \begin{figure}
+            \center
+            \includegraphics[width = \textwidth]{./entities/soccer_cv.png}
+        \end{figure}
+    \end{minipage}
+    \unfootnote{\tiny \url{https://www.superannotate.com/blog/computer-vision-in-sports}}
 \end{frame}
 
 \begin{frame}
     \frametitle{Introduction}
-    \begin{itemize}
-        \item<1-> ClimbAlong at NorthTech ApS
+    \begin{minipage}{0.5\textwidth}
         \begin{itemize}
-            \item<1-> Frame-idependent pose-detector for bouldering 
-            \item<2-> Proposition: Incorporate temporal information
-        \end{itemize}
-    \end{itemize}
-    % TODO: Tilføj nogle frames her
-\end{frame}
-
-\begin{frame}
-    \frametitle{Introduction}
-    \begin{itemize}
-        \item<1-> Aim: extending the ClimbAlong pose-dector to use temporal information.
-    \end{itemize}
-\end{frame}
-
-\begin{frame}
-    \frametitle{The Data}
-    \begin{itemize}
-        \item<1-> 30 fully annotated videos of climbers with 25 keypoints, totalling to 10,293 frames, provided by ClimbAlong
-        \item<2-> Both static and quick movements.
-        % TODO: tilføj visualizations
-    \end{itemize}
-\end{frame}
-
-\begin{frame}
-    \frametitle{The Data}
-    \begin{itemize}
-        \item<1-> Very small dataset
-        \item<2-> Instead, pretraing on related datasets and finetune of ClimbAlong
-    \end{itemize}
-\end{frame}
-
-\begin{frame}
-    \frametitle{The Data}
-    \begin{itemize}
-        \item<1-> The BRACE dataset:
-        \begin{itemize}
-            \item<1-> Breakdancers
-            \item<2-> 1,352 video sequences / 334,538 frames with 17 keypoints.
-            \item<3-> Compared to ClimbAlong:
+            \item<1-> Increased usage of video analysis in sports.
+            \item<1-> Often requires the position of the players.
             \begin{itemize}
-                \item Swaps between static and quick movements
-                \item Less frequent static movements
-                \item Quicker movements
+                \item Already developed for popular sports.
+                \item Missing for the less popular sports.
             \end{itemize}
         \end{itemize}
+    \end{minipage} \hfill
+    \begin{minipage}{0.45\textwidth}
+        \begin{figure}
+            \center
+            \includegraphics[width = \textwidth]{./entities/soccer_cv.png}
+        \end{figure}
+    \end{minipage}
+    \unfootnote{\tiny \url{https://www.superannotate.com/blog/computer-vision-in-sports}}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Introduction}
+    \begin{minipage}{0.5\textwidth}
+        \begin{itemize}
+            \item<1-> Increased usage of video analysis in sports.
+            \item<1-> Often requires the position of the players.
+            \item<1-> Problems with the data
+            \begin{itemize}
+                \item Methods require large quantities
+                \item Unusual poses/movements
+            \end{itemize}
+        \end{itemize}
+    \end{minipage} \hfill
+    \begin{minipage}{0.45\textwidth}
+        \begin{figure}
+            \center
+            \includegraphics[width = \textwidth]{./entities/ClimbAlong_cv.PNG}
+        \end{figure}
+    \end{minipage}
+    \unfootnote{\tiny \url{https://climbalong.com/lab}}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Introduction}
+    \begin{minipage}{0.5\textwidth}
+        \begin{itemize}
+            \item<1-> Increased usage of video analysis in sports.
+            \item<1-> Often requires the position of the players.
+            \item<1-> Problems with the data
+            \item<1-> ClimbAlong at NorthTech ApS
+            \begin{itemize}
+                \item<1-> Frame-idependent pose-detector for bouldering 
+                \item<2-> Proposition: Incorporate temporal information
+                % TODO: tilføj nogle frames?
+            \end{itemize}
+        \end{itemize}
+    \end{minipage} \hfill
+    \begin{minipage}{0.45\textwidth}
+        \begin{figure}
+            \center
+            \includegraphics[width = \textwidth]{./entities/ClimbAlong_cv.PNG}
+        \end{figure}
+    \end{minipage}
+    \unfootnote{\tiny \url{https://climbalong.com/lab}}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Introduction}
+    \begin{itemize}
+        \item<1-> Aim: extending the ClimbAlong pose-detector to use temporal information.
     \end{itemize}
-    % TODO: tilføj visualizations
 \end{frame}
 
 \begin{frame}
     \frametitle{The Data}
-    \begin{itemize}
-        \item<1-> Penn Action dataset:
+    \begin{minipage}{0.5\textwidth}
+        ClimbAlong
         \begin{itemize}
-            \item<1-> People performing various actions
-            \item<2-> 2,326 video sequences with 13 keypoints and binary visibility-flag.
-            \item<3-> Filtered down to 307 video sequences / 26,036 frames.
+            \item Fully annoated videos of climbers
+            \item<2-> Problem: Very small dataset
+            \item<3-> Solution: pretrain on related datasets and finetune on ClimbAlong
+            \begin{itemize}
+                \item BRACE
+                \item Penn Action
+            \end{itemize}
+            % TODO: tilføj visualizations
         \end{itemize}
-    \end{itemize}
-    % TODO: tilføj visualizations
+    \end{minipage} \hfill
+    \begin{minipage}{0.45\textwidth}
+        \begin{figure}
+            \center
+            \includegraphics[width = \textwidth]{./entities/ClimbAlong_cv.PNG}
+        \end{figure}
+    \end{minipage}
+    \unfootnote{\tiny \url{https://climbalong.com/lab}}
+\end{frame}
+
+\begin{frame}
+    \frametitle{The Data}
+    \begin{minipage}{0.5\textwidth}
+        ClimbAlong
+        \begin{itemize}
+            \item Fully annoated videos of climbers
+            \item Problem: Very small dataset
+            \item Solution: pretrain on related datasets and finetune on ClimbAlong
+            \begin{itemize}
+                \item BRACE
+                \item Penn Action
+            \end{itemize}
+            % TODO: tilføj visualizations
+        \end{itemize}
+    \end{minipage} \hfill
+    \begin{minipage}{0.45\textwidth}
+        \begin{figure}
+            \center
+            \includegraphics[width = \textwidth]{../report/entities/BRACE_1152.png}
+            \includegraphics[width = \textwidth]{../report/entities/PA_64.png}
+        \end{figure}
+    \end{minipage}
 \end{frame}
 
 \begin{frame}
     \frametitle{The Models}
-    \begin{itemize}
-        \item Motivation for valg
-        \item 3D Conv
-        \item DeciWatch
-        \item bi-ConvLSTM Model S
-        \item bi-ConvLSTM Model C
-    \end{itemize}
+    Generally, three approaches
+    \begin{enumerate}
+        \item Convolutional layer
+        \item Recurrent neural network
+        \item Transformer
+    \end{enumerate}
 \end{frame}
 
 \begin{frame}
     \frametitle{The Models}
+    3DConv
     \begin{itemize}
-        \item<1-> Generally, three approaches
+        \item<1-> 3-dimensional conv. layer + ReLU
+    \end{itemize}
+    \begin{figure}
+        \centering
+        \includegraphics[width = 0.8\textwidth]{../report/entities/baseline.pdf}
+    \end{figure}
+    \unfootnote{\tiny \url{https://arxiv.org/pdf/2203.08713.pdf}}
+\end{frame}
+
+\begin{frame}
+    \frametitle{The Models}
+    bi-ConvLSTM Model S
+    \begin{itemize}
+        \item<1-> Adaptation of Unipose-LSTM by Artacho and Savakis
+        \item<1-> Bidirectional convolutional LSTM + conv. layers and ReLU
+        \item<1-> Processing directions summed together
+    \end{itemize}
+    \begin{figure}
+        \centering
+        \includegraphics[width = \textwidth]{../report/entities/bi_conv_lstm.pdf}
+    \end{figure}
+\end{frame}
+
+\begin{frame}
+    \frametitle{The Models}
+    bi-ConvLSTM Model C
+    \begin{itemize}
+        \item<1-> Problem: Prioritization of processing direction
+        \item<1-> Solution: Using convolution
+    \end{itemize}
+    \begin{figure}
+        \centering
+        \includegraphics[width = \textwidth]{../report/entities/unipose2.pdf}
+    \end{figure}
+\end{frame}
+
+\begin{frame}
+    \frametitle{The Models}
+    DeciWatch by Zeng \textit{Et al}.
+    \begin{itemize}
+        \item<1-> Transformer-based
+        \item<1-> Only considers every $n$th frame
+        \item<1-> Encoder: DenoiseNet
+        \item<1-> Decoder: RecoverNet
+    \end{itemize}
+    \begin{figure}
+        \centering
+        \includegraphics[width = \textwidth]{../report/entities/deciwatch.PNG}
+    \end{figure}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Pretraining}
+    Procedure
+    \begin{itemize}
+        \item<1-> Not training pose-detector
         \begin{enumerate}
-            \item 3-dimensional convolutional layer
-            \item Convolutional recurrent neural network
-            \item Transformer
+            \item Different input images
         \end{enumerate}
-        \item<2-> One architecture based on each approach
-    \end{itemize}
-\end{frame}
-
-\begin{frame}
-    \frametitle{The Models}
-    \begin{itemize}
-        \item<1-> 3DConv
-        \begin{itemize}
-            \item<1-> 3-dimensional conv. layer + ReLU
-            \item<1-> Input/output: heatmaps
-            \item<2-> $K \in \mathbb{N}$ filters with $h, w \in \mathbb{N}$ height and width
-            \item<2-> $T \in \mathbb{N}$ frames
-        \end{itemize}
-    \end{itemize}
-    % TODO: tilføj visualization
-\end{frame}
-
-\begin{frame}
-    \frametitle{The Models}
-    \begin{itemize}
-        \item<1-> bi-ConvLSTM Model S
-        \begin{itemize}
-            \item<1-> Adoptation of Unipose by Artacho and Savakis
-            \item<1-> Bidirectional convolutional LSTM + conv. layers and ReLU
-            \item<1-> Processing directions summed together
-            \item<2-> Input/output: heatmaps
-            \item<2-> $K \in \mathbb{N}$ filters with $h, w \in \mathbb{N}$ height and width
-            \item<2-> $T \in \mathbb{N}$ frames
-        \end{itemize}
-    \end{itemize}
-    % TODO: tilføj visualization
-\end{frame}
-
-\begin{frame}
-    \frametitle{The Models}
-    \begin{itemize}
-        \item<1-> bi-ConvLSTM Model C
-        \begin{itemize}
-            \item<1-> Similary to bi-ConvLSTM Model S
-            \item<1-> Problem: Prioritization of processing direction
-            \item<2-> Solution: Using convolution
-        \end{itemize}
-    \end{itemize}
-    % TODO: tilføj visualization
-\end{frame}
-
-\begin{frame}
-    \frametitle{The Models}
-    \begin{itemize}
-        \item<1-> DeciWatch by Zeng \textit{Et al}
-        \begin{itemize}
-            \item<1-> Transformer-based
-            \item<1-> Only considers every $n$th frame
-            \item<1-> Processes keypoints
-            \item<2-> Encoder: DenoiseNet
-            \item<2-> Decoder: RecoverNet
-        \end{itemize}
-    \end{itemize}
-    % TODO: tilføj visualization
-\end{frame}
-
-\begin{frame}
-    \frametitle{Pretraining}
-    \begin{itemize}
-        \item<1-> Not training pose-detector 
-        \item<2-> Adding noise to input-data
-    \end{itemize}
-\end{frame}
-
-\begin{frame}
-    \frametitle{Pretraining}
-    Data preprocessing
-    \begin{itemize}
-        \item<1-> Discarding images
-        \item<2-> Simulating output of pose-detector on ClimbAlong dataset:
+        \item<2-> Simulating pose-detector output by adding noise
         \begin{enumerate}
-            \item<2-> Making input data consist of bboxes with side-length of 56 px
-            \item<3-> 25 Heatmaps
-            \item<4-> Adding noise to input
-            \begin{enumerate}
-                \item Shifting-scalar
-                \item Gaussian filter standard deviation
-            \end{enumerate}
+            \item Gaussian filter standard deviation
+            \item Shifting keypoints
         \end{enumerate}
     \end{itemize}
+    \only<2>{
+        \begin{figure}
+            \centering
+            \includegraphics[width = 0.7 \textwidth]{./entities/heatmaps.png}
+        \end{figure}
+        \unfootnote{\tiny \url{https://www.mdpi.com/2313-433X/8/11/308}}
+    }
 \end{frame}
 
 \begin{frame}
     \frametitle{Pretraining}
+    Finding optimal setting of models
     \begin{itemize}
-        \item<1-> Data configuration
-        \begin{itemize}
-            \item $s = 5$ frames
-            \item Splitting of data into non-overlapping and repeating subsets
-            \item Handling of missing keypoints
-        \end{itemize}
-    \end{itemize}
-\end{frame}
-
-\begin{frame}
-    \frametitle{Pretraining}
-    \begin{itemize}
-        \item<1-> Experiments
-        \begin{itemize}
+        \item<1-> Three experiments
+        \begin{enumerate}
             \item<1-> Sample Gaussian filter standard deviation from $\{1, 1.5, 2, 2.5, 3\}$.
             \item<2-> Fixed standard deviation
             \item<3-> Decreased frame rate
-        \end{itemize}
-        \item<4-> Two different shifting-scalars $s \in \{1, 2\}$
-        \item<5-> DeciWatch - inspected source code:
-        \begin{itemize}
-            \item Sampling every $5$th frame
-        \end{itemize}
-    \end{itemize}
-\end{frame}
-
-\begin{frame}
-    \frametitle{Pretraining}
-    \begin{itemize}
-        \item Results
+        \end{enumerate}
+        \item<4-> Shifting by sampling from $\mathcal{N}(\mu = 0, \sigma = 3k)$ for $k \in \{1, 2\}$
     \end{itemize}
 \end{frame}
 
 \begin{frame}
     \frametitle{Finetuning}
     \begin{itemize}
-        \item Data-preprocessing
-        \item Training Details
-        \item Results
-        \item Visualizations?
-        \item Subconclusion
-    \end{itemize}
-\end{frame}
-
-\begin{frame}
-    \frametitle{Finetuning}
-    \begin{itemize}
+        \item<1-> Using all of the developed models with pose-detector
         \item<1-> Freezing pose-detector
-        \begin{itemize}
-            \item<1-> Quicker fitting
-            \item<2-> Greater understanding of results  
-        \end{itemize}
+        \begin{enumerate}
+            \item Quicker fitting
+            \item Greater understanding of results  
+        \end{enumerate}
     \end{itemize}
 \end{frame}
 
 \begin{frame}
     \frametitle{Finetuning}
     \begin{itemize}
-        \item<1-> Data preprocessing
-        \begin{itemize}
-            \item<1-> Making data more similar to pretraining
-            \begin{itemize}
-                \item Setting negative values to $0$
-                \item Normalizing summing up to same value as pretraining heatmaps
-            \end{itemize}
-            \item<2-> Using predicted bbox to create heatmaps
-            \begin{itemize}
-                \item<3-> Handling of groundtruth keypoints out of bbox  
-            \end{itemize}
-        \end{itemize}
-    \end{itemize}
-\end{frame}
-
-\begin{frame}
-    \frametitle{Finetuning}
-    \begin{itemize}
-        \item<1-> Data configuration
-        \begin{itemize}
-            \item Careful splitting of dataset
-        \end{itemize}
-    \end{itemize}
-\end{frame}
-
-\begin{frame}
-    \frametitle{Finetuning}
-    \begin{itemize}
-        \item<1-> Results
-    \end{itemize}
-\end{frame}
-
-\begin{frame}
-    \frametitle{Finetuning}
-    \begin{itemize}
-        \item<1-> Additional experiments
-    \end{itemize}
-\end{frame}
-
-\begin{frame}
-    \frametitle{Finetuning}
-    \begin{itemize}
-        \item<1-> Additional test results
+        \item<1-> Test results
     \end{itemize}
 \end{frame}
 
 \begin{frame}
     \frametitle{Discussion}
+    Results:
+    \begin{itemize}
+        \item<1-> Translation vs translation + scaling
+        \item<2-> Halfing frame rate
+        \item<3-> Easiest vs most difficult joints
+        \item<4-> Experiment 1 vs experiment 2
+        \item<5-> Effects of pretraining
+        \item<6-> Worst performing keypoints
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Discussion}
+    All models performed better during finetuning than pretraining
+    \begin{enumerate}
+        \item<1-> More data
+        \item<2-> Semantically different videos in pretraining
+        \item<3-> Noise in BRACE annotations
+        \item<4-> Frame rate in Penn Action
+        \item<5-> Performace of identity function
+    \end{enumerate}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Discussion}
+    Which model is the best?
+    \begin{itemize}
+        \item<1-> Greatest testing accuracy: DeciWatch 1.1/1.2
+        \item<2-> Greatest rough estimation: bi-ConvLSTM Model C 1.1
+        \item<3-> Speed and memory: 3DConv
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Discussion}
+    General reflections
+    \begin{itemize}
+        \item<1-> Pretraining
+        \begin{itemize}
+            \item<1-> Should have estimated parameters of data
+            \item<2-> Overlapping video sequences
+        \end{itemize}
+        \item<3-> Finetuning
+        \begin{itemize}
+            \item<3-> Groundtruth outside of bbox 
+        \end{itemize}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Discussion}
+    Future work
+    \begin{enumerate}
+        \item<1-> DeciWatch with all frames
+        \item<2-> DeciWatch with vision transformer
+        \item<3-> Avoid overfitting
+        \item<4-> Multiple retraining
+    \end{enumerate}
 \end{frame}
 
 \begin{frame}
     \frametitle{Conclusion}
+    Succesfully developed and tested the incorporation of temporal smoothing for pose estimation
 \end{frame}
 
 \begin{frame}
     \frametitle{Extras: Mistakes Were Made!}
+    Misimplemented evaluation-function
 \end{frame}
 
 \end{document}
