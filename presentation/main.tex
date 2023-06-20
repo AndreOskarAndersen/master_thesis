@@ -279,10 +279,11 @@
 \end{frame}
 
 \begin{frame}
-    \frametitle{Finetuning}
-    Test results
+    \frametitle{Test results}
+    Only minor difference:
     \begin{itemize}
-        \item Shifting-scalar: only minor effect
+        \item Shifting-scalar: noise in ClimbAlong data is similar to shifting-scalar $s = 1$
+        \item Translation + scaling vs only translation: standard deviations of peaks in ClimbAlong data not changing as much
     \end{itemize}
     \begin{table}[htbp]
         \scalebox{0.7}{
@@ -294,52 +295,7 @@
                 \hline
                 \hline
                 Identity function & 19.4 & 19.4 & 19.4 & 66.1 & 66.1 & 66.1 & 85.2 & 85.2 & 85.2 \\
-                3DConv & \textcolor{green}{49.7} & \textcolor{green}{52.3} & \textcolor{green}{53.1} & \textcolor{green}{95.7} & \textcolor{green}{95.7} & \textcolor{black}{95.8} & \textcolor{black}{99.2} & \textcolor{black}{99.3} & \textcolor{green}{99.3} \\
-                DeciWatch & \textcolor{green}{76.6} & \textcolor{green}{76.7} & \textcolor{green}{68.1} & \textcolor{green}{94.4} & \textcolor{green}{94.3} & \textcolor{green}{87.3} & \textcolor{black}{99.2} & \textcolor{black}{99.2} & \textcolor{green}{96.1} \\
-                bi-ConvLSTM - Model S & \textcolor{red}{37.8} & \textcolor{red}{34.9} & \textcolor{green}{39.0} & \textcolor{red}{91.8} & \textcolor{black}{92.1} & \textcolor{green}{92.2} & \textcolor{black}{99.4} & \textcolor{green}{99.7} & \textcolor{red}{99.2} \\
-                bi-ConvLSTM - Model C & \textcolor{red}{35.9} & \textcolor{red}{39.0} & \textcolor{green}{38.5} & \textcolor{green}{93.1} & \textcolor{green}{93.6} & \textcolor{black}{92.6} & \textcolor{green}{99.8} & \textcolor{green}{99.7} & \textcolor{green}{99.7} \\
-                \hline
-            \end{tabular}
-        }
-    \end{table}
-    
-    \begin{table}[htbp]
-        \scalebox{0.7}{
-            \begin{tabular}{c||ccc|ccc|ccc}
-                \hline
-                Accuracy metric & \multicolumn{3}{c}{PCK@0.05} & \multicolumn{3}{c}{PCK@0.1} & \multicolumn{3}{c}{PCK@0.2} \\
-                \hline
-                Experiment & 2.1 & 2.2 & 2.3 & 2.1 & 2.2 & 2.3 & 2.1 & 2.2 & 2.3 \\
-                \hline
-                \hline
-                Identity function & 19.4 & 19.4 & 19.4 & 66.1 & 66.1 & 66.1 & 85.2 & 85.2 & 85.2 \\
-                3DConv & \textcolor{red}{46.5} & \textcolor{red}{51.6} & \textcolor{red}{47.3} & \textcolor{red}{95.5} & \textcolor{red}{95.5} & \textcolor{black}{95.8} & \textcolor{black}{99.2} & \textcolor{black}{99.3} & \textcolor{red}{99.2} \\
-                DeciWatch & \textcolor{red}{76.0} & \textcolor{red}{75.9} & \textcolor{red}{36.8} & \textcolor{red}{94.2} & \textcolor{red}{94.2} & \textcolor{red}{74.9} & \textcolor{black}{99.2} & \textcolor{black}{99.2} & \textcolor{red}{92.8} \\
-                bi-ConvLSTM - Model S & \textcolor{green}{38.8} & \textcolor{green}{37.4} & \textcolor{red}{35.9} & \textcolor{green}{92.7} & \textcolor{black}{92.1} & \textcolor{red}{91.2} & \textcolor{black}{99.4} & \textcolor{red}{99.5} & \textcolor{green}{99.3} \\
-                bi-ConvLSTM - Model C & \textcolor{green}{39.2} & \textcolor{green}{39.5} & \textcolor{red}{37.1} & \textcolor{red}{92.5} & \textcolor{red}{92.9} & \textcolor{black}{92.6} & \textcolor{red}{99.6} & \textcolor{red}{99.3} & \textcolor{red}{99.6} \\
-                \hline
-            \end{tabular}
-        }
-    \end{table}
-\end{frame}
-
-\begin{frame}
-    \frametitle{Finetuning}
-    Test results
-    \begin{itemize}
-        \item 3DConv: translation + scaling vs only translation
-    \end{itemize}
-    \begin{table}[htbp]
-        \scalebox{0.7}{
-            \begin{tabular}{c||ccc|ccc|ccc}
-                \hline
-                Accuracy metric & \multicolumn{3}{c}{PCK@0.05} & \multicolumn{3}{c}{PCK@0.1} & \multicolumn{3}{c}{PCK@0.2} \\
-                \hline
-                Experiment & 1.1 & 1.2 & 1.3 & 1.1 & 1.2 & 1.3 & 1.1 & 1.2 & 1.3 \\
-                \hline
-                \hline
-                Identity function & 19.4 & 19.4 & 19.4 & 66.1 & 66.1 & 66.1 & 85.2 & 85.2 & 85.2 \\
-                3DConv & \textcolor{red}{49.7} & \textcolor{green}{52.3} & 53.1 & \textcolor{yellow}{95.7} & \textcolor{yellow}{95.7} & 95.8 & \textcolor{red}{99.2} & \textcolor{green}{99.3} & 99.3 \\
+                3DConv & 49.7 & 52.3 & 53.1 & 95.7 & 95.7 & 95.8 & 99.2 & 99.3 & 99.3 \\
                 DeciWatch & 76.6 & 76.7 & 68.1 & 94.4 & 94.3 & 87.3 & 99.2 & 99.2 & 96.1 \\
                 bi-ConvLSTM - Model S & 37.8 & 34.9 & 39.0 & 91.8 & 92.1 & 92.2 & 99.4 & 99.7 & 99.2 \\
                 bi-ConvLSTM - Model C & 35.9 & 39.0 & 38.5 & 93.1 & 93.6 & 92.6 & 99.8 & 99.7 & 99.7 \\
@@ -358,7 +314,7 @@
                 \hline
                 \hline
                 Identity function & 19.4 & 19.4 & 19.4 & 66.1 & 66.1 & 66.1 & 85.2 & 85.2 & 85.2 \\
-                3DConv & \textcolor{red}{46.5} & \textcolor{green}{51.6} & 47.3 & \textcolor{yellow}{95.5} & \textcolor{yellow}{95.5} & 95.8 & \textcolor{red}{99.2} & \textcolor{green}{99.3} & 99.2 \\
+                3DConv & 46.5 & 51.6 & 47.3 & 95.5 & 95.5 & 95.8 & 99.2 & 99.3 & 99.2 \\
                 DeciWatch & 76.0 & 75.9 & 36.8 & 94.2 & 94.2 & 74.9 & 99.2 & 99.2 & 92.8 \\
                 bi-ConvLSTM - Model S & 38.8 & 37.4 & 35.9 & 92.7 & 92.1 & 91.2 & 99.4 & 99.5 & 99.3 \\
                 bi-ConvLSTM - Model C & 39.2 & 39.5 & 37.1 & 92.5 & 92.9 & 92.6 & 99.6 & 99.3 & 99.6 \\
@@ -368,11 +324,14 @@
     \end{table}
 \end{frame}
 
+
 \begin{frame}
-    \frametitle{Finetuning}
-    Test results
+    \frametitle{Test results}
+    Decreased frame rate:
     \begin{itemize}
-        \item DeciWatch: effects of decreased frame rate
+        \item 3DConv: benefit
+        \item DeciWatch: drawback
+        \item bi-ConvLSTM: benefit for less noise
     \end{itemize}
     \begin{table}[htbp]
         \scalebox{0.7}{
@@ -385,7 +344,7 @@
                 \hline
                 Identity function & 19.4 & 19.4 & 19.4 & 66.1 & 66.1 & 66.1 & 85.2 & 85.2 & 85.2 \\
                 3DConv & 49.7 & 52.3 & 53.1 & 95.7 & 95.7 & 95.8 & 99.2 & 99.3 & 99.3 \\
-                DeciWatch & \textcolor{green}{76.6} & 76.7 & \textcolor{red}{68.1} & \textcolor{green}{94.4} & 94.3 & \textcolor{red}{87.3} & \textcolor{green}{99.2} & 99.2 & \textcolor{red}{96.1} \\
+                DeciWatch & 76.6 & 76.7 & 68.1 & 94.4 & 94.3 & 87.3 & 99.2 & 99.2 & 96.1 \\
                 bi-ConvLSTM - Model S & 37.8 & 34.9 & 39.0 & 91.8 & 92.1 & 92.2 & 99.4 & 99.7 & 99.2 \\
                 bi-ConvLSTM - Model C & 35.9 & 39.0 & 38.5 & 93.1 & 93.6 & 92.6 & 99.8 & 99.7 & 99.7 \\
                 \hline
@@ -404,7 +363,7 @@
                 \hline
                 Identity function & 19.4 & 19.4 & 19.4 & 66.1 & 66.1 & 66.1 & 85.2 & 85.2 & 85.2 \\
                 3DConv & 46.5 & 51.6 & 47.3 & 95.5 & 95.5 & 95.8 & 99.2 & 99.3 & 99.2 \\
-                DeciWatch & \textcolor{green}{76.0} & 75.9 & \textcolor{red}{36.8} & \textcolor{green}{94.2} & 94.2 & \textcolor{red}{74.9} & \textcolor{green}{99.2} & 99.2 & \textcolor{red}{92.8} \\
+                DeciWatch & 76.0 & 75.9 & 36.8 & 94.2 & 94.2 & 74.9 & 99.2 & 99.2 & 92.8 \\
                 bi-ConvLSTM - Model S & 38.8 & 37.4 & 35.9 & 92.7 & 92.1 & 91.2 & 99.4 & 99.5 & 99.3 \\
                 bi-ConvLSTM - Model C & 39.2 & 39.5 & 37.1 & 92.5 & 92.9 & 92.6 & 99.6 & 99.3 & 99.6 \\
                 \hline
@@ -414,10 +373,10 @@
 \end{frame}
 
 \begin{frame}
-    \frametitle{Finetuning}
-    Test results
+    \frametitle{Test results}
+    bi-ConvLSTM: Model S vs Model C:
     \begin{itemize}
-        \item bi-ConvLSTM: Model S vs Model C
+        \item Not as a big of a concern
     \end{itemize}
     \begin{table}[htbp]
         \scalebox{0.7}{
@@ -431,8 +390,8 @@
                 Identity function & 19.4 & 19.4 & 19.4 & 66.1 & 66.1 & 66.1 & 85.2 & 85.2 & 85.2 \\
                 3DConv & 49.7 & 52.3 & 53.1 & 95.7 & 95.7 & 95.8 & 99.2 & 99.3 & 99.3 \\
                 DeciWatch & 76.6 & 76.7 & 68.1 & 94.4 & 94.3 & 87.3 & 99.2 & 99.2 & 96.1 \\
-                bi-ConvLSTM - Model S & \textcolor{green}{37.8} & \textcolor{red}{34.9} & \textcolor{green}{39.0} & \textcolor{red}{91.8} & \textcolor{red}{92.1} & \textcolor{red}{92.2} & \textcolor{red}{99.4} & \textcolor{yellow}{99.7} & \textcolor{red}{99.2} \\
-                bi-ConvLSTM - Model C & \textcolor{red}{35.9} & \textcolor{green}{39.0} & \textcolor{red}{38.5} & \textcolor{green}{93.1} & \textcolor{green}{93.6} & \textcolor{green}{92.6} & \textcolor{green}{99.8} & \textcolor{yellow}{99.7} & \textcolor{green}{99.7} \\
+                bi-ConvLSTM - Model S & 37.8 & 34.9 & 39.0 & 91.8 & 92.1 & 92.2 & 99.4 & 99.7 & 99.2 \\
+                bi-ConvLSTM - Model C & 35.9 & 39.0 & 38.5 & 93.1 & 93.6 & 92.6 & 99.8 & 99.7 & 99.7 \\
                 \hline
             \end{tabular}
         }
@@ -450,8 +409,8 @@
                 Identity function & 19.4 & 19.4 & 19.4 & 66.1 & 66.1 & 66.1 & 85.2 & 85.2 & 85.2 \\
                 3DConv & 46.5 & 51.6 & 47.3 & 95.5 & 95.5 & 95.8 & 99.2 & 99.3 & 99.2 \\
                 DeciWatch & 76.0 & 75.9 & 36.8 & 94.2 & 94.2 & 74.9 & 99.2 & 99.2 & 92.8 \\
-                bi-ConvLSTM - Model S & \textcolor{red}{38.8} & \textcolor{red}{37.4} & \textcolor{red}{35.9} & \textcolor{green}{92.7} & \textcolor{red}{92.1} & \textcolor{red}{91.2} & \textcolor{red}{99.4} & \textcolor{green}{99.5} & \textcolor{red}{99.3} \\
-                bi-ConvLSTM - Model C & \textcolor{green}{39.2} & \textcolor{green}{39.5} & \textcolor{green}{37.1} & \textcolor{red}{92.5} & \textcolor{green}{92.9} & \textcolor{green}{92.6} & \textcolor{green}{99.6} & \textcolor{red}{99.3} & \textcolor{green}{99.6} \\
+                bi-ConvLSTM - Model S & 38.8 & 37.4 & 35.9 & 92.7 & 92.1 & 91.2 & 99.4 & 99.5 & 99.3 \\
+                bi-ConvLSTM - Model C & 39.2 & 39.5 & 37.1 & 92.5 & 92.9 & 92.6 & 99.6 & 99.3 & 99.6 \\
                 \hline
             \end{tabular}
         }
@@ -459,37 +418,17 @@
 \end{frame}
 
 \begin{frame}
-    \frametitle{Finetuning}
-    Test results
+    \frametitle{Test results}
+    Worst performing keypoints:
+    \begin{itemize}
+        \item Pinkies, index fingers and thumbs
+        \item Not included during pretraining (minor effect - heels and toes)
+        \item A lot of movement
+    \end{itemize}
     \begin{figure}
         \centering
         \includegraphics[width = 0.7\textwidth]{entities/kpts.pdf}
     \end{figure}
-\end{frame}
-
-\begin{frame}
-    \frametitle{Discussion}
-    Results:
-    \begin{itemize}
-        \item<1-> Translation vs translation + scaling
-        \item<2-> Halfing frame rate
-        \item<3-> Easiest vs most difficult joints
-        \item<4-> Experiment 1 vs experiment 2
-        \item<5-> Effects of pretraining
-        \item<6-> Worst performing keypoints
-    \end{itemize}
-\end{frame}
-
-\begin{frame}
-    \frametitle{Discussion}
-    All models performed better during finetuning than pretraining
-    \begin{enumerate}
-        \item<1-> More data
-        \item<2-> Semantically different videos in pretraining
-        \item<3-> Noise in BRACE annotations
-        \item<4-> Frame rate in Penn Action
-        \item<5-> Performace of identity function
-    \end{enumerate}
 \end{frame}
 
 \begin{frame}
@@ -503,8 +442,8 @@
 \end{frame}
 
 \begin{frame}
-    \frametitle{Discussion}
-    General reflections
+    \frametitle{General reflections}
+    Mistakes we have made
     \begin{itemize}
         \item<1-> Pretraining
         \begin{itemize}
@@ -537,12 +476,13 @@
 \begin{frame}
     \frametitle{Extras: Mistakes Were Made!}
     Misimplemented evaluation-function
-    \begin{itemize}
-        \item Generally, same patterns
-        \item Decreased accuracies
-        \item Models do not improve the rough estimates
-        \item bi-ConvLSTM: Model C is now always better than Model S
-    \end{itemize}
+    \begin{enumerate}
+        \item<2-> Generally, same patterns
+        \item<3-> Decreased accuracies
+        \item<4-> Models do not improve the rough estimates
+        \item<5-> bi-ConvLSTM: Model C is now always better than Model S
+        \item<6-> 3DConv is generally the best model
+    \end{enumerate}
     \begin{table}[htbp]
         \scalebox{0.7}{
             \begin{tabular}{c||ccc|ccc|ccc}
