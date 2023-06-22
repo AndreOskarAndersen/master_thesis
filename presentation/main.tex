@@ -78,7 +78,7 @@
             \item<1-> Often requires the position of the players.
             \item<1-> Problems with the data
             \begin{itemize}
-                \item Methods require large quantities
+                \item Methods require a lot of data
                 \item Unusual poses/movements
             \end{itemize}
         \end{itemize}
@@ -86,7 +86,7 @@
     \begin{minipage}{0.45\textwidth}
         \begin{figure}
             \center
-            \includegraphics[width = \textwidth]{./entities/ClimbAlong_cv.PNG}
+            \includegraphics[width = \textwidth]{./entities/ClimbAlong_cv_2.PNG}
         \end{figure}
     \end{minipage}
     \unfootnote{\tiny \url{https://climbalong.com/lab}}
@@ -109,7 +109,7 @@
     \begin{minipage}{0.45\textwidth}
         \begin{figure}
             \center
-            \includegraphics[width = \textwidth]{./entities/ClimbAlong_cv.PNG}
+            \includegraphics[width = \textwidth]{./entities/ClimbAlong_cv_2.PNG}
         \end{figure}
     \end{minipage}
     \unfootnote{\tiny \url{https://climbalong.com/lab}}
@@ -155,7 +155,7 @@
     \begin{itemize}
         \item<1-> Name: bi-ConvLSTM Model S
         \item<1-> Adaptation of Unipose-LSTM by Artacho and Savakis
-        \item<1-> Bidirectional convolutional LSTM + 3D-conv. layers and ReLUs
+        \item<1-> Bidirectional convolutional LSTM + 2D-conv. layers and ReLUs
         \item<1-> Processing directions summed together
     \end{itemize}
     \begin{figure}
@@ -167,8 +167,9 @@
 
 \begin{frame}
     \frametitle{The Models}
-    bi-ConvLSTM Model C
+    RNN-based 2:
     \begin{itemize}
+        \item<1-> bi-ConvLSTM Model C
         \item<1-> Problem: Prioritization of processing direction
         \item<1-> Solution: Using convolution
         \item<1-> Otherwise, very similar to bi-ConvLSTM Model S
@@ -201,13 +202,12 @@
         \begin{itemize}
             \item Fully annoated videos of climbers
             \item<2-> Problem: very small dataset
-            % TODO: tilføj visualizations
         \end{itemize}
     \end{minipage} \hfill
     \begin{minipage}{0.45\textwidth}
         \begin{figure}
             \center
-            \includegraphics[width = \textwidth]{./entities/ClimbAlong_cv.PNG}
+            \includegraphics[width = \textwidth]{./entities/ClimbAlong_cv_2.PNG}
         \end{figure}
     \end{minipage}
     \unfootnote{\tiny \url{https://climbalong.com/lab}}
@@ -225,7 +225,6 @@
                 \item BRACE
                 \item Penn Action
             \end{itemize}
-            % TODO: tilføj visualizations
         \end{itemize}
     \end{minipage} \hfill
     \begin{minipage}{0.45\textwidth}
@@ -248,12 +247,15 @@
         \item<4-> Creation of heatmaps
     \end{itemize}
 
-    \begin{figure}
-        \centering
-        \includegraphics[width = 0.7 \textwidth]{./entities/heatmaps.png}
-    \end{figure}
-    \unfootnote{\tiny \url{https://www.mdpi.com/2313-433X/8/11/308}}
-    \unfootnote{https://arxiv.org/pdf/2001.08095.pdf}
+    \only<4->{
+        \begin{figure}
+            \centering
+            \includegraphics[width = 0.7 \textwidth]{./entities/heatmaps.png}
+        \end{figure}
+        \unfootnote{\tiny \url{https://www.mdpi.com/2313-433X/8/11/308}}
+    }
+    
+    \unfootnote{\tiny https://arxiv.org/pdf/2001.08095.pdf}
 \end{frame}
 
 \begin{frame}
@@ -264,7 +266,7 @@
         \begin{itemize}
             \item Different input images = Unrepresentative  pose-detector predictions
         \end{itemize}
-        \item<2-> Instead, simulate pose-detector output by shifting keypoints
+        \item<2-> Instead, simulate pose-detector output by shifting input keypoints = learn to denoise
     \end{itemize}
 \end{frame}
 
@@ -284,12 +286,19 @@
 
 \begin{frame}
     \frametitle{Finetuning}
-    \begin{itemize}
-        \item<1-> Freezing pose-detector
+    Freezing already-developed pose-detector
         \begin{enumerate}
             \item Quicker fitting
             \item Greater understanding of results  
         \end{enumerate}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Accuracy metric}
+    Percentage of correct keypoints (PCK)
+    \begin{itemize}
+        \item Correct if $dist(pred, gt) \leq d$
+        \item PCK$@0.05$, PCK$@0.1$ and PCK$@0.2$ 
     \end{itemize}
 \end{frame}
 
@@ -306,7 +315,7 @@
                 \hline
                 Accuracy metric & \multicolumn{3}{c}{PCK@0.05} & \multicolumn{3}{c}{PCK@0.1} & \multicolumn{3}{c}{PCK@0.2} \\
                 \hline
-                Experiment & 1.1 & 1.2 & 1.3 & 1.1 & 1.2 & 1.3 & 1.1 & 1.2 & 1.3 \\
+                Experiment & 1 & 2 & 3 & 1 & 2 & 3 & 1 & 2 & 3 \\
                 \hline
                 \hline
                 Identity function & 19.4 & 19.4 & 19.4 & 66.1 & 66.1 & 66.1 & 85.2 & 85.2 & 85.2 \\
@@ -325,7 +334,7 @@
                 \hline
                 Accuracy metric & \multicolumn{3}{c}{PCK@0.05} & \multicolumn{3}{c}{PCK@0.1} & \multicolumn{3}{c}{PCK@0.2} \\
                 \hline
-                Experiment & 2.1 & 2.2 & 2.3 & 2.1 & 2.2 & 2.3 & 2.1 & 2.2 & 2.3 \\
+                Experiment & 1 & 2 & 3 & 1 & 2 & 3 & 1 & 2 & 3 \\
                 \hline
                 \hline
                 Identity function & 19.4 & 19.4 & 19.4 & 66.1 & 66.1 & 66.1 & 85.2 & 85.2 & 85.2 \\
@@ -354,7 +363,7 @@
                 \hline
                 Accuracy metric & \multicolumn{3}{c}{PCK@0.05} & \multicolumn{3}{c}{PCK@0.1} & \multicolumn{3}{c}{PCK@0.2} \\
                 \hline
-                Experiment & 1.1 & 1.2 & 1.3 & 1.1 & 1.2 & 1.3 & 1.1 & 1.2 & 1.3 \\
+                Experiment & 1 & 2 & 3 & 1 & 2 & 3 & 1 & 2 & 3 \\
                 \hline
                 \hline
                 Identity function & 19.4 & 19.4 & 19.4 & 66.1 & 66.1 & 66.1 & 85.2 & 85.2 & 85.2 \\
@@ -373,7 +382,7 @@
                 \hline
                 Accuracy metric & \multicolumn{3}{c}{PCK@0.05} & \multicolumn{3}{c}{PCK@0.1} & \multicolumn{3}{c}{PCK@0.2} \\
                 \hline
-                Experiment & 2.1 & 2.2 & 2.3 & 2.1 & 2.2 & 2.3 & 2.1 & 2.2 & 2.3 \\
+                Experiment & 1 & 2 & 3 & 1 & 2 & 3 & 1 & 2 & 3 \\
                 \hline
                 \hline
                 Identity function & 19.4 & 19.4 & 19.4 & 66.1 & 66.1 & 66.1 & 85.2 & 85.2 & 85.2 \\
@@ -399,7 +408,7 @@
                 \hline
                 Accuracy metric & \multicolumn{3}{c}{PCK@0.05} & \multicolumn{3}{c}{PCK@0.1} & \multicolumn{3}{c}{PCK@0.2} \\
                 \hline
-                Experiment & 1.1 & 1.2 & 1.3 & 1.1 & 1.2 & 1.3 & 1.1 & 1.2 & 1.3 \\
+                Experiment & 1 & 2 & 3 & 1 & 2 & 3 & 1 & 2 & 3 \\
                 \hline
                 \hline
                 Identity function & 19.4 & 19.4 & 19.4 & 66.1 & 66.1 & 66.1 & 85.2 & 85.2 & 85.2 \\
@@ -418,7 +427,7 @@
                 \hline
                 Accuracy metric & \multicolumn{3}{c}{PCK@0.05} & \multicolumn{3}{c}{PCK@0.1} & \multicolumn{3}{c}{PCK@0.2} \\
                 \hline
-                Experiment & 2.1 & 2.2 & 2.3 & 2.1 & 2.2 & 2.3 & 2.1 & 2.2 & 2.3 \\
+                Experiment & 1 & 2 & 3 & 1 & 2 & 3 & 1 & 2 & 3 \\
                 \hline
                 \hline
                 Identity function & 19.4 & 19.4 & 19.4 & 66.1 & 66.1 & 66.1 & 85.2 & 85.2 & 85.2 \\
@@ -447,12 +456,11 @@
 \end{frame}
 
 \begin{frame}
-    \frametitle{Discussion}
-    Which model is the best?
+    \frametitle{Which model is the optimal choice?}
     \begin{itemize}
-        \item<1-> Greatest testing accuracy: DeciWatch 1.1/1.2
-        \item<1-> Greatest rough estimation: bi-ConvLSTM Model C 1.1
-        \item<1-> Speed and memory: 3DConv
+        \item<1-> Greatest testing accuracy: DeciWatch shifting-scalar $s = 1$, full frame rate
+        \item<1-> Greatest rough estimation: bi-ConvLSTM Model C, shifting-scalar $s = 1$, experiment 1
+        \item<1-> Speed and memory: 3DConv, shfting-scalar $s = 1$, experiment 3
     \end{itemize}
 \end{frame}
 
@@ -480,30 +488,23 @@
 \end{frame}
 
 \begin{frame}
-    \frametitle{Future work}
-    
-    \begin{enumerate}
-        \item<1-> DeciWatch with all frames
-        \item<2-> DeciWatch with vision transformer
-        \item<3-> Avoid overfitting
-        \item<4-> Multiple retraining
-    \end{enumerate}
-\end{frame}
-
-\begin{frame}
     \frametitle{Conclusion}
-    Succesfully developed and tested models that incorporate temporal smoothing pose estimation.
+    Succesfully developed and tested models that incorporate temporal smoothing in 2D human pose estimation for bouldering.
+    \begin{itemize}
+        \item Pretraining and finetuning
+        \item Multiple experiments to find the optimal setting of the models
+        \item The optimal model depends on ones needs
+    \end{itemize}
 \end{frame}
 
 \begin{frame}
     \frametitle{Extras: Mistakes Were Made!}
     Misimplemented evaluation-function
     \begin{enumerate}
-        \item<2-> Generally, same patterns
-        \item<3-> Decreased accuracies
-        \item<4-> Models do not improve the rough estimates
-        \item<5-> bi-ConvLSTM: Model C is now always better than Model S
-        \item<6-> 3DConv is generally the best model
+        \item<2-> Decreased accuracies
+        \item<3-> Models do not improve the rough estimates
+        \item<4-> bi-ConvLSTM: Model C is now always better than Model S
+        \item<5-> 3DConv is generally the best performing model
     \end{enumerate}
     \begin{table}[htbp]
         \scalebox{0.7}{
@@ -511,7 +512,7 @@
                 \hline
                 Accuracy metric & \multicolumn{3}{c}{PCK@0.05} & \multicolumn{3}{c}{PCK@0.1} & \multicolumn{3}{c}{PCK@0.2} \\
                 \hline
-                Experiment & 1.1 & 1.2 & 1.3 & 1.1 & 1.2 & 1.3 & 1.1 & 1.2 & 1.3 \\
+                Experiment & 1 & 2 & 3 & 1 & 2 & 3 & 1 & 2 & 3 \\
                 \hline
                 \hline
                 Identity function & 19.4 & 19.4 & 19.4 & 66.1 & 66.1 & 66.1 & 85.2 & 85.2 & 85.2 \\
@@ -530,7 +531,7 @@
                 \hline
                 Accuracy metric & \multicolumn{3}{c}{PCK@0.05} & \multicolumn{3}{c}{PCK@0.1} & \multicolumn{3}{c}{PCK@0.2} \\
                 \hline
-                Experiment & 2.1 & 2.2 & 2.3 & 2.1 & 2.2 & 2.3 & 2.1 & 2.2 & 2.3 \\
+                Experiment & 1 & 2 & 3 & 1 & 2 & 3 & 1 & 2 & 3 \\
                 \hline
                 \hline
                 Identity function & 19.4 & 19.4 & 19.4 & 66.1 & 66.1 & 66.1 & 85.2 & 85.2 & 85.2 \\
