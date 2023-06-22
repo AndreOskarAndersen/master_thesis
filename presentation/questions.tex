@@ -23,15 +23,50 @@
 
 \begin{enumerate}
     \item Hvorfor bruger man heatmaps?
+    \begin{quote}
+      Heatmaps bruges til at modellere usikkerheden der er ved annoteringen
+    \end{quote}
     \item Hvorfor bruger PCK en threshold baseret på torso height?
+    \begin{quote}
+      Det gør man for at inkorporere størrelsen af subjektet. Havde man fikset thresholden, havde predictionen været meget nemmere når personen er lille i billedet.
+    \end{quote}
     \item Hvorfor kigger man på om afstanden ligger under en radius?
+    \begin{quote}
+      Ligesom ved årsagen til brugen af heatmaps, så modellerer thresholden usikkerheden der er ved annoteringen.
+    \end{quote}
     \item Hvorfor gør du brug af MSE?
+    \begin{quote}
+      DeciWatch gør brug af en modificeret udgave af MSE. Unipose-LSTM gør brug af MSE. For at holde det konstant, valgte jeg bare at bruge MSE for alle modellerne.
+    \end{quote}
     \item Kan du forklare ADAM?
     \item Hvad er fordelen ved at bruge ReLU?
+    \begin{quote}
+      Vigtigst af alt, lader det modellerne modellere ikke-lineære funktioner. Yderligere, så er der nogle andre fordelle, såsom (1) ReLU er hurtigt at udregne, (2) den afledte er nemt at udregne og (3) modsat andre activation functions såsom Sigmoid, har den en mindre sandsynlighed for at introducere vanishing gradientsa
+    \end{quote}
     \item Hvorfor hjælper layer normalization
+    \begin{quote}
+      Ved at normalizere lagende af dataen undgår vi at inputtet ikke "ping-ponger" frem og tilbage, så dataen ikke pludseligt forskydes, idet den centrerer dataen. Dette burde sørge for, at færre epochs skal bruges.
+    \end{quote}
     \item Hvorfor gøres der brug af 1x1 convolutions
+    \begin{quote}
+      1x1 convolutions bruges som et fully-connected layer på tværs af filtrerne. Det bruges ofte til at downsample antallet af filtre.
+    \end{quote}
     \item Hvorfor initializerer med Glorot?
+    \begin{quote}
+      Der er flere grunde til det. (1) vægtene hverken for store eller små, hvilket hjælper på vanishing/exploding gradients. (2) vi sørger for at der ikke er nogen symmetri, hvilket ville resultere i neuronerne have samme udregninger. 
+    \end{quote}
     \item Hvilke andre metoder kunne man bruge?
+    \item Spørgsmål om Convolution, LSTM og Transformer
+    \item Du siger at du har introduceret noget evaluation bias i pretraining, da forskellige frames fra den samme video sequence kan optræde i forskellige subsets og den samme person derved optræder påtværs af subsets. Har du ikke samme problem i finetuning?
+    \begin{quote}
+      Både jo og nej. Jo, fordi den samme person kan optræde påtværs af subsets. Nej, fordi det er forskellige video sequences.
+    \end{quote}
+    \item Hvorfor er 3DConv den bedst performing model?
+    \item Hvordan performer din deciwatch i forholdet til det fra artiklen?
+    \item Hvilke andre metoder findes der til at undgå overfitting?
+    \item Hvorfor brugte du ikke data augmentation?
+    \item Hvorfor bruger DeciWatch ikke alle frames?
+    \item Hvorfor er fem frames det optimale valg?
 \end{enumerate}
 
 \end{document}
