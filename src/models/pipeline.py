@@ -347,7 +347,7 @@ def evaluate_kpts(model: nn.Module,
         Average PCK of the model on the dataloader
     """
     
-    model.eval()
+    #model.eval()
     
     # Pre-allocating memory for storing info
     PCKs = []

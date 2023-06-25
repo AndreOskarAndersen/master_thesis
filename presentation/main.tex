@@ -129,7 +129,7 @@
     \begin{itemize}
         \item<1-> Generally, three approaches
         \begin{enumerate}
-            \item Convolutional layer
+            \item Convolutional neural network (CNN)
             \item Recurrent neural network (RNN)
             \item Transformer
         \end{enumerate}
@@ -140,10 +140,10 @@
 
 \begin{frame}
     \frametitle{The Models}
-    Convolutional layer
+    CNN-based approach
     \begin{itemize}
         \item<1-> Name: 3DConv
-        \item<2-> 3-dimensional conv. layer + ReLU
+        \item<1-> 3-dimensional conv. layer + ReLU
     \end{itemize}
     \begin{figure}
         \centering
@@ -241,15 +241,16 @@
 \begin{frame}
     \frametitle{Data Configuration}
     \begin{itemize}
-        \item<1-> $s = 5$ frames, as suggested by Artacho \textit{Et al.}
+        \item<1-> $s = 5$ frames, as 
         \begin{enumerate}
-            \item<2-> Less memory
-            \item<3-> Model-hyperparameter based on video length
+            \item<1-> Suggested by Artacho \textit{Et al.}
+            \item<1-> Less memory
+            \item<1-> Model-hyperparameter based on video length
         \end{enumerate}
-        \item<4-> Creation of heatmaps
+        \item<2-> Creation of heatmaps
     \end{itemize}
 
-    \only<4->{
+    \only<2->{
         \begin{figure}
             \centering
             \includegraphics[width = 0.7 \textwidth]{./entities/heatmaps.png}
@@ -266,7 +267,7 @@
     \begin{itemize}
         \item<1-> Not training already-developed pose-detector
         \begin{itemize}
-            \item Different input images = Unrepresentative  pose-detector predictions
+            \item Different input images = Unrepresentative pose-detector predictions
         \end{itemize}
         \item<2-> Instead, simulate pose-detector output by shifting input keypoints = learn to denoise
     \end{itemize}
@@ -297,7 +298,7 @@
 
 \begin{frame}
     \frametitle{Accuracy metric}
-    Percentage of correct keypoints (PCK)
+    PCK: percentage of correct keypoints
     \begin{itemize}
         \item Correct if $dist(pred, gt) \leq d$
         \item PCK$@0.05$, PCK$@0.1$ and PCK$@0.2$ 
@@ -458,6 +459,23 @@
 \end{frame}
 
 \begin{frame}
+    \frametitle{Test results}
+    Worst performing keypoints:
+    \begin{itemize}
+        \item Pinkies, index fingers and thumbs
+        \item Not included during pretraining (minor effect - heels and toes)
+        \item A lot of movement
+        \item Extra: performance of pose-detector
+    \end{itemize}
+    \begin{figure}
+        \centering
+        \includegraphics[width = 0.6\textwidth]{entities/kpts_pose_detector.pdf}
+        \caption{Keypoint-specific PCK$@0.1$ for the pose-detector.}
+    \end{figure}
+\end{frame}
+
+
+\begin{frame}
     \frametitle{Which model is the optimal choice?}
     \begin{itemize}
         \item<1-> Greatest testing accuracy: DeciWatch shifting-scalar $s = 1$, full frame rate
@@ -487,12 +505,12 @@
 
 \begin{frame}
     \frametitle{General reflections}
-    Mistakes we have made
+    Potential mistakes we have made
     \begin{itemize}
         \item<1-> Pretraining
         \begin{itemize}
             \item<1-> Should have estimated parameters of data
-            \item<2-> Frame of same video sequence across data subsets = could carry some bias
+            \item<2-> Same video sequence across subsets = could carry some bias
         \end{itemize}
         \item<3-> Finetuning
         \begin{itemize}
@@ -510,11 +528,19 @@
 
 \begin{frame}
     \frametitle{Conclusion}
-    Succesfully developed and tested models that incorporate temporal smoothing in 2D human pose estimation for bouldering.
+    Succesfully developed and tested models that incorporate temporal information in 2D human pose estimation for bouldering.
     \begin{itemize}
         \item Pretraining and finetuning
         \item Multiple experiments to find the optimal setting of the models
         \item The optimal model depends on ones needs
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Extras: Mistakes Were Made!}
+    Pretraining
+    \begin{itemize}
+        \item Very few overlapping samples in train/test subset
     \end{itemize}
 \end{frame}
 
@@ -564,6 +590,15 @@
             \end{tabular}
         }
     \end{table}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Thanks to}
+    \begin{itemize}
+        \item My supervisor Kim Steenstrup Pedersen
+        \item The team at ClimbAlong at NorthTech ApS
+        \item My parents and my sister
+    \end{itemize}
 \end{frame}
 
 \begin{frame}
@@ -1030,6 +1065,76 @@
         \end{subfigure}
         \hfill
     \end{figure}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Finetuning keypoint testing results}
+    
+    \begin{table}[htbp]
+        \scalebox{0.7}{
+            \begin{adjustbox}{center}
+                \begin{tabular}{c||ccc|ccc|ccc|ccc|c}
+                    \hline
+                    & \multicolumn{3}{c}{3DConv} & \multicolumn{3}{c}{DeciWatch} & \multicolumn{3}{c}{\begin{tabular}[c]{@{}c@{}}bi-ConvLSTM\\ Model S\end{tabular}} & \multicolumn{3}{c}{\begin{tabular}[c]{@{}c@{}}bi-ConvLSTM\\ Model C\end{tabular}} & Total \\ 
+                    \hline
+                    Experiment & 1.1 & 1.2 & 1.3 & 1.1 & 1.2 & 1.3 & 1.1 & 1.2 & 1.3 & 1.1 & 1.2 & 1.3 & \\
+                    \hline
+                    \hline
+                    Nose & 56.6 & 56.6 & 56.6 & 50.7 & 50.3 & 48.7 & 57.5 & 56.1 & 54.6 & 54.9 & 56.6 & 56.1 & 54.6 \\
+                    Ear & 73.9 & 73.8 & 75.3 & 68.2 & 67.7 & 65.0 & 74.4 & 74.6 & 73.6 & 77.0 & 73.8 & 74.8 & 72.7 \\
+                    Shoulder & 74.7 & 75.1 & 75.0 & 70.2 & 70.5 & 66.1 & 74.6 & 75.5 & 74.6 & 74.3 & 75.2 & 74.9 & 73.4 \\
+                    Elbow & 71.8 & 72.2 & 71.6 & 64.2 & 63.1 & 60.7 & 70.0 & 68.3 & 70.4 & 71.4 & 68.2 & 69.0 & 68.4 \\
+                    Wrist & 71.4 & 71.4 & 71.5 & 65.8 & 66.3 & 61.3 & 69.9 & 70.6 & 68.3 & 71.2 & 71.2 & 70.1 & 69.1 \\
+                    Pinky & 51.4 & 51.4 & 52.3 & 51.4 & 52.5 & 48.7 & 51.8 & 52.6 & 54.0 & 55.1 & 54.7 & 54.7 & 52.6 \\
+                    Index finger & 59.9 & 59.9 & 60.5 & 57.1 & 56.6 & 51.1 & 56.4 & 58.9 & 55.2 & 57.4 & 60.3 & 59.0 & 57.7 \\
+                    Thumb & 55.5 & 54.8 & 57.8 & 54.0 & 54.6 & 50.2 & 51.4 & 55.1 & 55.4 & 54.6 & 58.0 & 53.3 & 54.6 \\
+                    Hip & 76.4 & 76.4 & 77.2 & 72.1 & 71.8 & 67.8 & 75.7 & 75.5 & 75.6 & 75.7 & 75.7 & 74.9 & 74.6 \\
+                    Knee & 82.0 & 82.0 & 81.0 & 77.3 & 77.0 & 72.0 & 80.4 & 81.8 & 81.2 & 81.5 & 81.3 & 80.3 & 79.8 \\
+                    Ankle & 92.0 & 91.5 & 91.6 & 86.9 & 87.7 & 79.8 & 91.3 & 92.1 & 92.3 & 92.2 & 91.9 & 91.1 & 90.0 \\
+                    Heel & 90.5 & 90.5 & 90.6 & 84.0 & 84.7 & 76.9 & 90.4 & 45.1 & 90.7 & 89.8 & 90.0 & 89.7 & 84.4 \\
+                    Toes & 77.9 & 77.8 & 78.0 & 73.1 & 73.7 & 70.6 & 77.5 & 76.0 & 77.1 & 76.8 & 77.6 & 77.5 & 76.1 \\
+                    \hline
+                    Total & 72.5 & 72.4 & 73.1 & 68.0 & 68.1 & 62.7 & 71.5 & 68.3 & 71.3 & 72.2 & 72.2 & 71.4 & \\
+                    \hline
+                \end{tabular}
+            \end{adjustbox}
+        }
+    \end{table}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Finetuning keypoint testing results}
+    
+    \begin{table}[htbp]
+        \scalebox{0.7}{
+            \begin{adjustbox}{center}
+                \begin{tabular}{c||ccc|ccc|ccc|ccc|c}
+                    \hline
+                    & \multicolumn{3}{c}{3DConv} & \multicolumn{3}{c}{DeciWatch} & \multicolumn{3}{c}{\begin{tabular}[c]{@{}c@{}}bi-ConvLSTM\\ Model S\end{tabular}} & \multicolumn{3}{c}{\begin{tabular}[c]{@{}c@{}}bi-ConvLSTM\\ Model C\end{tabular}} & Total \\ 
+                    \hline
+                    Experiment & 2.1 & 2.2 & 2.3 & 2.1 & 2.2 & 2.3 & 2.1 & 2.2 & 2.3 & 2.1 & 2.2 & 2.3 & \\
+                    \hline
+                    \hline
+                    Nose & 56.5 & 56.5 & 55.5 & 49.1 & 50.5 & 50.9 & 55.7 & 58.7 & 52.9 & 54.6 & 57.5 & 56.9 & 54.6 \\
+                    Ear & 74.1 & 71.7 & 74.3 & 55.2 & 66.1 & 66.8 & 73.9 & 73.2 & 73.7 & 75.5 & 75.9 & 74.6 & 71.3 \\
+                    Shoulder & 75.3 & 74.5 & 74.1 & 61.9 & 69.1 & 67.7 & 72.9 & 74.5 & 72.1 & 73.4 & 73.7 & 74.5 & 72.0 \\
+                    Elbow & 71.8 & 72.3 & 71.2 & 51.9 & 56.0 & 61.7 & 68.3 & 69.5 & 68.9 & 69.5 & 69.9 & 69.4 & 66.7 \\
+                    Wrist & 71.3 & 71.4 & 70.8 & 56.0 & 56.6 & 36.3 & 70.2 & 70.8 & 69.5 & 68.7 & 70.6 & 70.2 & 65.2 \\
+                    Pinky & 51.6 & 51.3 & 51.6 & 40.4 & 40.0 & 9.24 & 53.4 & 51.2 & 52.5 & 52.7 & 52.3 & 54.7 & 46.7 \\
+                    Index finger & 59.8 & 59.9 & 59.6 & 48.7 & 46.1 & 32.5 & 56.3 & 57.5 & 56.4 & 58.4 & 58.1 & 56.3 & 54.1 \\
+                    Thumb & 54.8 & 54.4 & 55.6 & 43.2 & 44.2 & 26.0 & 54.5 & 52.5 & 54.8 & 54.3 & 53.7 & 55.3 & 50.3 \\
+                    Hip & 76.2 & 76.2 & 76.6 & 57.5 & 66.7 & 67.0 & 74.9 & 75.7 & 74.0 & 74.6 & 75.2 & 73.8 & 72.4 \\
+                    Knee & 81.7 & 81.6 & 80.3 & 68.8 & 74.5 & 70.8 & 81.4 & 80.8 & 81.3 & 82.1 & 81.0 & 80.9 & 78.8 \\
+                    Ankle & 91.5 & 90.4 & 91.1 & 42.9 & 65.4 & 44.5 & 91.7 & 91.6 & 90.4 & 91.7 & 92.0 & 91.5 & 81.3 \\
+                    Heel & 90.6 & 90.7 & 89.4 & 41.4 & 62.5 & 35.1 & 90.1 & 90.2 & 89.5 & 89.5 & 89.6 & 90.3 & 79.1 \\
+                    Toes & 77.6 & 77.1 & 77.6 & 49.1 & 62.3 & 57.6 & 75.3 & 75.1 & 75.6 & 76.4 & 76.3 & 77.1 & 71.4 \\
+                    \hline
+                    Total & 72.3 & 72.1 & 72.6 & 51.3 & 58.7 & 48.1 & 71.2 & 71.6 & 70.7 & 71.8 & 72.0 & 71.9 & \\
+                    \hline
+                \end{tabular}
+            \end{adjustbox}
+        }
+    \end{table}
 \end{frame}
 
 \end{document}

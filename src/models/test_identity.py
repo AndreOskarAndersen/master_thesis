@@ -66,12 +66,12 @@ def test_finetune_models():
     dataset_type = "CA"
     upper_range = 255
     
-    train_dataloader, eval_dataloader, test_dataloader = get_dataloaders(dir_path, window_size, batch_size, eval_ratio, interval_skip=interval_skip, dataset_type=dataset_type, upper_range=upper_range)
+    _, eval_dataloader, test_dataloader = get_dataloaders(dir_path, window_size, batch_size, eval_ratio, interval_skip=interval_skip, dataset_type=dataset_type, upper_range=upper_range)
     
     eval_PCKs = []
     
     with torch.no_grad():
-        for i, (x, y, is_pa) in tqdm(enumerate(eval_dataloader), leave=False, desc="Computing PCK", disable=False, total=len(eval_dataloader)):
+        for i, (x, y, _) in tqdm(enumerate(eval_dataloader), leave=False, desc="Computing PCK", disable=False, total=len(eval_dataloader)):
             
             PCK = compute_PCK(y, x, norm=0.2)
             if PCK != -1:
@@ -145,8 +145,8 @@ def test_single_video():
         
 def main():
     #test_pretrain_models()
-    #test_finetune_models()
-    test_single_video()
+    test_finetune_models()
+    #test_single_video()
 
 if __name__ == "__main__":
     main()
