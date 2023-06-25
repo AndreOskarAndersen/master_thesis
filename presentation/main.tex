@@ -265,11 +265,11 @@
     \frametitle{Pretraining}
     Procedure
     \begin{itemize}
-        \item<1-> Not training already-developed pose-detector
+        \item<1-> Not using already-developed pose-detector
         \begin{itemize}
             \item Different input images = Bad representation of pose-detector predictions
         \end{itemize}
-        \item<2-> Instead, simulate pose-detector output by shifting input keypoints = learn to denoise
+        \item<2-> Instead, simulate pose-detector output by shifting input keypoints = learn to denoise by temporal smoothing
     \end{itemize}
 \end{frame}
 
