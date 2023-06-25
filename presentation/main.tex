@@ -292,7 +292,7 @@
     Freezing already-developed pose-detector
         \begin{enumerate}
             \item Quicker fitting
-            \item Greater understanding of results  
+            \item Greater understanding of effects of temporal smoothing
         \end{enumerate}
 \end{frame}
 
@@ -478,7 +478,7 @@
 \begin{frame}
     \frametitle{Which model is the optimal choice?}
     \begin{itemize}
-        \item<1-> Greatest testing accuracy: DeciWatch shifting-scalar $s = 1$, full frame rate
+        \item<1-> Most accurate predictions: DeciWatch shifting-scalar $s = 1$, full frame rate
         \item<1-> Greatest rough estimation: bi-ConvLSTM Model C, shifting-scalar $s = 1$, experiment 1
         \item<1-> Speed and memory: 3DConv, shfting-scalar $s = 1$, experiment 3
     \end{itemize}
@@ -528,7 +528,7 @@
 
 \begin{frame}
     \frametitle{Conclusion}
-    Succesfully developed and tested models that incorporate temporal information in 2D human pose estimation for bouldering.
+    Succesfully developed and tested models that perform temporal smoothing in 2D human pose estimation for bouldering.
     \begin{itemize}
         \item Pretraining and finetuning
         \item Multiple experiments to find the optimal setting of the models
