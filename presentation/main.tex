@@ -129,7 +129,7 @@
     \begin{itemize}
         \item<1-> Generally, three approaches
         \begin{enumerate}
-            \item Convolutional neural network (CNN)
+            \item Convolutional layer
             \item Recurrent neural network (RNN)
             \item Transformer
         \end{enumerate}
@@ -140,7 +140,7 @@
 
 \begin{frame}
     \frametitle{The Models}
-    CNN-based approach
+    Convolutional layer
     \begin{itemize}
         \item<1-> Name: 3DConv
         \item<1-> 3-dimensional conv. layer + ReLU
@@ -202,7 +202,7 @@
     \begin{minipage}{0.5\textwidth}
         ClimbAlong
         \begin{itemize}
-            \item Fully annoated videos of climbers
+            \item Fully annotated videos of climbers
             \item<2-> Problem: very small dataset
         \end{itemize}
     \end{minipage} \hfill
@@ -220,7 +220,7 @@
     \begin{minipage}{0.5\textwidth}
         ClimbAlong
         \begin{itemize}
-            \item Fully annoated videos of climbers
+            \item Fully annotated videos of climbers
             \item Problem: Very small dataset
             \item Solution: pretrain on related datasets and finetune on ClimbAlong
             \begin{itemize}
@@ -267,7 +267,7 @@
     \begin{itemize}
         \item<1-> Not training already-developed pose-detector
         \begin{itemize}
-            \item Different input images = Unrepresentative pose-detector predictions
+            \item Different input images = Bad representation of pose-detector predictions
         \end{itemize}
         \item<2-> Instead, simulate pose-detector output by shifting input keypoints = learn to denoise
     \end{itemize}
@@ -309,8 +309,8 @@
     \frametitle{Test results}
     Only minor difference:
     \begin{itemize}
-        \item Shifting-scalar: shifting-scalar $s = 1$ better simulates the pose-detector
-        \item Translation + scaling vs only translation: standard deviations of peaks in ClimbAlong data not changing as much
+        \item<2-> Shifting-scalar: shifting-scalar $s = 1$ better simulates the pose-detector
+        \item<3-> Translation + scaling vs only translation: standard deviations of peaks in ClimbAlong data not changing as much
     \end{itemize}
     \begin{table}[htbp]
         \scalebox{0.7}{
@@ -1067,7 +1067,7 @@
 \end{frame}
 
 \begin{frame}
-    \frametitle{Finetuning keypoint testing results}
+    \frametitle{Finetuning keypoint testing results - corrected}
     
     \begin{table}[htbp]
         \scalebox{0.7}{
@@ -1102,7 +1102,7 @@
 \end{frame}
 
 \begin{frame}
-    \frametitle{Finetuning keypoint testing results}
+    \frametitle{Finetuning keypoint testing results - corrected}
     
     \begin{table}[htbp]
         \scalebox{0.7}{
