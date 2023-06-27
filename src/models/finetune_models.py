@@ -22,8 +22,6 @@ def main():
     noise_scalar = sys.argv[1]
     models_dir = pretrained_models_path + noise_scalar + "/"
     model_names = os.listdir(models_dir)
-    idk = ["baseline_1685811266.2595556", "baseline_1685811266.2655702", "baseline_1685811266.2920554", "deciwatch_1685802556.685904", "deciwatch_1685802556.6888742"]
-    model_names = list(filter(lambda x: x not in idk, model_names))
     
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     

@@ -15,7 +15,7 @@ if __name__ == "__main__":
         make_dir(OVERALL_DATA_FOLDER(noise_scalar) + subfolder)
         
     #make_dir(OVERALL_PROCESSED_FOLDER)
-    #make_dir(CA_PROCESSED_PATH)
+    make_dir(CA_PROCESSED_PATH)
     
     # Preprocessing BRACE
     preprocess_BRACE.preprocess(noise_scalar)
@@ -24,4 +24,4 @@ if __name__ == "__main__":
     preprocess_penn_action.preprocess(noise_scalar)
     
     # Preprocessing ClimbAlong
-    #preprocess_ClimbAlong.preprocess()
+    preprocess_ClimbAlong.preprocess()
