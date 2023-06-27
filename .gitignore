@@ -411,10 +411,13 @@ cython_debug/
 # =================== OTHER ===================
 
 # Unprocessed data
-data
+data/*
 
 # Finetuned models
-finetuned_models
+finetuned_models/*
 
 # Pretrained models
-pretrained_models
+pretrained_models/*
+
+# Keeping .gitkeep
+!*/.gitkeep
